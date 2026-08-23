@@ -1,0 +1,15 @@
+# WordPress, les extensions et la base vivent dans des volumes Docker, jamais ici.
+# Ce dépôt ne contient que ce qui est reproductible : le thème, les scripts
+# d'installation, les photos d'origine et la documentation.
+
+# Bruit du système de fichiers
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+
+# Éditeurs
+.idea/
+.vscode/
+*.swp
+*~

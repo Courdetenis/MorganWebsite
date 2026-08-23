@@ -1,0 +1,20 @@
+# Fins de ligne en LF partout. setup.sh est exécuté par /bin/sh dans un
+# conteneur Linux : récupéré en CRLF sur une machine Windows, il échouerait
+# avec « bad interpreter ». Les scripts PHP sont lus par le conteneur wpcli.
+* text=auto eol=lf
+
+*.sh   text eol=lf
+*.php  text eol=lf
+*.css  text eol=lf
+*.js   text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf
+
+# Photos : jamais de conversion.
+*.jpg  binary
+*.JPG  binary
+*.jpeg binary
+*.png  binary
+*.webp binary

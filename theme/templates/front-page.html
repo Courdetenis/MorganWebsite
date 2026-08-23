@@ -1,0 +1,15 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- Pas de marge haute : le hero pleine largeur doit passer sous l'en-tête collant. -->
+<!-- wp:group {"tagName":"main","anchor":"contenu","layout":{"type":"constrained"}} -->
+<main class="wp-block-group" id="contenu">
+	<!-- Le contenu de l'accueil vit dans la page « Accueil » / « Home », pas ici :
+	     sinon la version anglaise afficherait les textes français, et Morgane ne
+	     pourrait pas le modifier sans toucher au thème. -->
+	<!-- Pleine largeur : sinon le conteneur du contenu reste à 760 px et les
+	     sections en « pleine largeur » n'ont plus rien à remplir. -->
+	<!-- wp:post-content {"align":"full","layout":{"type":"constrained"}} /-->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->

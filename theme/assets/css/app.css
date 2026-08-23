@@ -1,0 +1,926 @@
+/* =========================================================
+   Morgane Cachia – Art
+   Design system = theme.json. Ici : thèmes clair/sombre,
+   composants et motion.
+
+   Direction : la mise en scène « aurore » d'origine (dégradés
+   mesh, bandeau défilant, formes flottantes, mouvement au
+   défilement), repeinte avec la palette rose pâle / vert sauge.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. Thèmes
+   Les presets WP sont redéfinis sous [data-theme="dark"] :
+   tout ce qui utilise --wp--preset--color--* bascule d'un coup.
+   --------------------------------------------------------- */
+:root {
+  --ease-out: cubic-bezier(.22,.61,.36,1);
+  --radius-card: 16px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 14px 40px rgba(46,59,51,.10);
+  --shadow-lift: 0 24px 60px rgba(46,59,51,.16);
+
+  --aurora-opacity: .60;
+  --aurora-blur: 46px;
+  --surface-blur: rgba(255,248,247,.82);
+  --hairline: rgba(46,59,51,.09);
+
+  --grad-aurora: linear-gradient(120deg,#E8B4BE 0%,#EBC9C2 26%,#C7D6C0 52%,#8FA98F 76%,#B9A7D9 100%);
+  --grad-sunset: linear-gradient(135deg,#E8B4BE 0%,#A84D63 100%);
+  --grad-meadow: linear-gradient(135deg,#8FA98F 0%,#E8B4BE 100%);
+  --grad-dusk:   linear-gradient(135deg,#B9A7D9 0%,#8FA98F 100%);
+  /* Fond de pastille : assez foncé pour porter du texte blanc. */
+  --grad-pill:   linear-gradient(135deg,#A84D63 0%,#8B3F54 100%);
+}
+
+/* Mode sombre : vert sauge profond. */
+[data-theme="dark"] {
+  --wp--preset--color--paper:    #29352F;
+  --wp--preset--color--cream:    #33403A;
+  --wp--preset--color--ink:      #F0EAE6;
+  --wp--preset--color--ink-soft: #B2BEB4;
+  --wp--preset--color--line:     #3E4C45;
+  /* accents remontés en luminosité pour tenir sur fond sombre */
+  --wp--preset--color--blush:    #F0A0B2;
+  --wp--preset--color--rose:     #E9BFC6;
+  --wp--preset--color--sage:     #A8C2A8;
+  --wp--preset--color--lilac:    #C9B8E8;
+
+  --shadow-soft: 0 14px 40px rgba(0,0,0,.40);
+  --shadow-lift: 0 24px 60px rgba(0,0,0,.55);
+  --aurora-opacity: .34;
+  --aurora-blur: 58px;
+  --surface-blur: rgba(41,53,47,.84);
+  --hairline: rgba(255,255,255,.10);
+
+  --grad-pill: linear-gradient(135deg,#F0A0B2 0%,#D4788C 100%);
+}
+
+/* Bascule douce, sans repeindre le monde à chaque frame. */
+body,
+.site-header.is-scrolled,
+.wp-block-button__link,
+.artwork__frame,
+.nav-card__frame,
+.artwork__title {
+  transition: background-color .3s var(--ease-out), color .3s var(--ease-out), border-color .3s var(--ease-out);
+}
+
+html { scroll-behavior: smooth; }
+body { overflow-x: hidden; }
+
+::selection { background: var(--wp--preset--color--rose); color: #2E3B33; }
+
+:where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2.5px solid var(--wp--preset--color--blush);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* Lien d'évitement (accessibilité clavier).
+   Sorti sur le côté et non vers le haut : au-dessus, il dépassait d'un cheveu
+   sous l'en-tête collant. */
+.skip-link {
+  position: absolute; left: -9999px; top: 1rem; z-index: 200;
+  padding: .7rem 1.1rem; border-radius: var(--radius-pill);
+  background: var(--wp--preset--color--ink); color: var(--wp--preset--color--paper);
+  font-size: .9rem; text-decoration: none;
+}
+.skip-link:focus { left: 1rem; }
+
+/* ---------------------------------------------------------
+   2. Boutons
+   --------------------------------------------------------- */
+.wp-block-button__link {
+  transition: transform .25s var(--ease-out), background-color .25s var(--ease-out),
+              box-shadow .25s var(--ease-out), color .25s var(--ease-out);
+  box-shadow: 0 6px 18px rgba(46,59,51,.12);
+}
+.wp-block-button__link:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
+.wp-block-button__link:active { transform: translateY(-1px); }
+
+[data-theme="dark"] .wp-block-button:not(.is-style-outline) .wp-block-button__link {
+  background-color: var(--wp--preset--color--ink);
+  color: var(--wp--preset--color--paper);
+}
+[data-theme="dark"] .wp-block-button:not(.is-style-outline) .wp-block-button__link:hover {
+  background-color: var(--wp--preset--color--blush);
+  color: #24302A;
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link {
+  /* Le filet clair disparaît sur le fond rose : on prend une teinte d'encre. */
+  border: 1.5px solid color-mix(in srgb, var(--wp--preset--color--ink) 28%, transparent);
+  box-shadow: none;
+}
+.wp-block-button.is-style-outline .wp-block-button__link:hover {
+  border-color: var(--wp--preset--color--blush);
+  color: var(--wp--preset--color--blush) !important;
+  background: transparent !important;
+}
+
+/* ---------------------------------------------------------
+   3. En-tête
+   Trois zones : menu à gauche, nom au centre, outils à droite.
+   --------------------------------------------------------- */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  border: 0 !important;
+  transition: background-color .3s var(--ease-out), box-shadow .3s var(--ease-out), backdrop-filter .3s var(--ease-out);
+}
+/* Deux rangées : le nom au centre avec les outils à droite, puis la rangée de
+   liens centrée dessous. Sur une seule rangée, les six liens (≈690 px) volent
+   au nom la place dont il a besoin pour rester vraiment centré. */
+.site-header__bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: ". brand tools" "menu menu menu";
+  align-items: center;
+  column-gap: 1rem; row-gap: .3rem;
+  padding-block: .7rem;
+}
+.site-header.is-scrolled {
+  background: var(--surface-blur);
+  backdrop-filter: saturate(1.3) blur(14px);
+  -webkit-backdrop-filter: saturate(1.3) blur(14px);
+  box-shadow: 0 1px 0 var(--hairline), 0 12px 32px rgba(46,59,51,.06);
+}
+
+.site-header__brand {
+  grid-area: brand; margin: 0; line-height: 1.1; text-align: center;
+  font-family: var(--wp--preset--font-family--heading);
+  font-size: clamp(1.15rem, 2.4vw, 1.6rem);
+  font-weight: 500; letter-spacing: -0.01em;
+}
+.site-header__brand a { color: var(--wp--preset--color--ink); text-decoration: none; }
+
+.site-header__tools {
+  grid-area: tools; justify-self: end;
+  display: flex; align-items: center; gap: .5rem;
+}
+
+/* ---------------------------------------------------------
+   4. Menu principal
+   Un seul balisage, deux présentations :
+   au-dessus de 720 px les liens sont posés à plat dans l'en-tête,
+   en dessous ils passent derrière un bouton (voir § 15).
+   --------------------------------------------------------- */
+.menu { grid-area: menu; justify-self: center; position: relative; }
+
+/* Bouton hamburger : mobile uniquement. */
+.menu__trigger { display: none; }
+
+/* Trois traits qui deviennent une croix à l'ouverture. */
+.menu__bars { position: relative; width: 18px; height: 12px; flex: 0 0 auto; }
+.menu__bars span {
+  position: absolute; left: 0; width: 100%; height: 1.5px; border-radius: 2px;
+  background: currentColor;
+  transition: transform .28s var(--ease-out), opacity .2s var(--ease-out);
+}
+.menu__bars span:nth-child(1) { top: 0; }
+.menu__bars span:nth-child(2) { top: 5px; }
+.menu__bars span:nth-child(3) { top: 10px; }
+.menu[data-open] .menu__bars span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
+.menu[data-open] .menu__bars span:nth-child(2) { opacity: 0; }
+.menu[data-open] .menu__bars span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
+
+/* Rangée de liens (présentation par défaut : desktop et tablette). */
+.menu__panel {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: clamp(.4rem, 1.4vw, 1rem);
+}
+.menu__list {
+  display: flex; align-items: center; gap: clamp(.2rem, .8vw, .6rem);
+  list-style: none; margin: 0; padding: 0;
+}
+.menu__list a {
+  position: relative;
+  display: block; padding: .45rem clamp(.35rem, .8vw, .6rem); border-radius: 8px;
+  color: var(--wp--preset--color--ink); text-decoration: none;
+  font-family: var(--wp--preset--font-family--body);
+  /* Se resserre plutôt que de passer à la ligne sur les petites tablettes. */
+  font-size: clamp(.88rem, 1.25vw, .98rem);
+  line-height: 1.4; white-space: nowrap;
+  transition: color .22s var(--ease-out);
+}
+.menu__list a::after {
+  content: ""; position: absolute; left: clamp(.35rem, .8vw, .6rem); right: 100%; bottom: .2rem; height: 2px;
+  background: var(--grad-sunset); border-radius: 2px;
+  transition: right .3s var(--ease-out);
+}
+.menu__list a:hover { color: var(--wp--preset--color--blush); }
+.menu__list a:hover::after,
+.menu__list a[aria-current="page"]::after { right: clamp(.35rem, .8vw, .6rem); }
+
+/* « Commissions et collaborations » : accessible, mais visiblement secondaire —
+   le cahier des charges le veut à portée sans alourdir la navigation. */
+.menu__aside { padding-left: clamp(.4rem, 1.2vw, .9rem); border-left: 1px solid var(--wp--preset--color--line); }
+.menu__aside a { font-size: .88rem; color: var(--wp--preset--color--ink-soft); }
+.menu__aside a:hover { color: var(--wp--preset--color--blush); }
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------------------------------------------------------
+   5. Sélecteur de langue
+   --------------------------------------------------------- */
+.lang-switch {
+  position: relative; flex: 0 0 auto;
+  display: inline-flex; align-items: center;
+  padding: 3px; gap: 2px;
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+}
+.lang-switch__item {
+  position: relative; z-index: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 42px; min-height: 36px; padding: 0 .55rem;
+  font-family: var(--wp--preset--font-family--body);
+  font-size: .78rem; font-weight: 600; letter-spacing: .06em;
+  color: var(--wp--preset--color--ink-soft);
+  text-decoration: none !important;
+  border-radius: var(--radius-pill);
+  transition: color .25s var(--ease-out);
+}
+.lang-switch__item:hover { color: var(--wp--preset--color--ink); }
+.lang-switch__item.is-active { color: #FFF; }
+.lang-switch__item.is-active::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: var(--grad-pill);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 3px 10px rgba(168,77,99,.32);
+}
+[data-theme="dark"] .lang-switch__item.is-active { color: #24302A; }
+
+/* ---------------------------------------------------------
+   6. Bascule clair / sombre
+   --------------------------------------------------------- */
+.theme-toggle {
+  display: inline-grid; place-items: center; flex: 0 0 auto;
+  width: 44px; height: 44px; padding: 0;
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+  color: var(--wp--preset--color--ink);
+  cursor: pointer;
+  transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.theme-toggle:hover { transform: translateY(-2px); border-color: var(--wp--preset--color--lilac); color: var(--wp--preset--color--lilac); }
+.theme-toggle svg { grid-area: 1 / 1; transition: opacity .3s var(--ease-out), transform .4s var(--ease-out); }
+.theme-toggle__moon { opacity: 0; transform: rotate(-45deg) scale(.6); }
+[data-theme="dark"] .theme-toggle__sun  { opacity: 0; transform: rotate(45deg) scale(.6); }
+[data-theme="dark"] .theme-toggle__moon { opacity: 1; transform: none; }
+
+/* ---------------------------------------------------------
+   7. Panier
+   --------------------------------------------------------- */
+.cart-link {
+  position: relative;
+  display: inline-grid; place-items: center; flex: 0 0 auto;
+  width: 44px; height: 44px;
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+  color: var(--wp--preset--color--ink);
+  text-decoration: none !important;
+  transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.cart-link:hover { transform: translateY(-2px); border-color: var(--wp--preset--color--blush); color: var(--wp--preset--color--blush); }
+.cart-link__badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  display: grid; place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--grad-pill); color: #FFF;
+  font-size: .68rem; font-weight: 700; line-height: 1;
+}
+[data-theme="dark"] .cart-link__badge { color: #24302A; }
+
+/* ---------------------------------------------------------
+   8. Hero — mise en scène « aurore »
+   --------------------------------------------------------- */
+.hero { position: relative; overflow: clip; isolation: isolate; display: grid; align-content: center; }
+.hero::before {
+  content: ""; position: absolute; inset: -25%; z-index: -2;
+  background:
+    radial-gradient(38% 38% at 20% 28%, #E8B4BE 0%, transparent 62%),
+    radial-gradient(34% 34% at 82% 22%, #EBC9C2 0%, transparent 62%),
+    radial-gradient(44% 44% at 72% 78%, #8FA98F 0%, transparent 62%),
+    radial-gradient(40% 40% at 26% 82%, #C7D6C0 0%, transparent 62%),
+    radial-gradient(30% 30% at 52% 50%, #B9A7D9 0%, transparent 60%);
+  filter: blur(var(--aurora-blur)) saturate(1.15);
+  opacity: var(--aurora-opacity);
+  animation: aurora-drift 20s ease-in-out infinite alternate;
+}
+.hero::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(120% 78% at 50% 32%, transparent 38%, var(--wp--preset--color--paper) 100%);
+  opacity: .55;
+}
+@keyframes aurora-drift {
+  from { transform: scale(1) translate3d(0,0,0) rotate(0deg); }
+  to   { transform: scale(1.16) translate3d(2%,-1%,0) rotate(6deg); }
+}
+
+.hero__inner { display: grid; justify-items: center; gap: clamp(1.25rem, 2.5vw, 1.75rem); text-align: center; }
+.hero__eyebrow {
+  font-family: var(--wp--preset--font-family--accent);
+  color: var(--wp--preset--color--blush);
+  font-size: clamp(1.35rem, 2.8vw, 1.9rem);
+  line-height: 1; margin: 0;
+}
+/* L'accroche fait une phrase entière, pas trois mots : à la taille « Affiche »
+   elle occuperait cinq lignes et pousserait tout le reste hors de l'écran. */
+.hero h1 {
+  margin: 0; text-wrap: balance; max-width: 20ch;
+  font-size: clamp(2.1rem, 4.4vw, 3.5rem);
+}
+.hero__lede { margin: 0; max-width: 46ch; text-wrap: pretty; color: var(--wp--preset--color--ink-soft); }
+.hero .wp-block-buttons { margin-top: .5rem; }
+
+/* Découpe du titre en mots, pour l'animation d'entrée. */
+.word { display: inline-block; overflow: hidden; padding-bottom: .1em; }
+.word__i { display: inline-block; }
+
+.scroll-cue {
+  width: 24px; height: 40px; border: 2px solid var(--wp--preset--color--ink-soft);
+  border-radius: 20px; position: relative; margin: 0 auto; opacity: .45;
+}
+.scroll-cue::after {
+  content: ""; position: absolute; top: 7px; left: 50%; width: 3px; height: 8px; margin-left: -1.5px;
+  background: var(--wp--preset--color--ink-soft); border-radius: 2px;
+  animation: cue 1.8s var(--ease-out) infinite;
+}
+@keyframes cue { 0%{transform:translateY(0);opacity:1} 70%{transform:translateY(12px);opacity:0} 100%{opacity:0} }
+
+/* Formes flottantes (parallaxe au défilement, via JS). */
+.blob {
+  position: absolute; z-index: -1; pointer-events: none;
+  border-radius: 50% 42% 58% 45% / 55% 48% 52% 45%;
+  filter: blur(3px); opacity: .42;
+}
+.blob--rose  { background: var(--grad-sunset); }
+.blob--sage  { background: var(--grad-meadow); }
+.blob--lilac { background: var(--grad-dusk); }
+[data-theme="dark"] .blob { opacity: .3; }
+
+/* Image d'accueil, en bandeau large. */
+/* Les photos d'accueil et d'À propos sont des portraits 3:4 : le cadre reprend
+   leurs proportions, donc rien n'est recadré et les visages restent entiers.
+   Un bandeau large en aurait gardé une bande centrale, sans les têtes. */
+.hero__media {
+  position: relative;
+  width: 100%; max-width: 520px; margin-inline: auto;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-card); overflow: hidden;
+  background: var(--grad-aurora);
+  box-shadow: var(--shadow-soft);
+}
+.hero__media img {
+  width: 100%; height: 100%; display: block; margin: 0;
+  /* Filet de sécurité si une photo n'est pas en 3:4 : on garde le haut. */
+  object-fit: cover; object-position: center 20%;
+}
+
+/* À propos : portrait à gauche, bio à droite dès qu'il y a la place. */
+.about-intro__text > p:first-child { margin-top: 0; }
+@media (min-width: 900px) {
+  .about-intro {
+    display: grid; align-items: center; justify-content: center;
+    /* La colonne de texte est plafonnée : en 1fr elle atteignait 736 px,
+       une ligne bien trop longue à lire. */
+    grid-template-columns: minmax(0, 440px) minmax(0, 640px);
+    gap: clamp(2rem, 4.5vw, 4rem);
+  }
+  .about-intro .hero__media { max-width: none; margin-inline: 0; }
+}
+
+/* ---------------------------------------------------------
+   9. Sections
+   --------------------------------------------------------- */
+.eyebrow {
+  font-family: var(--wp--preset--font-family--accent);
+  color: var(--wp--preset--color--blush);
+  font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+  display: block; line-height: 1; margin: 0 0 .35rem;
+}
+.section-head { margin-bottom: clamp(2.5rem, 5vw, 3.5rem); }
+.section-head h2 { margin: 0; }
+
+/* Bandeau couleur défilant */
+.color-band { background: var(--grad-aurora); overflow: hidden; }
+.color-band .marquee {
+  display: flex; align-items: center; gap: 2.5rem;
+  white-space: nowrap; width: max-content;
+  animation: marquee 30s linear infinite;
+  font-family: var(--wp--preset--font-family--heading);
+  color: #2E3B33; font-size: clamp(1.15rem, 2.6vw, 1.9rem); font-weight: 500;
+  padding: .95rem 0;
+}
+.color-band .marquee span { display: inline-flex; align-items: center; gap: 2.5rem; }
+.color-band .marquee span::after { content: "✦"; opacity: .55; font-size: .7em; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Repère visuel léger entre deux blocs de texte long.
+   `:not(.alignwide)` et le nom de balise ne sont pas décoratifs : la feuille du
+   bloc séparateur impose 100 px et un centrage avec une spécificité supérieure. */
+hr.wp-block-separator.rule:not(.alignwide),
+.rule {
+  width: 56px; height: 1px; border: 0;
+  margin: clamp(2rem,4vw,3rem) auto;
+  background: var(--wp--preset--color--line); opacity: 1;
+}
+
+/* ---------------------------------------------------------
+   8 bis. Titres de page, chapeaux et bandes éditoriales
+
+   Tout est centré et symétrique. Les longueurs de ligne sont posées en `rem`
+   et non en `ch` : dans DM Sans, 1ch vaut environ 0,69 em, si bien que le
+   « 62ch » d'origine donnait 925 px, soit plus de 110 caractères par ligne —
+   d'où l'impression de texte courant d'un bord à l'autre.
+   --------------------------------------------------------- */
+
+/* La taille des h1 est fixée dans theme.json, pour couvrir aussi les gabarits
+   de WooCommerce qui n'ont pas cette classe. */
+.page-title.wp-block-post-title {
+  max-width: 24rem; margin-inline: auto; text-align: center;
+}
+
+/* Chapeau : le premier paragraphe d'une page. */
+.lead {
+  max-width: 44rem; margin-inline: auto; margin-top: 0;
+  font-size: clamp(1.15rem, 1.5vw, 1.4rem);
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* Texte courant : colonne centrée, autour de 70 caractères par ligne.
+   La largeur est posée sur les enfants et non sur `.prose` : l'enveloppe porte
+   `alignwide`, et la règle de WordPress qui lui impose 1240 px l'emporterait. */
+.prose { text-align: center; }
+.prose > * { max-width: 44rem; margin-inline: auto; }
+.prose > :first-child { margin-top: 0; }
+.prose > :last-child { margin-bottom: 0; }
+.prose .wp-block-buttons { justify-content: center; }
+
+/* Bande : titre centré, contenu centré dessous. Ce n'est pas pour autant une
+   colonne étroite — les étapes s'étalent sur deux colonnes et les bandeaux
+   d'images gardent la pleine largeur. */
+.band { margin-block: clamp(2.5rem, 5vw, 4.5rem); }
+.band__head h2 { margin: 0 0 clamp(1.5rem, 3vw, 2.25rem); text-align: center; }
+.band__body { max-width: 62rem; margin-inline: auto; }
+.band__body > :first-child { margin-top: 0; }
+.band__body > :last-child { margin-bottom: 0; }
+/* L'encadré reste plus étroit que les étapes : c'est du texte suivi. */
+.band__body .note { max-width: 46rem; margin-inline: auto; }
+
+@media (min-width: 1000px) {
+  .band__head h2 { font-size: clamp(1.75rem, 2.3vw, 2.35rem); }
+  /* `columns` et non une grille : la lecture descend la première colonne avant
+     de passer à la seconde, ce qu'on attend d'une liste numérotée. */
+  .band__body .steps {
+    display: block; columns: 2; column-gap: clamp(2.5rem, 4vw, 4rem);
+  }
+  .band__body .steps li { break-inside: avoid; margin-bottom: 1.15rem; }
+}
+
+/* Listes d'étapes (« comment ça se passe ») */
+.steps { counter-reset: step; list-style: none; margin: 0; padding: 0; display: grid; gap: 1.15rem; }
+.steps li {
+  counter-increment: step;
+  display: grid; grid-template-columns: 2.15rem 1fr; gap: .95rem; align-items: start;
+}
+.steps li::before {
+  content: counter(step);
+  display: grid; place-items: center;
+  width: 2.15rem; height: 2.15rem; border-radius: 50%;
+  background: var(--grad-sunset); color: #FFF;
+  font-family: var(--wp--preset--font-family--body);
+  font-size: .85rem; font-weight: 700;
+  box-shadow: 0 4px 12px rgba(168,77,99,.22);
+}
+[data-theme="dark"] .steps li::before { color: #24302A; }
+
+/* Encadré rassurant (tarifs, entente, matériaux…) */
+.note {
+  position: relative;
+  padding: clamp(1.35rem, 3vw, 2rem);
+  background: var(--wp--preset--color--cream);
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.note::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 4px;
+  background: var(--grad-aurora);
+}
+.note > :first-child { margin-top: 0; }
+.note > :last-child { margin-bottom: 0; }
+
+/* ---------------------------------------------------------
+   10. Cartes de navigation (accueil, hub commissions)
+   Une image + un libellé. Toute la carte est cliquable.
+   --------------------------------------------------------- */
+.nav-cards {
+  display: grid; gap: clamp(1.25rem, 2.6vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  list-style: none; margin: 0; padding: 0;
+}
+/* Le plafond est sur la carte, pas sur la colonne : en le mettant sur la
+   colonne, `auto-fit` compte les colonnes d'après ce maximum et les quatre
+   cartes du portfolio ne tenaient plus sur une rangée. Ici les colonnes
+   remplissent la largeur, et seule une carte isolée cesse de grandir. */
+.nav-card { margin: 0; max-width: 380px; width: 100%; justify-self: center; }
+.nav-card a { display: block; text-decoration: none; color: inherit; }
+.nav-card__frame {
+  display: block; width: 100%; aspect-ratio: 3 / 4;
+  border-radius: var(--radius-card); overflow: hidden;
+  background: var(--grad-sunset);
+  box-shadow: var(--shadow-soft);
+  transition: transform .45s var(--ease-out), box-shadow .45s var(--ease-out);
+}
+.nav-card:nth-child(3n+2) .nav-card__frame { background: var(--grad-meadow); }
+.nav-card:nth-child(3n+3) .nav-card__frame { background: var(--grad-dusk); }
+.nav-card__frame img { width: 100%; height: 100%; object-fit: cover; display: block; margin: 0; transition: transform .6s var(--ease-out); }
+.nav-card a:hover .nav-card__frame { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
+.nav-card a:hover .nav-card__frame img { transform: scale(1.04); }
+.nav-card__label {
+  display: block; padding-top: .9rem;
+  font-family: var(--wp--preset--font-family--heading);
+  font-size: 1.3rem; font-weight: 500; line-height: 1.25;
+  transition: color .25s var(--ease-out);
+}
+.nav-card a:hover .nav-card__label { color: var(--wp--preset--color--blush); }
+.nav-card__note { display: block; margin-top: .2rem; font-size: .92rem; color: var(--wp--preset--color--ink-soft); }
+
+/* ---------------------------------------------------------
+   11. Portfolio — défilement horizontal
+   Style de bloc appliqué à une galerie : « Défilement horizontal ».
+   --------------------------------------------------------- */
+.wp-block-gallery.is-style-strip {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  /* `safe` : centré quand la série tient dans la largeur (la page Murales n'a
+     que deux images), aligné à gauche dès qu'elle déborde — sinon le début du
+     bandeau deviendrait inatteignable au défilement. */
+  justify-content: safe center;
+  gap: clamp(.85rem, 2vw, 1.5rem);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--wp--preset--color--line) transparent;
+}
+/* `has-nested-images` et `figure` ne sont pas décoratifs : la feuille de style
+   du bloc galerie pose `flex-grow:1` et une largeur en `calc(50% …)` avec la
+   même spécificité que nous, et elle est chargée après. Sans ce cran de plus,
+   deux images seules s'étiraient à 608 px au lieu de rester à 460. */
+.wp-block-gallery.is-style-strip.has-nested-images figure.wp-block-image {
+  flex: 0 0 min(78vw, 460px);
+  width: auto;
+  scroll-snap-align: center;
+  margin: 0;
+}
+.wp-block-gallery.is-style-strip .wp-block-image img {
+  width: 100%; height: auto;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  transition: transform .5s var(--ease-out), box-shadow .5s var(--ease-out);
+}
+.wp-block-gallery.is-style-strip .wp-block-image:hover img {
+  transform: translateY(-6px); box-shadow: var(--shadow-lift);
+}
+.wp-block-gallery.is-style-strip::-webkit-scrollbar { height: 6px; }
+.wp-block-gallery.is-style-strip::-webkit-scrollbar-thumb {
+  background: var(--wp--preset--color--line); border-radius: 3px;
+}
+
+/* Carrousel : l'enveloppe et les deux boutons sont posés par le JS. Sans JS on
+   garde le bandeau tel quel, barre de défilement comprise — d'où les règles qui
+   ne s'appliquent qu'à l'intérieur de `.carousel`. */
+.carousel { position: relative; }
+.carousel .wp-block-gallery.is-style-strip {
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.carousel .wp-block-gallery.is-style-strip::-webkit-scrollbar { display: none; }
+
+.carousel__btn {
+  position: absolute; top: 50%; z-index: 3;
+  width: 3rem; height: 3rem; border-radius: 50%; border: 0; padding: 0;
+  display: grid; place-items: center; cursor: pointer;
+  background: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-50%);
+  transition: opacity .25s var(--ease-out), background-color .25s var(--ease-out),
+              color .25s var(--ease-out), scale .25s var(--ease-out);
+}
+.carousel__btn:hover {
+  background: var(--wp--preset--color--blush); color: #FFF; scale: 1.08;
+}
+[data-theme="dark"] .carousel__btn:hover { color: #24302A; }
+.carousel__btn--prev { left: clamp(-1.5rem, -1vw, -0.5rem); }
+.carousel__btn--next { right: clamp(-1.5rem, -1vw, -0.5rem); }
+.carousel__btn[disabled] { opacity: 0; pointer-events: none; }
+.carousel__btn svg {
+  width: 1.15rem; height: 1.15rem;
+  fill: none; stroke: currentColor; stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+/* Un seul chevron dans le JS, retourné ici pour le bouton suivant. */
+.carousel__btn--next svg { transform: rotate(180deg); }
+/* Sous 700 px, la marge de page ne fait plus que 20 px : les boutons, posés en
+   débord, mordraient sur le bord de l'écran. Le glissement au doigt suffit. */
+@media (max-width: 699px) { .carousel__btn { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .carousel .wp-block-gallery.is-style-strip { scroll-behavior: auto; }
+}
+
+/* ---------------------------------------------------------
+   12. WooCommerce — grille d'œuvres
+   --------------------------------------------------------- */
+.woocommerce ul.products {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1.5rem, 2.6vw, 2.25rem) clamp(1.25rem, 2.2vw, 1.75rem);
+  margin: 0 !important; padding: 0 !important; list-style: none !important;
+}
+.woocommerce ul.products::before,
+.woocommerce ul.products::after { content: none !important; }
+
+.woocommerce ul.products li.product {
+  width: auto !important; margin: 0 !important; float: none !important;
+  text-align: left; display: flex; flex-direction: column; align-items: flex-start;
+}
+.artwork__link { display: block; width: 100%; text-decoration: none; color: inherit; }
+
+/* Vignette : ratio fixe. Sans photo, la tuile colorée fait le visuel. */
+.artwork__frame {
+  position: relative; display: block; width: 100%; aspect-ratio: 4 / 5;
+  border-radius: var(--radius-card); overflow: hidden;
+  background: var(--wp--preset--color--cream);
+  box-shadow: var(--shadow-soft);
+  transition: transform .45s var(--ease-out), box-shadow .45s var(--ease-out);
+}
+.artwork__frame--empty { background: var(--tile, var(--grad-sunset)); }
+.artwork__frame img {
+  display: block; width: 100%; height: 100%; object-fit: cover; margin: 0;
+  transition: transform .6s var(--ease-out);
+}
+.artwork:hover .artwork__frame { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
+.artwork:hover .artwork__frame img { transform: scale(1.04); }
+
+/* Placeholders en attendant les photos — à retirer une fois les visuels en ligne. */
+.artwork:nth-child(6n+1) { --tile: linear-gradient(135deg,#E8B4BE,#EBC9C2); }
+.artwork:nth-child(6n+2) { --tile: linear-gradient(135deg,#8FA98F,#C7D6C0); }
+.artwork:nth-child(6n+3) { --tile: linear-gradient(135deg,#B9A7D9,#C7D6C0); }
+.artwork:nth-child(6n+4) { --tile: linear-gradient(135deg,#EBC9C2,#8FA98F); }
+.artwork:nth-child(6n+5) { --tile: linear-gradient(135deg,#C7D6C0,#B9A7D9); }
+.artwork:nth-child(6n+6) { --tile: linear-gradient(135deg,#E8B4BE,#B9A7D9); }
+
+.artwork__badge {
+  position: absolute; top: .75rem; left: .75rem; z-index: 2;
+  padding: .3rem .7rem; border-radius: var(--radius-pill);
+  background: var(--wp--preset--color--ink); color: var(--wp--preset--color--paper);
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.artwork__badge--out { background: var(--wp--preset--color--ink-soft); }
+
+.artwork__body { display: block; padding-top: 1rem; }
+.artwork__title {
+  display: block;
+  font-family: var(--wp--preset--font-family--heading);
+  font-size: 1.15rem; font-weight: 500; line-height: 1.25;
+  color: var(--wp--preset--color--ink); text-wrap: balance;
+}
+.artwork__price {
+  display: block; margin-top: .3rem;
+  color: var(--wp--preset--color--ink-soft);
+  font-family: var(--wp--preset--font-family--body);
+  font-size: .95rem; font-weight: 500;
+}
+.artwork__price ins { text-decoration: none; }
+.artwork__price del { opacity: .55; margin-right: .4rem; font-weight: 400; }
+
+.woocommerce ul.products li.product .button,
+.woocommerce a.button.add_to_cart_button {
+  align-self: start;
+  display: inline-block; margin-top: .85rem !important;
+  background: transparent; color: var(--wp--preset--color--ink);
+  border: 1.5px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-pill);
+  padding: .55rem 1.15rem; font-size: .88rem; font-weight: 600;
+  min-height: 40px; line-height: 1.5;
+  transition: transform .25s var(--ease-out), background-color .25s var(--ease-out),
+              border-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.woocommerce ul.products li.product .button:hover,
+.woocommerce a.button.add_to_cart_button:hover {
+  background: var(--wp--preset--color--ink); color: var(--wp--preset--color--paper);
+  border-color: var(--wp--preset--color--ink); transform: translateY(-2px);
+}
+.woocommerce ul.products li.product .button.added { display: none; }
+.woocommerce ul.products li.product .added_to_cart {
+  display: inline-block; margin-top: .5rem; font-size: .85rem; font-weight: 600;
+  color: var(--wp--preset--color--blush);
+}
+
+@media (max-width: 1100px) { .woocommerce ul.products { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+@media (max-width: 820px)  { .woocommerce ul.products { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 480px)  { .woocommerce ul.products { grid-template-columns: 1fr; } }
+
+/* ---------------------------------------------------------
+   13. Formulaires (commissions, collaborations, murales)
+   --------------------------------------------------------- */
+.form { display: grid; gap: 1.4rem; margin-top: clamp(2rem, 4vw, 3rem); }
+
+/* Le formulaire est centré comme le reste, sans s'étirer sur 1240 px. */
+.form-band .form-wrap { max-width: 56rem; margin-inline: auto; }
+.form-band .form-wrap > h2 { text-align: center; }
+/* Sur la largeur large, les champs courts se mettent côte à côte ; les zones de
+   texte et le bouton gardent toute la largeur. */
+@media (min-width: 900px) {
+  .form-band .form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+  .form-band .form__field--wide,
+  .form-band .form__submit { grid-column: 1 / -1; }
+  /* Le bouton reste sur la gauche des champs par défaut : centré, il s'aligne
+     avec le titre et le reste de la page. */
+  .form-band .form__submit { justify-self: center; }
+}
+.form__field { display: grid; gap: .4rem; }
+.form__label { font-size: .95rem; font-weight: 600; }
+.form__label .form__optional { font-weight: 400; color: var(--wp--preset--color--ink-soft); }
+.form__hint { font-size: .87rem; color: var(--wp--preset--color--ink-soft); }
+.form input[type="text"],
+.form input[type="email"],
+.form textarea {
+  width: 100%; padding: .85rem 1rem;
+  font-family: inherit; font-size: 1rem; color: var(--wp--preset--color--ink);
+  background: var(--wp--preset--color--cream);
+  border: 1.5px solid var(--wp--preset--color--line);
+  border-radius: 12px;
+  transition: border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+}
+.form input:focus, .form textarea:focus {
+  border-color: var(--wp--preset--color--blush);
+  box-shadow: 0 6px 20px rgba(168,77,99,.12);
+}
+.form textarea { min-height: 9rem; resize: vertical; line-height: 1.6; }
+.form__submit {
+  justify-self: start;
+  padding: 1rem 2rem; border: 0; border-radius: var(--radius-pill);
+  background: var(--wp--preset--color--ink); color: var(--wp--preset--color--paper);
+  font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(46,59,51,.12);
+  transition: transform .25s var(--ease-out), background-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+}
+.form__submit:hover {
+  background: var(--wp--preset--color--blush); color: #FFF;
+  transform: translateY(-3px); box-shadow: var(--shadow-soft);
+}
+[data-theme="dark"] .form__submit:hover { color: #24302A; }
+/* Piège à robots : invisible, mais pas retiré du DOM. */
+.form__pot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.form__message {
+  padding: 1rem 1.15rem; border-radius: 12px;
+  border: 1.5px solid var(--wp--preset--color--line);
+  background: var(--wp--preset--color--cream);
+  box-shadow: var(--shadow-soft);
+}
+.form__message--ok { border-color: var(--wp--preset--color--sage); }
+.form__message--error { border-color: var(--wp--preset--color--blush); }
+
+/* ---------------------------------------------------------
+   14. Pied de page
+   --------------------------------------------------------- */
+.site-footer { position: relative; overflow: clip; border-top: 1px solid var(--hairline); }
+.site-footer::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; opacity: .16;
+  background: var(--grad-aurora);
+}
+[data-theme="dark"] .site-footer::before { opacity: .12; }
+.site-footer__inner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 1.5rem;
+}
+.site-footer__social { display: flex; align-items: center; gap: .35rem; }
+.site-footer__social a {
+  display: inline-grid; place-items: center;
+  width: 42px; height: 42px; border-radius: var(--radius-pill);
+  color: var(--wp--preset--color--ink-soft); text-decoration: none;
+  transition: transform .25s var(--ease-out), color .25s var(--ease-out), background-color .25s var(--ease-out);
+}
+.site-footer__social a:hover {
+  transform: translateY(-3px);
+  color: var(--wp--preset--color--blush);
+  background: var(--wp--preset--color--cream);
+}
+.site-footer__mail {
+  color: var(--wp--preset--color--ink-soft); font-size: .95rem;
+  text-decoration: none; border-bottom: 1px solid var(--wp--preset--color--line);
+  transition: color .25s var(--ease-out), border-color .25s var(--ease-out);
+}
+.site-footer__mail:hover { color: var(--wp--preset--color--blush); border-color: var(--wp--preset--color--blush); }
+.site-footer__legal { font-size: .85rem; color: var(--wp--preset--color--ink-soft); margin: 0; }
+
+/* ---------------------------------------------------------
+   15. Mobile
+   --------------------------------------------------------- */
+@media (max-width: 720px) {
+  /* Le nom ne tient plus entre le menu et les outils : on le passe
+     sur sa propre rangée, vraiment centré. */
+  .site-header__bar {
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "menu tools" "brand brand";
+    row-gap: .35rem; column-gap: .5rem;
+    min-height: 0;
+    padding-block: .6rem;
+  }
+  .site-header__brand { font-size: 1.2rem; }
+  .site-header__tools { gap: .35rem; }
+
+  /* Les liens repassent derrière le bouton. */
+  .menu__trigger {
+    display: inline-flex; align-items: center; gap: .55rem;
+    min-height: 44px; padding: 0 .95rem 0 .8rem;
+    border: 1px solid var(--wp--preset--color--line);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+    color: var(--wp--preset--color--ink);
+    font-family: var(--wp--preset--font-family--body);
+    font-size: .88rem; letter-spacing: .02em;
+    cursor: pointer;
+    transition: border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  }
+  .menu__trigger:hover { border-color: var(--wp--preset--color--blush); box-shadow: var(--shadow-soft); }
+
+  .menu__panel {
+    position: absolute; top: calc(100% + .6rem); left: 0; z-index: 120;
+    display: block; min-width: min(84vw, 300px); padding: .9rem;
+    background: var(--surface-blur);
+    backdrop-filter: saturate(1.3) blur(16px);
+    -webkit-backdrop-filter: saturate(1.3) blur(16px);
+    border: 1px solid var(--wp--preset--color--line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-lift);
+  }
+  /* Replié seulement si JavaScript peut le déplier. */
+  .js .menu:not([data-open]) .menu__panel { display: none; }
+  .menu[data-open] .menu__panel { animation: menu-in .28s var(--ease-out) both; }
+  html:not(.js) .menu__panel {
+    position: static; padding: 0; border: 0; background: none;
+    box-shadow: none; backdrop-filter: none;
+  }
+
+  .menu__list { display: block; }
+  .menu__list a {
+    padding: .6rem .75rem; border-radius: 10px;
+    font-family: var(--wp--preset--font-family--heading);
+    font-size: 1.1rem; white-space: normal;
+  }
+  .menu__list a::after { left: .75rem; bottom: .4rem; }
+  .menu__list a:hover::after,
+  .menu__list a[aria-current="page"]::after { right: calc(100% - 2.2rem); }
+  .menu__aside {
+    margin-top: .6rem; padding: .7rem 0 0;
+    border-left: 0; border-top: 1px solid var(--wp--preset--color--line);
+  }
+  .menu__aside a { font-size: .95rem; }
+
+  .lang-switch { padding: 2px; }
+  .lang-switch__item { min-width: 36px; min-height: 34px; font-size: .72rem; padding: 0 .35rem; }
+  .theme-toggle,
+  .cart-link { width: 40px; height: 40px; }
+  .hero { min-height: 80vh !important; }
+  .steps li { grid-template-columns: 1.9rem 1fr; gap: .75rem; }
+  .steps li::before { width: 1.9rem; height: 1.9rem; }
+  .artwork__title { font-size: 1.05rem; }
+  .site-footer__inner { justify-content: flex-start; }
+}
+
+/* ---------------------------------------------------------
+   16. Motion réduite — dernier mot
+   --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero::before,
+  .color-band .marquee,
+  .menu__panel,
+  .scroll-cue::after { animation: none !important; }
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
