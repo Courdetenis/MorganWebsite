@@ -3,6 +3,20 @@
 WordPress + WooCommerce + Polylang + thème bloc sur mesure.
 Cahier des charges et décisions : **`docs/architecture.md`**.
 
+## Repartir de zéro (nouvelle machine, après formatage)
+
+Tout le site se reconstruit depuis ce dépôt. Il n'y a rien d'autre à sauvegarder :
+WordPress, les extensions et la base de données vivent dans des volumes Docker et
+sont recréés par le script d'installation.
+
+```bash
+git clone https://github.com/Courdetenis/MorganWebsite.git
+```
+
+Installer Docker Desktop, puis, depuis le dossier cloné, les deux commandes
+ci-dessous. Compter quelques minutes : le script télécharge WordPress, WooCommerce
+et Polylang, puis convertit les 23 photos en WebP et les importe.
+
 ## Démarrer (après installation de Docker)
 
 ```bash
