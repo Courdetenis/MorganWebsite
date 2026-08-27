@@ -481,6 +481,7 @@ function mg_sep() {
 	return '<!-- wp:separator {"className":"rule"} --><hr class="wp-block-separator rule"/><!-- /wp:separator -->';
 }
 
+
 /**
  * Contenu d'une page. Les {{clés}} sont remplacées par les URL de la langue.
  */
@@ -505,6 +506,33 @@ function mg_content( $key, $lang ) {
 					. '<!-- wp:html -->' . "\n"
 					. '<div class="blob blob--rose" style="width:min(32vw,340px);aspect-ratio:1;top:10%;left:-5%;"></div>' . "\n"
 					. '<div class="blob blob--sage" style="width:min(26vw,280px);aspect-ratio:1;bottom:12%;right:-3%;"></div>' . "\n"
+					// Deux œuvres flottantes, comme sur « L'atelier ». Pas de
+					// `data-reveal` ici : la boucle REVEAL d'app.js saute tout ce
+					// qui est dans le hero, qui a sa propre ouverture. Elles sont
+					// jointes à cette ouverture, dans `heroRest`.
+					// `eager` : elles sont au-dessus de la ligne de flottaison.
+					. '<figure class="art-float art-float--left">'
+					. mg_photo(
+						7,
+						$fr
+							? 'Illustration à la gouache : un miroir ancien au sommet d’un escalier de pierre, dans une forêt enchantée'
+							: 'Gouache illustration: an antique mirror at the top of a stone staircase, in an enchanted forest',
+						'medium_large',
+						true,
+						'210px'
+					)
+					. '</figure>' . "\n"
+					. '<figure class="art-float art-float--right">'
+					. mg_photo(
+						14,
+						$fr
+							? 'Illustration jeunesse : un ourson grimpe à une échelle pour allumer un réverbère dans une ville enneigée'
+							: 'Children’s illustration: a bear cub climbing a ladder to light a streetlamp in a snowy town',
+						'medium_large',
+						true,
+						'210px'
+					)
+					. '</figure>' . "\n"
 					. '<!-- /wp:html -->' . "\n"
 
 					. '<!-- wp:group {"className":"hero__inner","layout":{"type":"default"}} -->' . "\n"
@@ -580,8 +608,40 @@ function mg_content( $key, $lang ) {
 					. '</section>' . "\n" . '<!-- /wp:group -->',
 
 				// --- L'atelier ---
-				'<!-- wp:group {"tagName":"section","align":"full","backgroundColor":"cream","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained","contentSize":"720px"}} -->' . "\n"
-					. '<section class="wp-block-group alignfull has-cream-background-color has-background" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">' . "\n"
+				// Plus de fond crème : la section reprend la mise en scène « aurore »
+				// du hero, qui se pose sur le fond de page. Un aplat par-dessus
+				// masquerait le dégradé.
+				'<!-- wp:group {"tagName":"section","align":"full","className":"atelier","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained","contentSize":"720px"}} -->' . "\n"
+					. '<section class="wp-block-group alignfull atelier" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">' . "\n"
+					// Formes flottantes et deux œuvres, comme sur l'accueil. Les
+					// œuvres portent `data-reveal` : elles apparaissent au défilement
+					// par la règle déjà en place dans app.js.
+					. '<!-- wp:html -->' . "\n"
+					. '<div class="blob blob--rose" style="width:min(30vw,320px);aspect-ratio:1;top:8%;left:-6%;"></div>' . "\n"
+					. '<div class="blob blob--sage" style="width:min(24vw,260px);aspect-ratio:1;bottom:10%;right:-4%;"></div>' . "\n"
+					. '<figure class="art-float art-float--left" data-reveal>'
+					. mg_photo(
+						9,
+						$fr
+							? 'Illustration à la gouache : une fée assise au cœur d’une pivoine rose immense'
+							: 'Gouache illustration: a fairy seated in the heart of a huge pink peony',
+						'medium_large',
+						false,
+						'210px'
+					)
+					. '</figure>' . "\n"
+					. '<figure class="art-float art-float--right" data-reveal>'
+					. mg_photo(
+						6,
+						$fr
+							? 'Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée'
+							: 'Gouache illustration: a long-haired woman holding a glowing moon in a blue-tinged winter forest',
+						'medium_large',
+						false,
+						'210px'
+					)
+					. '</figure>' . "\n"
+					. '<!-- /wp:html -->' . "\n"
 					. '<!-- wp:paragraph {"align":"center","className":"eyebrow"} --><p class="has-text-align-center eyebrow">'
 					. ( $fr ? 'L\'atelier' : 'The studio' )
 					. '</p><!-- /wp:paragraph -->' . "\n"

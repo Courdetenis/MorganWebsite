@@ -194,7 +194,11 @@
 
   var start = function () {
     var heroWords = gsap.utils.toArray('.hero h1 .word__i');
-    var heroRest  = gsap.utils.toArray('.hero__eyebrow, .hero__lede, .hero .wp-block-buttons, .hero .scroll-cue');
+    // `.hero .art-float` est ici et non dans REVEAL : la boucle REVEAL écarte
+    // explicitement tout ce qui est dans le hero, et une apparition au
+    // défilement n'aurait de toute façon aucun sens au-dessus de la ligne de
+    // flottaison — le déclencheur serait déjà passé au chargement.
+    var heroRest  = gsap.utils.toArray('.hero .art-float, .hero__eyebrow, .hero__lede, .hero .wp-block-buttons, .hero .scroll-cue');
 
     if (heroWords.length || heroRest.length) {
       var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });

@@ -74,6 +74,36 @@ body,
 html { scroll-behavior: smooth; }
 body { overflow-x: hidden; }
 
+/* Pied de page tenu en bas de l'écran sur les pages courtes. Le portfolio n'a
+   que 833 px de contenu : sur un écran haut, le pied s'arrêtait à 1281 px et
+   laissait le fond nu en dessous — une bande sombre sous le pied de page.
+   `main` absorbe ce qui reste.
+   Flex et non grid : le bloc conteneur d'un élément de grille est sa zone de
+   grille. L'en-tête collant se retrouverait enfermé dans sa propre rangée, haute
+   de sa seule hauteur, et n'aurait plus aucune course. En flex, le bloc
+   conteneur est le conteneur entier — l'en-tête garde la sienne. */
+.wp-site-blocks {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  /* `dvh` pour les navigateurs mobiles dont la barre d'outils se rétracte :
+     `100vh` y vaut la hauteur barre déployée et ferait déborder la page. */
+  min-height: 100dvh;
+}
+/* `flex: 1 0 auto` fait grandir `main` jusqu'à pousser le pied de page en bas,
+   mais tout l'excédent tombait sous le contenu : sur le portfolio, 104 px
+   au-dessus contre 334 px en dessous, d'où un bloc mort au bas de la page.
+   Centrer répartit cet excédent de part et d'autre. Sans effet sur les pages
+   longues, où il n'y a rien à répartir.
+   `safe` : si le contenu dépassait malgré tout, le centrage le ferait déborder
+   par le haut, hors d'atteinte du défilement. */
+.wp-site-blocks > main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+}
+
 ::selection { background: var(--wp--preset--color--rose); color: #432026; }
 
 :where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
@@ -184,6 +214,57 @@ input, textarea, select { box-sizing: border-box; }
 .site-header__tools {
   grid-area: tools; justify-self: end;
   display: flex; align-items: center; gap: .5rem;
+}
+
+/* En-tête sur une seule ligne, à partir de 1280 px.
+   Les liens se calent à gauche, « Commissions et collaborations » rejoint les
+   outils à droite, et le logo occupe le vide du milieu. La barre passe de
+   174 px à ~98 px de haut.
+   Le seuil est dicté par l'anglais, pas par le français : « Commissions and
+   collaborations » fait 247 px contre 236, et ses cinq liens 368 px contre 436.
+   Le logo étant centré sur la barre, c'est ce déséquilibre qui le rapproche le
+   plus de l'entrée secondaire — à 1240 px il n'en restait que 11 px. En dessous
+   du seuil, les deux rangées reprennent. */
+@media (min-width: 1280px) {
+  .site-header { --logo-h: 76px; }
+  .site-header.is-scrolled { --logo-h: 56px; }
+
+  .site-header__bar {
+    display: flex;
+    position: relative;
+    align-items: center;
+    gap: 1rem;
+    /* Le logo est hors flux : sans plancher, la barre se replierait sur la
+       hauteur des liens et le logo déborderait. */
+    min-height: calc(var(--logo-h) + 1.4rem);
+  }
+
+  /* Le menu prend toute la largeur sauf les outils. `space-between` sépare ses
+     deux groupes aux extrémités ; le vide qu'il laisse au milieu est la place
+     du logo. */
+  .menu { flex: 1 1 auto; min-width: 0; }
+  /* Sélecteur qualifié : la règle en grille de la version deux rangées vit plus
+     bas dans le fichier (§ 4) et l'emporterait à spécificité égale — une requête
+     média n'ajoute aucune spécificité. */
+  .site-header__bar .menu__panel {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  /* La cale de la version deux rangées ferait un troisième élément flex et
+     renverrait les liens au centre. */
+  .site-header__bar .menu__panel::before { display: none; }
+
+  /* Hors flux, donc centré sur la barre entière et non sur ce qui reste entre
+     les deux groupes : le logo tient le milieu quelles que soient leurs
+     largeurs — ce que `1fr auto 1fr` ne sait pas faire quand elles diffèrent. */
+  .site-header__brand {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+  }
+  .site-header__brand a,
+  .site-header.is-scrolled .site-header__brand a { height: var(--logo-h); }
+
+  .site-header__tools { flex: 0 0 auto; }
 }
 
 /* ---------------------------------------------------------
@@ -343,7 +424,14 @@ input, textarea, select { box-sizing: border-box; }
    8. Hero — mise en scène « aurore »
    --------------------------------------------------------- */
 .hero { position: relative; overflow: clip; isolation: isolate; display: grid; align-content: center; }
-.hero::before {
+/* « L'atelier » reprend exactement la mise en scène du hero. Les sélecteurs sont
+   mutualisés plutôt que recopiés : une seule définition, donc les deux sections
+   ne peuvent pas diverger au prochain réglage. La section garde en revanche sa
+   mise en page en flux (colonne contrainte de 720 px), d'où l'absence de
+   `display: grid` ici. */
+.atelier { position: relative; overflow: clip; isolation: isolate; }
+.hero::before,
+.atelier::before {
   content: ""; position: absolute; inset: -25%; z-index: -2;
   background:
     radial-gradient(38% 38% at 20% 28%, #DEB0A9 0%, transparent 62%),
@@ -355,7 +443,8 @@ input, textarea, select { box-sizing: border-box; }
   opacity: var(--aurora-opacity);
   animation: aurora-drift 20s ease-in-out infinite alternate;
 }
-.hero::after {
+.hero::after,
+.atelier::after {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: radial-gradient(120% 78% at 50% 32%, transparent 38%, var(--wp--preset--color--paper) 100%);
   opacity: .55;
@@ -407,6 +496,27 @@ input, textarea, select { box-sizing: border-box; }
 .blob--lilac { background: var(--grad-dusk); }
 [data-theme="dark"] .blob { opacity: .3; }
 
+/* Deux œuvres posées de part et d'autre de la colonne de texte de « L'atelier ».
+   Elles n'ont pas de classe d'animation propre : `[data-reveal]` est déjà dans
+   la liste REVEAL de `app.js`, elles héritent de la même apparition que le reste
+   du site — opacité et 26 px de montée au passage du défilement. */
+.art-float {
+  position: absolute;
+  width: clamp(150px, 14vw, 210px); aspect-ratio: 3 / 4;
+  border-radius: var(--radius-card); overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  margin: 0;
+}
+.art-float img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* La propriété `rotate` et non `transform` : GSAP pilote `transform` pour
+   l'apparition, il écraserait une rotation posée là. Les deux propriétés sont
+   indépendantes, elles se composent sans se marcher dessus. */
+.art-float--left  { left: clamp(1rem, 5vw, 5rem); top: 15%; rotate: -5deg; }
+.art-float--right { right: clamp(1rem, 5vw, 5rem); bottom: 15%; rotate: 4deg; }
+/* Sous 1100 px, les 720 px de texte ne laissent plus assez de marge : les deux
+   œuvres viendraient mordre sur les mots. */
+@media (max-width: 1099px) { .art-float { display: none; } }
+
 /* Image d'accueil, en bandeau large. */
 /* Les photos d'accueil et d'À propos sont des portraits 3:4 : le cadre reprend
    leurs proportions, donc rien n'est recadré et les visages restent entiers.
@@ -427,13 +537,17 @@ input, textarea, select { box-sizing: border-box; }
 
 /* À propos : portrait à gauche, bio à droite dès qu'il y a la place. */
 .about-intro__text > p:first-child { margin-top: 0; }
+/* Le bloc portrait + bio fait 587 px de haut : les 48 px d'espacement entre
+   blocs ne suffisaient pas à le détacher de la prose de clôture. La marge se
+   fond avec celle du bloc suivant, elle ne s'y ajoute pas. */
+.about-intro { margin-bottom: clamp(2.5rem, 5vw, 4.5rem); }
 @media (min-width: 900px) {
   .about-intro {
     display: grid; align-items: center; justify-content: center;
     /* La colonne de texte est plafonnée : en 1fr elle atteignait 736 px,
        une ligne bien trop longue à lire. */
     grid-template-columns: minmax(0, 440px) minmax(0, 640px);
-    gap: clamp(2rem, 4.5vw, 4rem);
+    gap: clamp(2.5rem, 5vw, 4.5rem);
   }
   .about-intro .hero__media { max-width: none; margin-inline: 0; }
 }
@@ -501,7 +615,14 @@ hr.wp-block-separator.rule:not(.alignwide),
    quand le titre en a 32 au-dessus. Le texte paraissait collé aux images.
    Le sélecteur double la classe pour passer devant la règle d'espacement de
    WordPress, qui remet `margin-block-end: 0` à spécificité égale. */
-.wp-block-group.lead-wrap { margin-bottom: clamp(1rem, 2vw, 1.75rem); }
+.wp-block-group.lead-wrap { margin-bottom: clamp(1.5rem, 3.4vw, 3rem); }
+/* Desktop : le chapeau s'élargit là où le texte courant ne le peut pas. Sa
+   police est grande, donc 50 rem lui font toujours une soixantaine de
+   caractères par ligne — la même mesure confortable qu'à 44 rem en corps de
+   texte. Il ouvre la page sur un moment centré, avant les bandes asymétriques. */
+@media (min-width: 1000px) {
+  .lead { max-width: 50rem; font-size: clamp(1.3rem, 1.65vw, 1.5rem); }
+}
 
 /* Texte courant : colonne centrée, autour de 70 caractères par ligne.
    La largeur est posée sur les enfants et non sur `.prose` : l'enveloppe porte
@@ -523,14 +644,50 @@ hr.wp-block-separator.rule:not(.alignwide),
 /* L'encadré reste plus étroit que les étapes : c'est du texte suivi. */
 .band__body .note { max-width: 44rem; margin-inline: auto; }
 
+/* Desktop : la bande passe en deux colonnes, titre à gauche et contenu à droite.
+   Un grand écran ne se remplit pas en étirant les paragraphes — à 1240 px une
+   ligne fait 160 caractères et l'œil perd le début de la suivante. Il se remplit
+   en mettant deux choses en regard. Le titre tient le rail de gauche, le contenu
+   prend toute la largeur qui reste. */
 @media (min-width: 1000px) {
   .band__head h2 { font-size: clamp(1.75rem, 2.3vw, 2.35rem); }
   /* `columns` et non une grille : la lecture descend la première colonne avant
-     de passer à la seconde, ce qu'on attend d'une liste numérotée. */
+     de passer à la seconde, ce qu'on attend d'une liste numérotée. Vrai dans la
+     colonne centrée de 992 px comme dans le rail de droite : la règle vaut de
+     part et d'autre du seuil ci-dessous. */
   .band__body .steps {
     display: block; columns: 2; column-gap: clamp(2.5rem, 4vw, 4rem);
   }
   .band__body .steps li { break-inside: avoid; margin-bottom: 1.15rem; }
+}
+
+/* 1180 px et non 1000 : en dessous, le rail de gauche descend à 210 px et
+   « Comment ça se passe ? » se brise en trois lignes contre un contenu déjà
+   étroit. Au-dessus, le rail tient ses 14 rem et le contenu garde 745 px. */
+@media (min-width: 1180px) {
+  .band {
+    display: grid;
+    grid-template-columns: minmax(14rem, 1fr) minmax(0, 2.8fr);
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+  }
+  /* Le titre ne suit pas le défilement : le header est collant sur 174 px et
+     rétrécit en cours de route, un titre collant viendrait le percuter. */
+  .band__head h2 { margin-bottom: 0; text-align: left; text-wrap: balance; }
+  /* Les plafonds de la version mobile sont posés pour une colonne centrée :
+     dans le rail de droite, c'est la grille qui donne la largeur. */
+  .band__body { max-width: none; margin-inline: 0; }
+
+  /* L'encadré remplit le rail. Son texte, lui, reste lisible : à plusieurs
+     paragraphes il passe sur deux colonnes, un paragraphe par colonne grâce à
+     `break-inside`. À un seul paragraphe, deux colonnes laisseraient la seconde
+     vide — il garde alors une colonne, calée à gauche du rail. */
+  .band__body .note { max-width: none; margin-inline: 0; }
+  .band__body .note:has(> p:nth-of-type(2)) {
+    columns: 2; column-gap: clamp(2rem, 3.5vw, 3.25rem);
+  }
+  .band__body .note:has(> p:nth-of-type(2)) > p { break-inside: avoid; }
+  .band__body .note:not(:has(> p:nth-of-type(2))) > * { max-width: 44rem; }
 }
 
 /* Listes d'étapes (« comment ça se passe ») */
@@ -572,7 +729,7 @@ hr.wp-block-separator.rule:not(.alignwide),
    Une image + un libellé. Toute la carte est cliquable.
    --------------------------------------------------------- */
 .nav-cards {
-  display: grid; gap: clamp(1.25rem, 2.6vw, 2rem);
+  display: grid; gap: clamp(1.5rem, 3.2vw, 2.75rem);
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   list-style: none; margin: 0; padding: 0;
 }
@@ -605,7 +762,7 @@ hr.wp-block-separator.rule:not(.alignwide),
 .nav-card a:hover .nav-card__frame { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
 .nav-card a:hover .nav-card__frame img { transform: scale(1.04); }
 .nav-card__label {
-  display: block; padding-top: .9rem;
+  display: block; padding-top: 1.15rem;
   font-family: var(--wp--preset--font-family--heading);
   font-size: 1.3rem; font-weight: 500; line-height: 1.25;
   transition: color .25s var(--ease-out);
@@ -651,6 +808,42 @@ hr.wp-block-separator.rule:not(.alignwide),
 .wp-block-gallery.is-style-strip .wp-block-image:hover img {
   transform: translateY(-6px); box-shadow: var(--shadow-lift);
 }
+/* Desktop, séries courtes : un carrousel pour deux ou trois images n'apporte
+   rien sur 1240 px — il laisse surtout du vide de chaque côté. La série passe en
+   grille et occupe toute la largeur large. Les portfolios, qui ont beaucoup
+   d'images, gardent leur bandeau défilant : `:has()` compte une quatrième image.
+   Rien à changer côté JS — `sync()` désactive déjà les deux boutons quand la
+   série tient dans la largeur, et `[disabled]` les rend invisibles.
+   1100 px et non 1000 : en dessous, deux colonnes font moins que les 460 px du
+   bandeau défilant — la grille rapetisserait les images au lieu de les agrandir. */
+@media (min-width: 1100px) {
+  .wp-block-gallery.is-style-strip:has(> .wp-block-image:nth-of-type(2)):not(:has(> .wp-block-image:nth-of-type(3))) {
+    display: grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    overflow-x: visible;
+    padding-bottom: 0;
+    align-items: start;
+  }
+  /* `!important` à contrecœur, pour la même raison que le `display` ci-dessus :
+     la feuille du bloc galerie pose `width: calc(50% - gap/2)` et `margin: 0`
+     sous `figure.wp-block-image:not(#individual-image)` — un `:not()` d'identifiant,
+     donc une spécificité qu'aucune combinaison de classes ne rattrape. En flex,
+     la règle du thème s'en sortait par `flex-basis`, qui l'emporte sur `width` ;
+     en grille `flex-basis` est ignoré et le `width` de WordPress reprend la main,
+     résolu contre la colonne : chaque image retombait à 292 px. */
+  .wp-block-gallery.is-style-strip:has(> .wp-block-image:nth-of-type(2)):not(:has(> .wp-block-image:nth-of-type(3)))
+  > .wp-block-image {
+    width: 100% !important;
+  }
+  /* Décalage éditorial : une image sur deux descend, la paire cesse d'être un
+     bloc rectangulaire posé au milieu de la page. */
+  .wp-block-gallery.is-style-strip:has(> .wp-block-image:nth-of-type(2)):not(:has(> .wp-block-image:nth-of-type(3)))
+  > .wp-block-image:nth-child(even) {
+    margin-top: clamp(2rem, 5vw, 4.5rem) !important;
+  }
+}
+
 .wp-block-gallery.is-style-strip::-webkit-scrollbar { height: 6px; }
 .wp-block-gallery.is-style-strip::-webkit-scrollbar-thumb {
   background: var(--wp--preset--color--line); border-radius: 3px;
@@ -1041,6 +1234,7 @@ hr.wp-block-separator.rule:not(.alignwide),
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .hero::before,
+  .atelier::before,
   .color-band .marquee,
   .menu__panel,
   .scroll-cue::after { animation: none !important; }
