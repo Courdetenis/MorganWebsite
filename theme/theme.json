@@ -13,21 +13,22 @@
       "defaultGradients": false,
       "defaultDuotone": false,
       "gradients": [
-        { "slug": "aurora", "name": "Aurore",      "gradient": "linear-gradient(120deg, #E8B4BE 0%, #EBC9C2 26%, #C7D6C0 52%, #8FA98F 76%, #B9A7D9 100%)" },
-        { "slug": "sunset", "name": "Couchant",    "gradient": "linear-gradient(135deg, #E8B4BE 0%, #A84D63 100%)" },
-        { "slug": "meadow", "name": "Prairie",     "gradient": "linear-gradient(135deg, #8FA98F 0%, #E8B4BE 100%)" },
-        { "slug": "dusk",   "name": "Crépuscule",  "gradient": "linear-gradient(135deg, #B9A7D9 0%, #8FA98F 100%)" }
+        { "slug": "aurora", "name": "Aurore",      "gradient": "linear-gradient(120deg, #F4DEA5 0%, #DEB0A9 26%, #C18076 52%, #B8AF6A 76%, #944654 100%)" },
+        { "slug": "sunset", "name": "Couchant",    "gradient": "linear-gradient(135deg, #DEB0A9 0%, #944654 100%)" },
+        { "slug": "meadow", "name": "Prairie",     "gradient": "linear-gradient(135deg, #B8AF6A 0%, #DEB0A9 100%)" },
+        { "slug": "dusk",   "name": "Crépuscule",  "gradient": "linear-gradient(135deg, #C18076 0%, #B8AF6A 100%)" }
       ],
       "palette": [
-        { "slug": "paper",    "color": "#FCF2F0", "name": "Rose pâle (fond)" },
-        { "slug": "cream",    "color": "#FFF8F7", "name": "Surface" },
-        { "slug": "ink",      "color": "#2E3B33", "name": "Vert profond (texte)" },
-        { "slug": "ink-soft", "color": "#5C6B60", "name": "Vert doux (texte secondaire)" },
-        { "slug": "blush",    "color": "#A84D63", "name": "Rose profond (accent)" },
-        { "slug": "rose",     "color": "#E8B4BE", "name": "Rose pastel" },
-        { "slug": "sage",     "color": "#8FA98F", "name": "Vert pastel" },
-        { "slug": "lilac",    "color": "#B9A7D9", "name": "Violet pastel" },
-        { "slug": "line",     "color": "#EFDFDC", "name": "Filet" }
+        { "slug": "paper",    "color": "#FCF6E6", "name": "Sable clair (fond)" },
+        { "slug": "cream",    "color": "#FFFDF7", "name": "Surface" },
+        { "slug": "ink",      "color": "#432026", "name": "Prune profond (texte)" },
+        { "slug": "ink-soft", "color": "#7C4B45", "name": "Prune doux (texte secondaire)" },
+        { "slug": "blush",    "color": "#944654", "name": "Bordeaux (accent)" },
+        { "slug": "rose",     "color": "#DEB0A9", "name": "Rose poudré" },
+        { "slug": "sage",     "color": "#B8AF6A", "name": "Olive" },
+        { "slug": "lilac",    "color": "#C18076", "name": "Terracotta" },
+        { "slug": "line",     "color": "#EEDBD9", "name": "Filet" },
+        { "slug": "sand",     "color": "#F4DEA5", "name": "Sable" }
       ]
     },
     "typography": {

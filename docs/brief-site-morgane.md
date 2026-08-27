@@ -2,8 +2,8 @@
 
 > ⚠️ **Document historique — partiellement remplacé.**
 > Le cahier des charges de référence est maintenant `docs/architecture.md`
-> (arborescence complète, textes définitifs, direction artistique rose pâle /
-> vert sauge). Ce fichier reste utile pour le contexte d'origine, mais sa
+> (arborescence complète, textes définitifs, direction artistique sable /
+> bordeaux). Ce fichier reste utile pour le contexte d'origine, mais sa
 > direction artistique et son arborescence ne font plus foi.
 
 > Document de cadrage à destination de Claude Code.

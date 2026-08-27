@@ -1,7 +1,7 @@
 <?php
 /**
  * Morgane Cachia – Art — thème bloc.
- * Direction : clair rose pâle / sombre vert sauge, interface calme,
+ * Direction : clair sable / sombre prune, interface calme,
  * les œuvres au centre.
  */
 

@@ -35,6 +35,11 @@ echo "Installing WooCommerce..."
 wp plugin is-installed woocommerce || wp plugin install woocommerce --activate
 wp plugin is-active woocommerce || wp plugin activate woocommerce
 
+# Les chaînes de WooCommerce (« Add to cart », « View cart »…) viennent de son
+# propre paquet de langue : sans lui, la boutique reste en anglais même si le
+# site est en fr_CA.
+wp language plugin install woocommerce fr_CA >/dev/null 2>&1 || true
+
 echo "Installing Polylang..."
 wp plugin is-installed polylang || wp plugin install polylang --activate
 wp plugin is-active polylang || wp plugin activate polylang
@@ -49,8 +54,27 @@ wp option update woocommerce_onboarding_profile '{"completed":true}' --format=js
 wp option update woocommerce_coming_soon "no" >/dev/null 2>&1 || true
 wp option update woocommerce_store_pages_only "no" >/dev/null 2>&1 || true
 
+# La page boutique de WooCommerce est créée en anglais (« Shop ») : sur un site
+# dont la langue par défaut est le français, c'est le titre affiché en haut du
+# catalogue et dans le fil d'Ariane.
+SHOP_ID=$(wp option get woocommerce_shop_page_id 2>/dev/null || true)
+if [ -n "$SHOP_ID" ] && [ "$(wp post get "$SHOP_ID" --field=post_name 2>/dev/null)" = "shop" ]; then
+  wp post update "$SHOP_ID" --post_title="Boutique" --post_name="boutique" >/dev/null
+fi
+
 echo "Activating theme..."
 wp theme activate morgane
+
+# Favicon : le logo, importé une fois depuis le thème vers la médiathèque.
+# WordPress pose ensuite lui-même les balises dans <head>.
+if [ "$(wp option get site_icon 2>/dev/null)" = "" ] || [ "$(wp option get site_icon 2>/dev/null)" = "0" ]; then
+  echo "Importing site icon..."
+  ICON=$(wp media import /var/www/html/wp-content/themes/morgane/assets/img/favicon.png \
+    --title="Logo Morgane Cachia - Art" --porcelain 2>/dev/null || true)
+  if [ -n "$ICON" ]; then
+    wp option update site_icon "$ICON"
+  fi
+fi
 
 # Pretty permalinks (SEO).
 wp rewrite structure '/%postname%/' --hard

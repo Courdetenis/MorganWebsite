@@ -351,13 +351,21 @@ function mg_cards( array $cards ) {
 
 /**
  * Deux boutons côte à côte.
+ *
+ * Par défaut la rangée s'aligne à gauche, comme le texte qui la précède dans
+ * les blocs de prose. Sous une section centrée, passer $center : la rangée est
+ * un conteneur flex, donc sans consigne de justification elle reste collée à
+ * gauche même quand tout le reste est centré.
  */
-function mg_buttons( array $buttons ) {
-	$out = '<!-- wp:buttons -->' . "\n" . '<div class="wp-block-buttons">' . "\n";
+function mg_buttons( array $buttons, $center = false ) {
+	$attrs = $center ? ' {"layout":{"type":"flex","justifyContent":"center"}}' : '';
+	$class = $center ? ' is-content-justification-center' : '';
+	$out   = '<!-- wp:buttons' . $attrs . ' -->' . "\n"
+		. '<div class="wp-block-buttons' . $class . '">' . "\n";
 	foreach ( $buttons as $i => $b ) {
 		$style = 0 === $i ? '' : ' is-style-outline';
-		$attrs = 0 === $i ? '' : ' {"className":"is-style-outline"}';
-		$out  .= '<!-- wp:button' . $attrs . ' -->'
+		$battr = 0 === $i ? '' : ' {"className":"is-style-outline"}';
+		$out  .= '<!-- wp:button' . $battr . ' -->'
 			. '<div class="wp-block-button' . $style . '"><a class="wp-block-button__link wp-element-button" href="' . $b[0] . '">' . $b[1] . '</a></div>'
 			. '<!-- /wp:button -->' . "\n";
 	}
@@ -521,10 +529,13 @@ function mg_content( $key, $lang ) {
 						: 'Illustrator, painter and mural artist based in Montreal.' )
 					. '</p>' . "\n" . '<!-- /wp:paragraph -->' . "\n"
 
-					. mg_buttons( array(
-						array( '{{shop}}', $fr ? 'Découvrir les œuvres' : 'Discover the artworks' ),
-						array( '{{hub}}', $fr ? 'Travailler ensemble' : 'Work together' ),
-					) ) . "\n"
+					. mg_buttons(
+						array(
+							array( '{{shop}}', $fr ? 'Découvrir les œuvres' : 'Discover the artworks' ),
+							array( '{{hub}}', $fr ? 'Travailler ensemble' : 'Work together' ),
+						),
+						true
+					) . "\n"
 
 					. '<!-- wp:html --><div class="scroll-cue" aria-hidden="true"></div><!-- /wp:html -->' . "\n"
 					. '</div>' . "\n" . '<!-- /wp:group -->' . "\n"
@@ -565,7 +576,7 @@ function mg_content( $key, $lang ) {
 						$fr ? 'Œuvres disponibles' : 'Available artworks'
 					) . "\n"
 					. '<!-- wp:morgane/artworks {"limit":8} /-->' . "\n"
-					. mg_buttons( array( array( '{{shop}}', $fr ? 'Voir toute la boutique' : 'Browse the shop' ) ) ) . "\n"
+					. mg_buttons( array( array( '{{shop}}', $fr ? 'Voir toute la boutique' : 'Browse the shop' ) ), true ) . "\n"
 					. '</section>' . "\n" . '<!-- /wp:group -->',
 
 				// --- L'atelier ---
@@ -583,7 +594,7 @@ function mg_content( $key, $lang ) {
 						? 'J’aime peindre des personnages et faire apparaître leurs histoires et leurs âmes, dans mes illustrations à la gouache comme dans mes murales.'
 						: 'I love painting characters and revealing their stories, their souls, in both my gouache illustrations and my murals.' )
 					. '</p>' . "\n" . '<!-- /wp:paragraph -->' . "\n"
-					. mg_buttons( array( array( '{{about}}', $fr ? 'Rencontrer Morgane' : 'Meet Morgane' ) ) ) . "\n"
+					. mg_buttons( array( array( '{{about}}', $fr ? 'Rencontrer Morgane' : 'Meet Morgane' ) ), true ) . "\n"
 					. '</section>' . "\n" . '<!-- /wp:group -->',
 			) );
 

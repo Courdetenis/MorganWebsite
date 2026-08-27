@@ -71,6 +71,38 @@ remplacer une photo : déposer le fichier dans `pictures/`, ajouter son entrée 
 docker compose run --rm --entrypoint wp wpcli eval-file /scripts/media.php
 ```
 
+## Logo
+
+Les trois versions d'origine (noire, bordeaux, crème) sont dans `pictures/logo/`.
+Le thème n'en embarque qu'une : `theme/assets/img/logo.webp`, posée en masque CSS
+et repeinte selon le thème — bordeaux en clair, crème en sombre. Une seule image
+pour les deux, et le texte « Morgane Cachia – Art » reste dans le balisage pour
+les lecteurs d'écran et les moteurs de recherche.
+
+`theme/assets/img/favicon.png` est le trait repeint dans l'accent `#944654`, recadré au carré :
+l'onglet du navigateur ne suit pas le thème du site. `setup.sh` l'importe et la
+règle comme icône du site.
+
+Pour changer de logo, remplacer les fichiers dans `pictures/logo/` puis :
+
+```bash
+python3 - <<'EOF'
+from PIL import Image
+src = Image.open('pictures/logo/logo-noir.png')
+src = src.crop(src.getchannel('A').getbbox())
+src.resize((900, round(src.height * 900 / src.width)), Image.LANCZOS).save('theme/assets/img/logo.webp', quality=88, method=6)
+tint = Image.new('RGBA', src.size, (148, 70, 84, 0))   # #944654, l'accent du nuancier
+tint.putalpha(src.getchannel('A'))
+side = max(tint.size)
+sq = Image.new('RGBA', (side, side), (0, 0, 0, 0))
+sq.paste(tint, ((side - tint.width) // 2, (side - tint.height) // 2))
+sq.resize((512, 512), Image.LANCZOS).save('theme/assets/img/favicon.png', optimize=True)
+EOF
+```
+
+Le rapport largeur/hauteur du fichier recadré est écrit en dur dans
+`app.css` (`aspect-ratio`) : le corriger si le nouveau logo n'a pas la même forme.
+
 ## Réécrire les contenus des pages
 
 Par défaut les scripts ne remplissent que les pages vides, pour ne pas écraser

@@ -29,7 +29,7 @@ collaborations, murales). Bilingue FR/EN, français par défaut.
   flottantes en parallaxe, bandeau de mots défilant, titre qui entre mot à mot,
   apparitions au défilement, cartes qui se soulèvent au survol. Le cahier des
   charges demandait au départ une interface sans effets ; arbitrage tranché en
-  faveur de la version animée, avec la palette rose pâle / vert sauge conservée
+  faveur de la version animée, avec la palette sable / bordeaux conservée
   telle quelle. Le mouvement est piloté par GSAP + ScrollTrigger et s'annule
   entièrement sous `prefers-reduced-motion`.
 
@@ -291,7 +291,7 @@ Tout le reste peut avancer sans réponse.
 
 **Lot 1 — fait**
 
-1. Design system : palette rose pâle / vert sauge, typographie, espacements.
+1. Design system : palette sable / bordeaux, typographie, espacements.
 2. En-tête (menu dépliant, nom centré, langue, thème, panier) et pied de page.
 3. Arborescence complète FR + EN, avec les textes définitifs.
 4. Les trois formulaires, fonctionnels et sécurisés.

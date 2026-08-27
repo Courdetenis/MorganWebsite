@@ -1,0 +1,12 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- Le gabarit en blocs de WooCommerce affiche ses propres cartes produit, qui
+     ignorent theme/woocommerce/content-product.php et détonnent avec le reste du
+     site. Le gabarit classique repasse par la boucle PHP, donc par notre carte. -->
+<!-- wp:group {"tagName":"main","anchor":"contenu","align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained","contentSize":"1240px"}} -->
+<main class="wp-block-group alignfull" id="contenu" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+	<!-- wp:woocommerce/legacy-template {"template":"archive-product"} /-->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->
