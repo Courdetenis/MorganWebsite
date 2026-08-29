@@ -112,6 +112,13 @@ une modification faite depuis l'admin. Pour forcer :
 docker compose run --rm -e MORGANE_FORCE=1 --entrypoint wp wpcli eval-file /scripts/pages.php
 ```
 
+Ou une seule page, par sa clé (`about`, `home`, `murals`, `portfolio`,
+`commissions`…), pour ne pas toucher au reste :
+
+```bash
+docker compose run --rm -e MORGANE_FORCE=about --entrypoint wp wpcli eval-file /scripts/pages.php
+```
+
 ## Ajouter une œuvre (côté Morgane)
 
 - **Un tirage** : Produits > dupliquer « Modèle — print en plusieurs tailles »,

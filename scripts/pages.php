@@ -10,6 +10,10 @@
  *
  *   docker compose run --rm -e MORGANE_FORCE=1 --entrypoint wp wpcli eval-file /scripts/pages.php
  *
+ * Ou une seule page, par sa clé dans l'arborescence ci-dessous :
+ *
+ *   docker compose run --rm -e MORGANE_FORCE=about --entrypoint wp wpcli eval-file /scripts/pages.php
+ *
  * Les images viennent de la médiathèque : media.php les y a importées et a écrit
  * la table « numéro de photo → attachement » dans l'option `morgane_media`.
  * Une seule image par photo, mais un texte alternatif par langue, écrit ici.
@@ -23,7 +27,14 @@ if ( ! get_option( 'morgane_media' ) ) {
 	WP_CLI::warning( 'Option morgane_media vide : lancer media.php d\'abord, sinon les pages seront écrites sans images.' );
 }
 
-$force = (bool) getenv( 'MORGANE_FORCE' );
+/*
+ * MORGANE_FORCE=1 réécrit tout le site ; MORGANE_FORCE=about,murals ne réécrit
+ * que ces pages. La liste évite d'écraser le reste du travail fait depuis
+ * l'admin quand une seule page est redessinée.
+ */
+$force_env  = (string) getenv( 'MORGANE_FORCE' );
+$force_all  = ( '1' === $force_env );
+$force_keys = array_flip( array_filter( array_map( 'trim', explode( ',', $force_env ) ) ) );
 
 /* =========================================================================
    1. Arborescence
@@ -389,6 +400,174 @@ function mg_head( $eyebrow, $title ) {
 }
 
 /**
+ * Bandeau d'ouverture d'une page : la mise en scène « aurore » du hero de
+ * l'accueil, réutilisée telle quelle. La classe `hero` n'est pas décorative —
+ * elle apporte le fond en dégradé animé, et `app.js` lui réserve son entrée en
+ * scène (titre découpé en mots, puis image, chapeau et boutons en cascade).
+ *
+ * Les pages qui l'emploient prennent le gabarit sans titre : leur h1 est ici,
+ * sinon le titre de la page ferait doublon juste au-dessus.
+ *
+ * Deux formes, selon qu'une photo est fournie :
+ *   - avec photo, deux colonnes qui se font face, image et texte ;
+ *   - sans, le texte se centre et deux œuvres flottent de part et d'autre.
+ *
+ * @param string $eyebrow Accroche manuscrite au-dessus du titre.
+ * @param string $title   Titre de la page (h1).
+ * @param array  $lede    Paragraphes ; le premier est le chapeau, en grand.
+ * @param array  $buttons Boutons, au format de mg_buttons().
+ * @param array  $photo   array( numéro, alt ) — 'wide' en 3e position pour une
+ *                        image en paysage.
+ * @param array  $floats  Deux array( numéro, alt ), employées sans photo.
+ */
+function mg_hero( $eyebrow, $title, array $lede, array $buttons, array $photo = array(), array $floats = array() ) {
+
+	// Les formes floues vivent dans un bloc HTML : ce sont des éléments de
+	// décor, rien que Morgane ait à modifier depuis l'éditeur.
+	$html = '<!-- wp:html -->' . "\n"
+		. '<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>' . "\n"
+		. '<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>' . "\n";
+
+	// Pas de `data-reveal` sur ces œuvres : la boucle REVEAL d'app.js saute
+	// tout ce qui est dans le hero, qui a sa propre ouverture.
+	foreach ( $floats as $i => $float ) {
+		$html .= '<figure class="art-float art-float--' . ( 0 === $i ? 'left' : 'right' ) . '">'
+			. mg_photo( $float[0], $float[1], 'medium_large', true, '210px' )
+			. '</figure>' . "\n";
+	}
+	$html .= '<!-- /wp:html -->' . "\n";
+
+	$text = '<!-- wp:paragraph {"className":"hero__eyebrow"} -->' . "\n"
+		. '<p class="hero__eyebrow">' . $eyebrow . '</p>' . "\n" . '<!-- /wp:paragraph -->' . "\n"
+		. '<!-- wp:heading {"level":1} -->' . "\n"
+		. '<h1 class="wp-block-heading">' . $title . '</h1>' . "\n"
+		. '<!-- /wp:heading -->' . "\n";
+
+	foreach ( $lede as $i => $paragraph ) {
+		$text .= 0 === $i
+			? '<!-- wp:paragraph {"className":"hero__lede","fontSize":"large"} -->' . "\n"
+				. '<p class="hero__lede has-large-font-size">' . $paragraph . '</p>' . "\n"
+				. '<!-- /wp:paragraph -->' . "\n"
+			: mg_p( $paragraph ) . "\n";
+	}
+
+	if ( $photo ) {
+		$wide  = ( isset( $photo[2] ) && 'wide' === $photo[2] ) ? ' hero__media--wide' : '';
+		$size  = '1240px';
+		$inner = '<!-- wp:group {"className":"hero-split","layout":{"type":"default"}} -->' . "\n"
+			. '<div class="wp-block-group hero-split">' . "\n"
+			. '<!-- wp:html -->' . "\n"
+			. '<div class="hero__media' . $wide . '">'
+			. mg_photo( $photo[0], $photo[1], 'large', true, '(max-width: 899px) 100vw, 480px' )
+			. '</div>' . "\n"
+			. '<!-- /wp:html -->' . "\n"
+			. '<!-- wp:group {"className":"hero-split__text","layout":{"type":"default"}} -->' . "\n"
+			. '<div class="wp-block-group hero-split__text">' . "\n"
+			. $text
+			. mg_buttons( $buttons ) . "\n"
+			. '</div>' . "\n" . '<!-- /wp:group -->' . "\n"
+			. '</div>' . "\n" . '<!-- /wp:group -->' . "\n";
+	} else {
+		// Colonne étroite : centré, une accroche ne se lit pas sur 1240 px.
+		$size  = '880px';
+		$inner = '<!-- wp:group {"className":"hero__inner","layout":{"type":"default"}} -->' . "\n"
+			. '<div class="wp-block-group hero__inner">' . "\n"
+			. $text
+			. mg_buttons( $buttons, true ) . "\n"
+			. '</div>' . "\n" . '<!-- /wp:group -->' . "\n";
+	}
+
+	return '<!-- wp:group {"tagName":"section","align":"full","className":"hero","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}},"dimensions":{"minHeight":"72vh"}},"layout":{"type":"constrained","contentSize":"' . $size . '"}} -->' . "\n"
+		. '<section class="wp-block-group alignfull hero" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">' . "\n"
+		. $html . $inner
+		. '</section>' . "\n" . '<!-- /wp:group -->';
+}
+
+/**
+ * Section « atelier » : la mise en scène du hero, mais au fil de la page — un
+ * titre centré dans une colonne étroite, deux œuvres qui flottent de part et
+ * d'autre. Sert à faire respirer entre deux blocs de texte dense.
+ *
+ * @param string $tail Contenu ajouté sous les paragraphes (pastilles, boutons…).
+ */
+function mg_atelier( $eyebrow, $title, array $body, array $floats, $tail = '' ) {
+	$html = '<!-- wp:html -->' . "\n"
+		. '<div class="blob blob--lilac" style="width:min(28vw,300px);aspect-ratio:1;top:10%;right:-6%;"></div>' . "\n"
+		. '<div class="blob blob--sage" style="width:min(24vw,260px);aspect-ratio:1;bottom:12%;left:-5%;"></div>' . "\n";
+
+	// Ici, `data-reveal` : hors du hero, ces œuvres apparaissent au défilement.
+	foreach ( $floats as $i => $float ) {
+		$html .= '<figure class="art-float art-float--' . ( 0 === $i ? 'left' : 'right' ) . '" data-reveal>'
+			. mg_photo( $float[0], $float[1], 'medium_large', false, '210px' )
+			. '</figure>' . "\n";
+	}
+	$html .= '<!-- /wp:html -->' . "\n";
+
+	$text = '';
+	foreach ( $body as $i => $paragraph ) {
+		$text .= 0 === $i
+			? '<!-- wp:paragraph {"align":"center","fontSize":"large","style":{"spacing":{"margin":{"top":"var:preset|spacing|30"}}}} -->' . "\n"
+				. '<p class="has-text-align-center has-large-font-size" style="margin-top:var(--wp--preset--spacing--30)">'
+				. $paragraph . '</p>' . "\n" . '<!-- /wp:paragraph -->' . "\n"
+			: '<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">' . $paragraph
+				. '</p><!-- /wp:paragraph -->' . "\n";
+	}
+
+	return '<!-- wp:group {"tagName":"section","align":"full","className":"atelier","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained","contentSize":"720px"}} -->' . "\n"
+		. '<section class="wp-block-group alignfull atelier" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">' . "\n"
+		. $html
+		. '<!-- wp:paragraph {"align":"center","className":"eyebrow"} --><p class="has-text-align-center eyebrow">' . $eyebrow . '</p><!-- /wp:paragraph -->' . "\n"
+		. '<!-- wp:heading {"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">' . $title . '</h2><!-- /wp:heading -->' . "\n"
+		. $text
+		. ( $tail ? $tail . "\n" : '' )
+		. '</section>' . "\n" . '<!-- /wp:group -->';
+}
+
+/**
+ * Section ordinaire sur la largeur large : un chapeau de section puis
+ * du contenu (grille de cartes, bandeau d'œuvres…).
+ */
+function mg_section( $eyebrow, $title, $inner ) {
+	return '<!-- wp:group {"tagName":"section","align":"wide","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained","contentSize":"1240px"}} -->' . "\n"
+		. '<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">' . "\n"
+		. mg_head( $eyebrow, $title ) . "\n" . $inner . "\n"
+		. '</section>' . "\n" . '<!-- /wp:group -->';
+}
+
+/**
+ * Bandeau de couleur défilant. Décoratif, donc `aria-hidden` : les mots sont
+ * déjà dans la page, il ne s'agit que de les mettre en mouvement.
+ */
+function mg_marquee( array $words ) {
+	$span = '<span>' . implode( '</span><span>', array_merge( $words, $words ) ) . '</span>';
+	return '<!-- wp:html -->' . "\n"
+		. '<div class="color-band alignfull" aria-hidden="true"><div class="marquee">' . $span . '</div></div>' . "\n"
+		. '<!-- /wp:html -->';
+}
+
+/**
+ * Une phrase sortie du texte courant, en grand et dans la police manuscrite :
+ * le moment où la page parle à la première personne.
+ */
+function mg_quote( $text ) {
+	return '<!-- wp:group {"align":"wide","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"layout":{"type":"default"}} -->' . "\n"
+		. '<div class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">' . "\n"
+		. '<!-- wp:paragraph {"className":"pull-quote"} -->' . "\n"
+		. '<p class="pull-quote">' . $text . '</p>' . "\n" . '<!-- /wp:paragraph -->' . "\n"
+		. '</div>' . "\n" . '<!-- /wp:group -->';
+}
+
+/**
+ * Rangée de pastilles manuscrites : des mots-clés posés côte à côte plutôt
+ * qu'une liste à puces de plus.
+ */
+function mg_tags( array $items ) {
+	return '<!-- wp:html -->' . "\n"
+		. '<ul class="tags" data-reveal><li>' . implode( '</li><li>', $items ) . '</li></ul>' . "\n"
+		. '<!-- /wp:html -->';
+}
+
+/**
  * Bande éditoriale : titre de section à gauche, contenu à droite, sur toute la
  * largeur large. Sans elle, ces pages n'étaient qu'un ruban de 760 px au milieu
  * d'un écran de 1440, titres et textes empilés au centre.
@@ -407,9 +586,6 @@ function mg_band( $title, $inner ) {
 }
 
 /**
- * Paragraphe d'introduction : plus grand, aligné à gauche sous le titre de page.
- */
-/**
  * Bloc de texte courant, calé sur le même bord gauche que les bandes et les
  * bandeaux d'images. Même raison que pour le chapeau : hors d'un groupe en flux
  * normal, WordPress recentre chaque enfant d'une mise en page contrainte.
@@ -417,19 +593,6 @@ function mg_band( $title, $inner ) {
 function mg_prose( $inner ) {
 	return '<!-- wp:group {"align":"wide","className":"prose","layout":{"type":"default"}} -->' . "\n"
 		. '<div class="wp-block-group alignwide prose">' . "\n" . $inner . "\n"
-		. '</div>' . "\n" . '<!-- /wp:group -->';
-}
-
-function mg_lead( $text ) {
-	// Enveloppé plutôt que posé en « large » directement : la mise en page
-	// contrainte de WordPress force `margin-left: auto !important` sur ses
-	// enfants et recentrerait le chapeau. Dans un groupe en flux normal, sa
-	// largeur maximale le laisse calé à gauche, aligné sur les bandes.
-	return '<!-- wp:group {"align":"wide","className":"lead-wrap","layout":{"type":"default"}} -->' . "\n"
-		. '<div class="wp-block-group alignwide lead-wrap">' . "\n"
-		. '<!-- wp:paragraph {"className":"lead"} -->' . "\n"
-		. '<p class="lead">' . $text . '</p>' . "\n"
-		. '<!-- /wp:paragraph -->' . "\n"
 		. '</div>' . "\n" . '<!-- /wp:group -->';
 }
 
@@ -471,8 +634,10 @@ function mg_note( $inner ) {
  * Formulaire, sur la largeur large : ses champs passent alors sur deux colonnes.
  */
 function mg_form( $type ) {
-	return '<!-- wp:group {"align":"wide","className":"form-band","layout":{"type":"default"}} -->' . "\n"
-		. '<div class="wp-block-group alignwide form-band">' . "\n"
+	// Ancre : les bandeaux d'ouverture pointent dessus (« Parler de votre
+	// projet »), pour ne pas obliger à faire défiler toute la page.
+	return '<!-- wp:group {"align":"wide","anchor":"formulaire","className":"form-band","layout":{"type":"default"}} -->' . "\n"
+		. '<div class="wp-block-group alignwide form-band" id="formulaire">' . "\n"
 		. '<!-- wp:morgane/form {"type":"' . $type . '"} /-->' . "\n"
 		. '</div>' . "\n" . '<!-- /wp:group -->';
 }
@@ -664,46 +829,103 @@ function mg_content( $key, $lang ) {
 				? 'Morgane Cachia, illustratrice et artiste peintre à Montréal, assise dans l’herbe avec une de ses peintures'
 				: 'Morgane Cachia, illustrator and painter based in Montreal, sitting in the grass with one of her paintings';
 
-			$bio_fr = array(
-				'Bonjour ! Je suis Morgane, illustratrice, artiste peintre et muraliste basée à Montréal. Je crée des œuvres oniriques, traversées par des univers enchantés, entre magie et mélancolie. J’aime peindre des personnages et faire apparaître leurs histoires et leurs âmes, dans mes illustrations à la gouache comme dans mes murales.',
-				'Mon inspiration vient de plusieurs formes d’art et de récit : j’aime lire, je suis passionnée de musique, et l’univers des films du studio Ghibli m’accompagne tous les jours. Les thèmes qui m’habitent sont ceux de l’enfance, du souvenir, de la beauté de la nature, et de cette forme de magie discrète qui habite notre monde. C’est un peu de cette magie que je cherche avant tout à transmettre à travers mon travail.',
-			);
-			$bio_en = array(
-				'Hello! I’m Morgane, an illustrator, painter, and mural artist based in Montreal. I create dreamlike works inhabited by enchanted worlds, somewhere between magic and melancholy. I love painting characters and revealing their stories, their souls, in both my gouache illustrations and my murals.',
-				'My inspiration comes from many forms of art and storytelling: I love reading, I’m passionate about music, and the world of Studio Ghibli films has been with me for years. The themes that resonate most deeply with me are childhood, memory, the beauty of nature, and that quiet kind of magic that exists in our world. It is above all this sense of enchantment that I hope to convey through my work.',
-			);
-
-			$bio = $fr ? $bio_fr : $bio_en;
-
 			return implode( "\n\n", array(
-				// Portrait et bio côte à côte : seuls, l'un sous l'autre dans une
-				// colonne de 760 px, ils laissaient la page vide sur les côtés.
-				'<!-- wp:group {"align":"wide","className":"about-intro","layout":{"type":"default"}} -->' . "\n"
-					. '<div class="wp-block-group alignwide about-intro">' . "\n"
-					. '<!-- wp:html -->' . "\n"
-					. '<div class="hero__media" data-reveal>' . mg_photo( 5, $photo_alt, 'large', true, '(max-width: 700px) 100vw, 440px' ) . '</div>' . "\n"
-					. '<!-- /wp:html -->' . "\n"
-					. '<!-- wp:group {"className":"about-intro__text","layout":{"type":"default"}} -->' . "\n"
-					. '<div class="wp-block-group about-intro__text">' . "\n"
-					. mg_p( $bio[0] ) . "\n"
-					. mg_p( $bio[1] ) . "\n"
-					. '</div>' . "\n" . '<!-- /wp:group -->' . "\n"
-					. '</div>' . "\n" . '<!-- /wp:group -->',
+
+				mg_hero(
+					$fr ? 'illustratrice · peintre · muraliste — Montréal' : 'illustrator · painter · mural artist — Montreal',
+					'Morgane Cachia',
+					$fr
+						? array(
+							'Bonjour ! Je suis Morgane. Je crée des œuvres oniriques, traversées par des univers enchantés, entre magie et mélancolie.',
+							'J’aime peindre des personnages et faire apparaître leurs histoires et leurs âmes, dans mes illustrations à la gouache comme dans mes murales.',
+						)
+						: array(
+							'Hello! I’m Morgane. I create dreamlike works inhabited by enchanted worlds, somewhere between magic and melancholy.',
+							'I love painting characters and revealing their stories, their souls, in both my gouache illustrations and my murals.',
+						),
+					array(
+						array( '{{portfolio}}', $fr ? 'Voir les portfolios' : 'View the portfolios' ),
+						array( '{{hub}}', $fr ? 'Travailler ensemble' : 'Work together' ),
+					),
+					array( 5, $photo_alt )
+				),
+
+				// Les mots du bandeau défilant sont ceux de Morgane, pas des
+				// mots-clés : ils reprennent les thèmes cités juste en dessous.
+				mg_marquee(
+					$fr
+						? array( 'Gouache', 'Murales', 'Ghibli', 'Enfance', 'Souvenir', 'Nature', 'Magie discrète' )
+						: array( 'Gouache', 'Murals', 'Ghibli', 'Childhood', 'Memory', 'Nature', 'Quiet magic' )
+				),
+
+				mg_atelier(
+					$fr ? 'Mon univers' : 'My world',
+					$fr ? 'Ce qui m’inspire' : 'What inspires me',
+					$fr
+						? array( 'Mon inspiration vient de plusieurs formes d’art et de récit : j’aime lire, je suis passionnée de musique, et l’univers des films du studio Ghibli m’accompagne tous les jours. Les thèmes qui m’habitent :' )
+						: array( 'My inspiration comes from many forms of art and storytelling: I love reading, I’m passionate about music, and the world of Studio Ghibli films has been with me for years. The themes that resonate most deeply with me:' ),
+					$fr
+						? array(
+							array( 23, 'Illustration à la gouache : une table d’alchimiste éclairée à la bougie, fioles fumantes et vieux livres' ),
+							array( 10, 'Illustration à la gouache : une fée éclaire une fleur de lierre au creux de sa main, dans un jardin de roses' ),
+						)
+						: array(
+							array( 23, 'Gouache illustration: an alchemist’s table lit by candlelight, steaming vials and old books' ),
+							array( 10, 'Gouache illustration: a fairy lighting an ivy flower in the palm of her hand, in a rose garden' ),
+						),
+					mg_tags(
+						$fr
+							? array( 'l’enfance', 'le souvenir', 'la beauté de la nature', 'la magie discrète' )
+							: array( 'childhood', 'memory', 'the beauty of nature', 'quiet magic' )
+					)
+				),
+
+				mg_quote(
+					$fr
+						? '« C’est un peu de cette magie que je cherche avant tout à transmettre à travers mon travail. »'
+						: '“It is above all this sense of enchantment that I hope to convey through my work.”'
+				),
+
+				// Une œuvre de chaque univers, toutes en portrait autour de 3:4 :
+				// le bandeau défilant garde les proportions d'origine, un format
+				// beaucoup plus étroit y ferait une image deux fois plus haute
+				// que ses voisines.
+				mg_section(
+					$fr ? 'En images' : 'In pictures',
+					$fr ? 'Quelques œuvres' : 'A few works',
+					mg_gallery(
+							$fr
+								? array(
+									array( 6, 'Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée' ),
+									array( 11, 'Illustration jeunesse : un faon et un chiot se rencontrent dans une forêt enneigée aux teintes violettes' ),
+									array( 22, 'Murale « L’arbre du savoir » : un arbre en fleurs dont les branches portent des lettres' ),
+									array( 19, 'Dessin à l’encre : nature morte au violoncelle, partition et bouquet posés sur une table drapée' ),
+									array( 9, 'Illustration à la gouache : une fée assise au cœur d’une pivoine rose immense' ),
+									array( 21, 'Murale : un enfant en imperméable jaune déterre une graine lumineuse' ),
+								)
+								: array(
+									array( 6, 'Gouache illustration: a woman with long hair holds a glowing moon in a blue winter forest' ),
+									array( 11, 'Children’s illustration: a fawn and a puppy meet in a snowy forest of violet tones' ),
+									array( 22, 'Mural “The tree of knowledge”: a flowering tree whose branches carry letters' ),
+									array( 19, 'Ink drawing: still life with a cello, sheet music and a bouquet on a draped table' ),
+									array( 9, 'Gouache illustration: a fairy seated in the heart of an immense pink peony' ),
+									array( 21, 'Mural: a child in a yellow raincoat unearthing a glowing seed' ),
+								),
+							$lang
+					) . "\n"
+					. mg_buttons( array( array( '{{portfolio}}', $fr ? 'Voir les portfolios' : 'View the portfolios' ) ), true )
+				),
+
 				mg_prose(
 					mg_sep() . "\n\n"
-					. mg_p(
-						$fr
-							? 'Pour voir plus de travaux : <a href="{{portfolio}}">les portfolios</a>.'
-							: 'To see more work: <a href="{{portfolio}}">the portfolios</a>.'
-					) . "\n\n"
 					. mg_p(
 						$fr
 							? 'Écrivez-moi : <a href="mailto:contact@morganecachia-art.com">contact@morganecachia-art.com</a>'
 							: 'Write to me: <a href="mailto:contact@morganecachia-art.com">contact@morganecachia-art.com</a>'
 					) . "\n\n"
 					. mg_buttons( array(
-						array( '{{portfolio}}', $fr ? 'Voir les portfolios' : 'View the portfolios' ),
 						array( '{{hub}}', $fr ? 'Travailler ensemble' : 'Work together' ),
+						array( '{{shop}}', $fr ? 'Voir la boutique' : 'Browse the shop' ),
 					) )
 				),
 			) );
@@ -711,25 +933,66 @@ function mg_content( $key, $lang ) {
 		/* --------------------------------------------------------- Portfolio */
 		case 'portfolio':
 			return implode( "\n\n", array(
-				mg_lead(
+
+				mg_hero(
+					$fr ? 'Le travail' : 'The work',
+					'Portfolio',
 					$fr
-						? 'Quatre ensembles de travaux : l’illustration jeunesse, l’illustration, le dessin et les murales.'
-						: 'Four bodies of work: children’s illustration, illustration, drawing and murals.'
-				),
-				mg_cards(
+						? array( 'Quatre ensembles de travaux : l’illustration jeunesse, l’illustration, le dessin et les murales.' )
+						: array( 'Four bodies of work: children’s illustration, illustration, drawing and murals.' ),
+					array(
+						array( '{{commissions}}', $fr ? 'Commander une œuvre' : 'Commission a piece' ),
+						array( '{{shop}}', $fr ? 'Voir la boutique' : 'Browse the shop' ),
+					),
+					array(),
 					$fr
 						? array(
-							array( '{{pf_youth}}', 'Illustration jeunesse', '', 11, 'Illustration jeunesse : un faon et un chiot se rencontrent dans une forêt enneigée aux teintes violettes' ),
-							array( '{{pf_illus}}', 'Illustration', '', 6, 'Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée' ),
-							array( '{{pf_draw}}', 'Dessin', '', 16, 'Dessin à l’encre : un vieil homme barbu écrit à la plume dans une bibliothèque sombre' ),
-							array( '{{pf_murals}}', 'Murales', '', 20, 'Murale : un enfant en imperméable bleu respire une fleur d’où s’échappent des lettres' ),
+							array( 12, 'Illustration jeunesse : une souris arrose des primevères devant sa maison creusée dans un arbre' ),
+							array( 19, 'Dessin à l’encre : nature morte au violoncelle, partition et bouquet posés sur une table drapée' ),
 						)
 						: array(
-							array( '{{pf_youth}}', 'Children’s illustration', '', 11, 'Children’s illustration: a fawn and a puppy meet in a snowy forest of violet tones' ),
-							array( '{{pf_illus}}', 'Illustration', '', 6, 'Gouache illustration: a woman with long hair holds a glowing moon in a blue winter forest' ),
-							array( '{{pf_draw}}', 'Drawing', '', 16, 'Ink drawing: an old bearded man writing with a quill in a dark library' ),
-							array( '{{pf_murals}}', 'Murals', '', 20, 'Mural: a child in a blue raincoat smelling a flower from which letters escape' ),
+							array( 12, 'Children’s illustration: a mouse waters primroses outside her home carved into a tree' ),
+							array( 19, 'Ink drawing: still life with a cello, sheet music and a bouquet on a draped table' ),
 						)
+				),
+
+				mg_marquee(
+					$fr
+						? array( 'Illustration jeunesse', 'Illustration', 'Dessin', 'Murales' )
+						: array( 'Children’s illustration', 'Illustration', 'Drawing', 'Murals' )
+				),
+
+				mg_section(
+					$fr ? 'Quatre univers' : 'Four worlds',
+					$fr ? 'Choisir un portfolio' : 'Choose a portfolio',
+					mg_cards(
+						$fr
+							? array(
+								array( '{{pf_youth}}', 'Illustration jeunesse', '', 11, 'Illustration jeunesse : un faon et un chiot se rencontrent dans une forêt enneigée aux teintes violettes' ),
+								array( '{{pf_illus}}', 'Illustration', '', 6, 'Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée' ),
+								array( '{{pf_draw}}', 'Dessin', '', 16, 'Dessin à l’encre : un vieil homme barbu écrit à la plume dans une bibliothèque sombre' ),
+								array( '{{pf_murals}}', 'Murales', '', 20, 'Murale : un enfant en imperméable bleu respire une fleur d’où s’échappent des lettres' ),
+							)
+							: array(
+								array( '{{pf_youth}}', 'Children’s illustration', '', 11, 'Children’s illustration: a fawn and a puppy meet in a snowy forest of violet tones' ),
+								array( '{{pf_illus}}', 'Illustration', '', 6, 'Gouache illustration: a woman with long hair holds a glowing moon in a blue winter forest' ),
+								array( '{{pf_draw}}', 'Drawing', '', 16, 'Ink drawing: an old bearded man writing with a quill in a dark library' ),
+								array( '{{pf_murals}}', 'Murals', '', 20, 'Mural: a child in a blue raincoat smelling a flower from which letters escape' ),
+							)
+					)
+				),
+
+				mg_prose(
+					mg_sep() . "\n\n"
+					. mg_p(
+						$fr
+							? 'Une œuvre déjà disponible, ou une pièce imaginée pour vous ?'
+							: 'A piece that is already available, or one imagined for you?'
+					) . "\n\n"
+					. mg_buttons( array(
+						array( '{{shop}}', $fr ? 'Voir la boutique' : 'Browse the shop' ),
+						array( '{{hub}}', $fr ? 'Travailler ensemble' : 'Work together' ),
+					) )
 				),
 			) );
 
@@ -782,8 +1045,41 @@ function mg_content( $key, $lang ) {
 					),
 			);
 
+			// Une œuvre de la série en ouverture, en portrait proche de 3:4 :
+			// le cadre du bandeau garde ces proportions, un format plus étroit
+			// s'y ferait recadrer.
+			$heroes = array(
+				'pf_youth' => array(
+					'fr' => array( 'Illustration jeunesse', 11, 'Illustration jeunesse : un faon et un chiot se rencontrent dans une forêt enneigée aux teintes violettes' ),
+					'en' => array( 'Children’s illustration', 11, 'Children’s illustration: a fawn and a puppy meet in a snowy forest of violet tones' ),
+				),
+				'pf_illus' => array(
+					'fr' => array( 'Illustration', 8, 'Illustration à la gouache : une femme aux cheveux dorés flottants dans une bibliothèque envahie de lierre' ),
+					'en' => array( 'Illustration', 8, 'Gouache illustration: a woman with flowing golden hair in a library overgrown with ivy' ),
+				),
+				'pf_draw'  => array(
+					'fr' => array( 'Dessin', 17, 'Dessin à l’encre : une cascade dévale une paroi de montagne sous des nuages en volutes' ),
+					'en' => array( 'Drawing', 17, 'Ink drawing: a waterfall tumbling down a mountain face beneath swirling clouds' ),
+				),
+			);
+			$hero = $heroes[ $key ][ $lang ];
+
 			return implode( "\n\n", array(
-				mg_gallery( $series[ $key ], $lang ),
+				mg_hero(
+					'Portfolio',
+					$hero[0],
+					array(),
+					array(
+						array( '{{portfolio}}', $fr ? 'Tous les portfolios' : 'All the portfolios' ),
+						array( '{{commissions}}', $fr ? 'Commander une illustration' : 'Commission an illustration' ),
+					),
+					array( $hero[1], $hero[2] )
+				),
+				mg_section(
+					$fr ? 'La série' : 'The series',
+					$fr ? 'Les œuvres' : 'The works',
+					mg_gallery( $series[ $key ], $lang )
+				),
 				mg_prose(
 					mg_sep() . "\n\n"
 					. mg_p(
@@ -800,19 +1096,35 @@ function mg_content( $key, $lang ) {
 
 		case 'pf_murals':
 			return implode( "\n\n", array(
-				mg_gallery(
+				mg_hero(
+					'Portfolio',
+					$fr ? 'Murales' : 'Murals',
+					array(),
+					array(
+						array( '{{portfolio}}', $fr ? 'Tous les portfolios' : 'All the portfolios' ),
+						array( '{{murals}}', $fr ? 'Projet de murale' : 'Mural project' ),
+					),
 					$fr
-						? array(
-							array( 20, 'Murale : un enfant en imperméable bleu respire une fleur d’où s’échappent des lettres' ),
-							array( 21, 'Murale : un enfant en imperméable jaune déterre une graine lumineuse' ),
-							array( 22, 'Murale « L’arbre du savoir » : un arbre en fleurs dont les branches portent des lettres' ),
-						)
-						: array(
-							array( 20, 'Mural: a child in a blue raincoat smelling a flower from which letters escape' ),
-							array( 21, 'Mural: a child in a yellow raincoat unearthing a glowing seed' ),
-							array( 22, 'Mural “The tree of knowledge”: a flowering tree whose branches carry letters' ),
-						),
-					$lang
+						? array( 22, 'Murale « L’arbre du savoir » : un arbre en fleurs dont les branches portent des lettres' )
+						: array( 22, 'Mural “The tree of knowledge”: a flowering tree whose branches carry letters' )
+				),
+				mg_section(
+					$fr ? 'La série' : 'The series',
+					$fr ? 'Les murales' : 'The murals',
+					mg_gallery(
+						$fr
+							? array(
+								array( 20, 'Murale : un enfant en imperméable bleu respire une fleur d’où s’échappent des lettres' ),
+								array( 21, 'Murale : un enfant en imperméable jaune déterre une graine lumineuse' ),
+								array( 22, 'Murale « L’arbre du savoir » : un arbre en fleurs dont les branches portent des lettres' ),
+							)
+							: array(
+								array( 20, 'Mural: a child in a blue raincoat smelling a flower from which letters escape' ),
+								array( 21, 'Mural: a child in a yellow raincoat unearthing a glowing seed' ),
+								array( 22, 'Mural “The tree of knowledge”: a flowering tree whose branches carry letters' ),
+							),
+						$lang
+					)
 				),
 				mg_prose(
 					mg_sep() . "\n\n"
@@ -825,9 +1137,16 @@ function mg_content( $key, $lang ) {
 
 		/* ----------------------------------------------------------- Murales */
 		case 'murals':
+			// La dernière phrase de la présentation est sortie du paragraphe pour
+			// devenir la citation en grand : c'est celle qui dit le mieux ce que
+			// Morgane cherche dans une murale.
 			$intro = $fr
-				? 'J’aime créer des murales qui transforment un espace en y apportant une atmosphère, une présence et une histoire. Je suis particulièrement attirée par les projets qui laissent place à l’imaginaire, à la poésie et à une forme de douceur visuelle. À travers mes murales, j’aime composer des images qui dialoguent avec le lieu, tout en y faisant entrer un peu de rêve et de magie.'
-				: 'I love creating murals that transform a space by bringing in atmosphere, presence, and a sense of story. I’m especially drawn to projects that leave room for imagination, poetry, and a certain visual softness. Through my murals, I enjoy composing images that respond to a place while bringing in a touch of dream and magic.';
+				? 'J’aime créer des murales qui transforment un espace en y apportant une atmosphère, une présence et une histoire. Je suis particulièrement attirée par les projets qui laissent place à l’imaginaire, à la poésie et à une forme de douceur visuelle.'
+				: 'I love creating murals that transform a space by bringing in atmosphere, presence, and a sense of story. I’m especially drawn to projects that leave room for imagination, poetry, and a certain visual softness.';
+
+			$intro_quote = $fr
+				? '« J’aime composer des images qui dialoguent avec le lieu, tout en y faisant entrer un peu de rêve et de magie. »'
+				: '“I enjoy composing images that respond to a place while bringing in a touch of dream and magic.”';
 
 			$lead = $fr
 				? 'Vous avez un projet de murale en tête ? J’aime imaginer des fresques qui transforment un espace et lui donnent une atmosphère unique. Que ce soit pour un lieu privé, un commerce, un espace culturel ou un projet plus personnel, nous commençons toujours par un échange afin de définir ensemble l’ambiance, le sujet, les dimensions, le délai et le budget.'
@@ -870,30 +1189,57 @@ function mg_content( $key, $lang ) {
 				: 'To ensure a clear and reassuring process, each mural is covered by a written agreement outlining the project subject, price, deposit, timeline, included revisions, and production terms. This helps establish the project from the start and allows it to unfold smoothly through to completion.';
 
 			return implode( "\n\n", array(
-				mg_lead( $intro ),
+
+				mg_hero(
+					$fr ? 'Sur les murs' : 'On walls',
+					$fr ? 'Murales' : 'Murals',
+					array( $intro ),
+					array(
+						array( '#formulaire', $fr ? 'Parler de votre projet' : 'Tell me about your project' ),
+						array( '{{pf_murals}}', $fr ? 'Voir les murales' : 'See the murals' ),
+					),
+					$fr
+						? array( 21, 'Murale : un enfant en imperméable jaune déterre une graine lumineuse' )
+						: array( 21, 'Mural: a child in a yellow raincoat unearthing a glowing seed' )
+				),
+
 				// Deux murales seulement : le portfolio Murales montre la suite,
-				// d'où le lien juste dessous et pas de repère de défilement.
-				mg_gallery(
+				// d'où le bouton juste dessous.
+				mg_section(
+					$fr ? 'Réalisations' : 'Completed work',
+					$fr ? 'Deux murales' : 'Two murals',
+					mg_gallery(
+							$fr
+								? array(
+									array( 22, 'Murale « L’arbre du savoir » : un arbre en fleurs dont les branches portent des lettres' ),
+									array( 20, 'Murale : un enfant en imperméable bleu respire une fleur d’où s’échappent des lettres' ),
+								)
+								: array(
+									array( 22, 'Mural “The tree of knowledge”: a flowering tree whose branches carry letters' ),
+									array( 20, 'Mural: a child in a blue raincoat smelling a flower from which letters escape' ),
+								),
+							$lang
+					) . "\n"
+					. mg_buttons( array( array( '{{pf_murals}}', $fr ? 'Pour en voir plus' : 'To see more' ) ), true )
+				),
+
+				mg_quote( $intro_quote ),
+
+				mg_atelier(
+					$fr ? 'Votre mur' : 'Your wall',
+					$fr ? 'Un projet de murale ?' : 'A mural project?',
+					array( $lead ),
 					$fr
 						? array(
-							array( 22, 'Murale « L’arbre du savoir » : un arbre en fleurs dont les branches portent des lettres' ),
 							array( 20, 'Murale : un enfant en imperméable bleu respire une fleur d’où s’échappent des lettres' ),
+							array( 22, 'Murale « L’arbre du savoir » : un arbre en fleurs dont les branches portent des lettres' ),
 						)
 						: array(
-							array( 22, 'Mural “The tree of knowledge”: a flowering tree whose branches carry letters' ),
 							array( 20, 'Mural: a child in a blue raincoat smelling a flower from which letters escape' ),
-						),
-					$lang
+							array( 22, 'Mural “The tree of knowledge”: a flowering tree whose branches carry letters' ),
+						)
 				),
-				mg_prose(
-					mg_p(
-						$fr
-							? '<a href="{{pf_murals}}">Pour en voir plus</a>'
-							: '<a href="{{pf_murals}}">To see more</a>'
-					) . "\n\n"
-					. mg_sep() . "\n\n"
-					. mg_p( $lead )
-				),
+
 				mg_band( $fr ? 'Comment ça se passe ?' : 'How it works', mg_steps( $steps ) ),
 				mg_band(
 					$fr ? 'Tarifs et délais' : 'Pricing and timelines',
@@ -909,21 +1255,56 @@ function mg_content( $key, $lang ) {
 		/* --------------------------------- Hub commissions / collaborations */
 		case 'hub':
 			return implode( "\n\n", array(
-				mg_lead(
+
+				mg_hero(
+					$fr ? 'Travailler ensemble' : 'Work together',
+					$fr ? 'Commissions et collaborations' : 'Commissions and collaborations',
 					$fr
-						? 'Deux façons de travailler ensemble : une œuvre commandée pour vous, ou un projet mené avec une marque, un lieu ou une équipe.'
-						: 'Two ways of working together: a piece commissioned for you, or a project developed with a brand, a venue or a team.'
-				),
-				mg_cards(
+						? array( 'Deux façons de travailler ensemble : une œuvre commandée pour vous, ou un projet mené avec une marque, un lieu ou une équipe.' )
+						: array( 'Two ways of working together: a piece commissioned for you, or a project developed with a brand, a venue or a team.' ),
+					array(
+						array( '{{commissions}}', 'Commissions' ),
+						array( '{{collaborations}}', 'Collaborations' ),
+					),
+					array(),
 					$fr
 						? array(
-							array( '{{commissions}}', 'Commissions', 'Une œuvre créée pour vous', 3, 'Peinture d’un épouvantail coiffé d’un chapeau fleuri dans un champ de tournesols, réalisée sur commande' ),
-							array( '{{collaborations}}', 'Collaborations', 'Marques, lieux, institutions, créateurs', 23, 'Illustration à la gouache : une table d’alchimiste éclairée à la bougie, fioles fumantes et vieux livres' ),
+							array( 6, 'Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée' ),
+							array( 21, 'Murale : un enfant en imperméable jaune déterre une graine lumineuse' ),
 						)
 						: array(
-							array( '{{commissions}}', 'Commissions', 'A piece created for you', 3, 'Painting of a scarecrow in a flowered hat standing in a field of sunflowers, made on commission' ),
-							array( '{{collaborations}}', 'Collaborations', 'Brands, venues, institutions, creators', 23, 'Gouache illustration: an alchemist’s candlelit table with smoking flasks and old books' ),
+							array( 6, 'Gouache illustration: a woman with long hair holds a glowing moon in a blue winter forest' ),
+							array( 21, 'Mural: a child in a yellow raincoat unearthing a glowing seed' ),
 						)
+				),
+
+				mg_section(
+					$fr ? 'Par où commencer' : 'Where to start',
+					$fr ? 'Deux chemins' : 'Two ways in',
+					mg_cards(
+						$fr
+							? array(
+								array( '{{commissions}}', 'Commissions', 'Une œuvre créée pour vous', 3, 'Peinture d’un épouvantail coiffé d’un chapeau fleuri dans un champ de tournesols, réalisée sur commande' ),
+								array( '{{collaborations}}', 'Collaborations', 'Marques, lieux, institutions, créateurs', 23, 'Illustration à la gouache : une table d’alchimiste éclairée à la bougie, fioles fumantes et vieux livres' ),
+							)
+							: array(
+								array( '{{commissions}}', 'Commissions', 'A piece created for you', 3, 'Painting of a scarecrow in a flowered hat standing in a field of sunflowers, made on commission' ),
+								array( '{{collaborations}}', 'Collaborations', 'Brands, venues, institutions, creators', 23, 'Gouache illustration: an alchemist’s candlelit table with smoking flasks and old books' ),
+							)
+					)
+				),
+
+				mg_prose(
+					mg_sep() . "\n\n"
+					. mg_p(
+						$fr
+							? 'Une question avant de vous lancer ? <a href="mailto:contact@morganecachia-art.com">contact@morganecachia-art.com</a>'
+							: 'A question before you begin? <a href="mailto:contact@morganecachia-art.com">contact@morganecachia-art.com</a>'
+					) . "\n\n"
+					. mg_buttons( array(
+						array( '{{portfolio}}', $fr ? 'Voir les portfolios' : 'View the portfolios' ),
+						array( '{{murals}}', $fr ? 'Projet de murale' : 'Mural project' ),
+					) )
 				),
 			) );
 
@@ -974,7 +1355,20 @@ function mg_content( $key, $lang ) {
 				: 'To keep the process clear and reassuring for everyone, each commission includes a written agreement outlining the subject of the project, the price, the deposit, the timeline, the number of revisions included, and the delivery terms. This helps set expectations from the start and ensures a smooth process from beginning to end.';
 
 			return implode( "\n\n", array(
-				mg_lead( $intro ),
+
+				mg_hero(
+					$fr ? 'Une œuvre pour vous' : 'A piece for you',
+					'Commissions',
+					array( $intro ),
+					array(
+						array( '#formulaire', $fr ? 'Demander une commission' : 'Request a commission' ),
+						array( '{{portfolio}}', $fr ? 'Voir les portfolios' : 'View the portfolios' ),
+					),
+					$fr
+						? array( 3, 'Peinture d’un épouvantail coiffé d’un chapeau fleuri dans un champ de tournesols, réalisée sur commande' )
+						: array( 3, 'Painting of a scarecrow in a flowered hat standing in a field of sunflowers, made on commission' )
+				),
+
 				mg_band( $fr ? 'Comment ça se passe ?' : 'How it works', mg_steps( $steps ) ),
 				mg_band(
 					$fr ? 'Tarifs et délais' : 'Pricing and timelines',
@@ -1016,8 +1410,44 @@ function mg_content( $key, $lang ) {
 				);
 
 			return implode( "\n\n", array(
-				mg_lead( $body[0] ),
-				mg_prose( mg_p( $body[1] ) ),
+
+				// Photo en paysage : le cadre du bandeau passe en 4:3, sinon un
+				// recadrage en 3:4 n'en garderait qu'une bande centrale.
+				mg_hero(
+					$fr ? 'À plusieurs' : 'Together',
+					'Collaborations',
+					array( $body[0] ),
+					array(
+						array( '#formulaire', $fr ? 'Proposer un projet' : 'Submit a project' ),
+						array( '{{portfolio}}', $fr ? 'Voir les portfolios' : 'View the portfolios' ),
+					),
+					$fr
+						? array( 23, 'Illustration à la gouache : une table d’alchimiste éclairée à la bougie, fioles fumantes et vieux livres', 'wide' )
+						: array( 23, 'Gouache illustration: an alchemist’s table lit by candlelight, steaming vials and old books', 'wide' )
+				),
+
+				mg_atelier(
+					$fr ? 'Ce que j’aime' : 'What I enjoy',
+					$fr ? 'Des projets qui laissent place à l’imaginaire' : 'Projects that leave room for imagination',
+					array( $body[1] ),
+					$fr
+						? array(
+							array( 8, 'Illustration à la gouache : une femme aux cheveux dorés flottants dans une bibliothèque envahie de lierre' ),
+							array( 19, 'Dessin à l’encre : nature morte au violoncelle, partition et bouquet posés sur une table drapée' ),
+						)
+						: array(
+							array( 8, 'Gouache illustration: a woman with flowing golden hair in a library overgrown with ivy' ),
+							array( 19, 'Ink drawing: still life with a cello, sheet music and a bouquet on a draped table' ),
+						),
+					// Les formes de collaboration citées dans le paragraphe
+					// ci-dessus, posées en pastilles.
+					mg_tags(
+						$fr
+							? array( 'illustration', 'campagne visuelle', 'objet', 'publication', 'création sur mesure' )
+							: array( 'illustration', 'visual campaign', 'object', 'publication', 'custom creation' )
+					)
+				),
+
 				mg_band(
 					$fr ? 'Comment me proposer un projet' : 'How to submit a project',
 					mg_p(
@@ -1043,6 +1473,20 @@ function mg_content( $key, $lang ) {
    4. Passe 2 : écrire les contenus
    ========================================================================= */
 
+/*
+ * Pages dont le contenu ouvre sur son propre h1 (le bandeau de mg_hero) : elles
+ * prennent le gabarit sans titre, sinon le titre de la page ferait doublon
+ * juste au-dessus. Le gabarit est posé avec le contenu, pas avant : les deux
+ * vont ensemble.
+ *
+ * L'accueil est absent volontairement : il a son propre gabarit
+ * (front-page.html), qu'un gabarit de page choisi ici viendrait supplanter.
+ */
+$no_title = array_flip( array(
+	'about', 'portfolio', 'pf_youth', 'pf_illus', 'pf_draw', 'pf_murals',
+	'murals', 'hub', 'commissions', 'collaborations',
+) );
+
 $written = 0;
 foreach ( $ids as $key => $pair ) {
 	foreach ( array( 'fr', 'en' ) as $lang ) {
@@ -1052,7 +1496,7 @@ foreach ( $ids as $key => $pair ) {
 		}
 
 		$existing = get_post_field( 'post_content', $id );
-		if ( '' !== trim( $existing ) && ! $force ) {
+		if ( '' !== trim( $existing ) && ! $force_all && ! isset( $force_keys[ $key ] ) ) {
 			continue; // Déjà rempli — on ne touche pas au travail de Morgane.
 		}
 
@@ -1062,11 +1506,16 @@ foreach ( $ids as $key => $pair ) {
 		}
 
 		wp_update_post( array( 'ID' => $id, 'post_content' => $content ) );
+
+		if ( isset( $no_title[ $key ] ) ) {
+			update_post_meta( $id, '_wp_page_template', 'page-no-title' );
+		}
+
 		$written++;
 	}
 }
 
-WP_CLI::success( $written . ' pages remplies. Relancer avec MORGANE_FORCE=1 pour réécrire.' );
+WP_CLI::success( $written . ' pages remplies. Relancer avec MORGANE_FORCE=1 (tout) ou MORGANE_FORCE=<clé> pour réécrire.' );
 
 /* =========================================================================
    5. Passe 3 : remettre les slugs voulus

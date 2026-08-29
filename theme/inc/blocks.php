@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * par morgane_url(), donc jamais codées en dur.
  *
  * Un seul balisage pour les deux affichages, le CSS décide :
- *   - au-dessus de 720 px, les liens sont posés à plat dans l'en-tête et le
+ *   - au-dessus de 1280 px, les liens sont posés à plat dans l'en-tête et le
  *     bouton disparaît — on ne fait pas cliquer deux fois quelqu'un qui a la
  *     place d'afficher le menu ;
  *   - en dessous, le bouton ouvre le panneau.

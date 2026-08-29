@@ -42,8 +42,8 @@
 
   /* -------------------------------------------------------
      2. Menu
-     Au-dessus de 720 px les liens sont posés à plat dans l'en-tête et
-     le bouton est masqué : ce qui suit ne sert qu'en mobile.
+     Au-dessus de 1280 px les liens sont posés à plat dans l'en-tête et
+     le bouton est masqué : ce qui suit ne sert qu'en dessous.
      Le panneau n'est replié que si ce script tourne — sans lui, le CSS
      le laisse déplié plutôt que de le rendre inatteignable.
      ------------------------------------------------------- */
@@ -189,6 +189,7 @@
     '.steps',
     '.note',
     '.form-wrap',
+    '.pull-quote',
     'main .wp-block-buttons'
   ].join(',');
 
@@ -198,7 +199,7 @@
     // explicitement tout ce qui est dans le hero, et une apparition au
     // défilement n'aurait de toute façon aucun sens au-dessus de la ligne de
     // flottaison — le déclencheur serait déjà passé au chargement.
-    var heroRest  = gsap.utils.toArray('.hero .art-float, .hero__eyebrow, .hero__lede, .hero .wp-block-buttons, .hero .scroll-cue');
+    var heroRest  = gsap.utils.toArray('.hero .art-float, .hero .hero__media, .hero__eyebrow, .hero__lede, .hero p, .hero .wp-block-buttons, .hero .scroll-cue');
 
     if (heroWords.length || heroRest.length) {
       var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });

@@ -138,23 +138,52 @@ mot à dire, et c'est la première trouvée qui gagne. D'où deux choix :
 
 ### Navigation
 
-L'en-tête tient sur deux rangées : le **nom du site** centré (cliquable vers
-l'accueil) avec **bascule FR/EN, bascule clair/sombre et panier** à droite ;
-en dessous, la **rangée de liens** : Accueil, Boutique, Murales, Portfolio,
-À propos, puis — séparé d'un filet et visiblement secondaire — « Commissions
-et collaborations ».
+L'en-tête tient sur une seule rangée à toutes les largeurs : la **navigation**
+à gauche, le **logo** au centre exact de la barre (cliquable vers l'accueil),
+les **bascules FR/EN et clair/sombre et le panier** à droite. Le logo est posé
+hors flux et centré sur la barre entière : il tient le milieu quelles que
+soient les largeurs des deux groupes.
 
-Sur une seule rangée, les six liens (≈690 px) prendraient au nom la place dont
-il a besoin pour rester centré ; d'où les deux rangées dès la tablette.
+**Au-dessus de 1280 px**, la navigation est une rangée de liens à plat :
+Accueil, Boutique, Murales, Portfolio, À propos, puis — séparé d'un filet et
+visiblement secondaire — « Commissions et collaborations ». **En dessous**,
+elle repasse derrière un bouton : à plat, les six entrées pèsent ≈690 px et ne
+laissent plus au logo la place de tenir le centre.
 
-**En dessous de 720 px seulement**, les liens repassent derrière un bouton
-hamburger. Au-dessus, ils restent affichés : personne ne devrait avoir à
-ouvrir un menu quand l'écran a la place de le montrer.
+Sur téléphone (≤ 720 px) le bouton perd son libellé et le sélecteur de langue
+n'affiche que la langue d'arrivée : ces 130 px sont exactement ce qui permet au
+logo de rester au milieu. Sous 360 px, plus rien ne tient sur une ligne : le
+logo reprend une rangée à lui, centré.
 
 Un seul balisage sert les deux affichages — c'est le CSS qui décide, pas une
 duplication de liens dans le DOM. Le bouton porte `aria-expanded` /
 `aria-controls`, Échap et le clic à l'extérieur referment. Sans JavaScript, le
 panneau reste déplié (`html:not(.js)`) plutôt que de devenir inatteignable.
+
+### Vocabulaire visuel des pages
+
+Toutes les pages sont montées avec le même petit jeu de briques, défini une
+fois dans `scripts/pages.php` et posé en CSS dans `theme/assets/css/app.css` :
+
+| Brique | Ce qu'elle fait |
+|---|---|
+| `mg_hero()` | Bandeau d'ouverture pleine largeur : fond « aurore » animé, formes floues en parallaxe, accroche manuscrite, h1 découpé en mots à l'entrée. Deux formes — image et texte côte à côte, ou texte centré entre deux œuvres flottantes. |
+| `mg_marquee()` | Bandeau de mots défilant, en dégradé pleine largeur. |
+| `mg_atelier()` | Section respiration : titre centré en colonne étroite, deux œuvres qui flottent de part et d'autre, sur le même fond que le hero. |
+| `mg_quote()` | Une phrase de Morgane sortie du texte courant, en grand et dans la police manuscrite. |
+| `mg_tags()` | Rangée de pastilles manuscrites, pour des mots-clés tirés du texte. |
+| `mg_section()` | Section sur la largeur large : chapeau de section puis grille de cartes ou bandeau d'œuvres. |
+| `mg_band()` | Bande éditoriale : titre à gauche, contenu à droite (étapes, tarifs, ententes). |
+
+Les pages qui ouvrent sur `mg_hero()` portent leur h1 dans le contenu : elles
+prennent le gabarit `page-no-title`, posé par `pages.php` en même temps que le
+contenu. L'accueil est à part — il a son propre gabarit `front-page.html`.
+
+Le mouvement est entièrement dans `app.js` : le hero a son entrée en scène
+(titre mot à mot, puis image, chapeau et boutons en cascade), tout le reste
+apparaît au défilement via la liste `REVEAL`. Rien de tout cela ne demande
+d'attribut sur les blocs — Morgane peut modifier les textes sans que l'éditeur
+signale un « contenu inattendu ».
 
 ### Répartition des contenus dans WordPress
 
