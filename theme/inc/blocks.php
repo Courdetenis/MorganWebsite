@@ -253,6 +253,53 @@ function morgane_render_artworks( $attrs ) {
 	return ob_get_clean();
 }
 
+/**
+ * Contenu de la page 404.
+ *
+ * Rendu en PHP et non écrit dans le gabarit : un gabarit est un fichier unique,
+ * il ne peut pas porter les deux langues. Le reste de la mise en page — le
+ * bandeau, les formes floues, le centrage — vient du gabarit `404.html`, qui
+ * réemploie les briques du hero. Rien de neuf en CSS.
+ *
+ * Une 404 doit toujours proposer une sortie : sans cela le visiteur n'a que le
+ * bouton « précédent », et une adresse partagée de travers coûte une visite.
+ */
+function morgane_render_not_found() {
+	$out = '<p class="hero__eyebrow">' . esc_html( morgane_t( array(
+		'fr' => 'Erreur 404',
+		'en' => 'Error 404',
+	) ) ) . '</p>';
+
+	$out .= '<h1 class="wp-block-heading">' . esc_html( morgane_t( array(
+		'fr' => 'Cette page s\'est égarée',
+		'en' => 'This page has wandered off',
+	) ) ) . '</h1>';
+
+	$out .= '<p class="hero__lede has-large-font-size">' . esc_html( morgane_t( array(
+		'fr' => 'L\'adresse ne mène nulle part — elle a peut-être changé, ou comporte une coquille. Voici deux chemins qui, eux, mènent quelque part.',
+		'en' => 'This address leads nowhere — it may have changed, or contain a typo. Here are two that do lead somewhere.',
+	) ) ) . '</p>';
+
+	$liens = array(
+		array( morgane_home_url(), morgane_t( array( 'fr' => 'Retour à l\'accueil', 'en' => 'Back to home' ) ) ),
+		array( morgane_shop_url(), morgane_t( array( 'fr' => 'Voir la boutique',   'en' => 'Browse the shop' ) ) ),
+	);
+
+	// Les classes de mise en page sont écrites à la main : ce balisage est produit
+	// en PHP, il ne passe pas par le moteur de blocs qui les ajouterait.
+	$out .= '<div class="wp-block-buttons is-content-justification-center'
+		. ' is-layout-flex wp-container-core-buttons-is-layout-1 wp-block-buttons-is-layout-flex">';
+	foreach ( $liens as $i => $lien ) {
+		$style = 0 === $i ? '' : ' is-style-outline';
+		$out  .= '<div class="wp-block-button' . $style . '">'
+			. '<a class="wp-block-button__link wp-element-button" href="' . esc_url( $lien[0] ) . '">'
+			. esc_html( $lien[1] ) . '</a></div>';
+	}
+	$out .= '</div>';
+
+	return $out;
+}
+
 add_action(
 	'init',
 	function () {
@@ -303,6 +350,16 @@ add_action(
 				'title'           => __( 'Panier', 'morgane' ),
 				'category'        => 'woocommerce',
 				'render_callback' => 'morgane_render_cart',
+			)
+		);
+
+		register_block_type(
+			'morgane/not-found',
+			array(
+				'api_version'     => 3,
+				'title'           => __( 'Contenu de la page 404', 'morgane' ),
+				'category'        => 'design',
+				'render_callback' => 'morgane_render_not_found',
 			)
 		);
 

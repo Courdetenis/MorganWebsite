@@ -103,6 +103,23 @@ body { overflow-x: hidden; }
   flex-direction: column;
   justify-content: safe center;
 }
+/* `main` étant devenu un conteneur flex, ses enfants sont des éléments flex.
+   La mise en page contrainte de WordPress pose `margin-inline: auto !important`
+   sur tout enfant qui n'est pas `alignfull` — or un élément flex dont une marge
+   transversale vaut `auto` n'est plus étiré par `align-items: stretch` : il
+   retombe sur sa largeur de contenu. Les gabarits du thème sortaient indemnes,
+   leur `post-content` étant en `alignfull` ; les pages de WooCommerce, qui
+   remplacent le gabarit par le leur en `alignwide`, s'effondraient — panier
+   réduit à 0 px, boutique à 908 au lieu de 1240, titre de « Mon compte » à 315.
+   Rendre la largeur explicite rétablit l'étirement sans toucher aux marges,
+   donc sans décentrer quoi que ce soit.
+   `alignfull` est écarté : ces éléments-là sont déjà étirés (la règle aux marges
+   automatiques les exclut) et débordent de la zone de contenu par des marges
+   négatives. Leur imposer `width: 100%` les rétrécissait de deux fois le
+   remplissage — le bandeau pleine largeur de la 404 s'arrêtait avant le bord. */
+.wp-site-blocks > main > *:not(.alignfull) {
+  width: 100%;
+}
 
 ::selection { background: var(--wp--preset--color--rose); color: #432026; }
 
@@ -176,9 +193,23 @@ input, textarea, select { box-sizing: border-box; }
      puis se fige, et c'est elle qui donne sa hauteur à la barre. La borne basse
      est celle qui tient encore entre le bouton et les outils sur un 360 px. */
   --logo-h: clamp(40px, 12vw, 76px);
-  transition: background-color .3s var(--ease-out), box-shadow .3s var(--ease-out), backdrop-filter .3s var(--ease-out);
+  /* Un peu d'air au-dessus, en haut de page. Le logo est hors flux et centré
+     sur la barre : le remplissage de la barre ne le déplace pas, c'est donc
+     l'en-tête lui-même qui s'ouvre. Sans ça, il ne restait que 8 px entre le
+     bord de la fenêtre et le haut du logo — la barre semblait posée de force
+     contre le bord. */
+  padding-top: clamp(.5rem, 1.4vw, 1.125rem);
+  transition: background-color .3s var(--ease-out), box-shadow .3s var(--ease-out),
+              backdrop-filter .3s var(--ease-out), padding-top .3s var(--ease-out);
 }
-.site-header.is-scrolled { --logo-h: clamp(32px, 9vw, 56px); }
+/* Au défilement l'espace se referme : cet air-là sert l'ouverture de la page,
+   pas la barre collante, qui doit rester la plus discrète possible une fois
+   qu'elle flotte au-dessus du contenu. Il part en même temps que le logo
+   rétrécit, donc en un seul mouvement. */
+.site-header.is-scrolled {
+  --logo-h: clamp(32px, 9vw, 56px);
+  padding-top: 0;
+}
 
 .site-header__bar {
   display: flex; position: relative;

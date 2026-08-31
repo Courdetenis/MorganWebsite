@@ -86,6 +86,45 @@ function morgane_url( $fr_path ) {
 }
 
 /**
+ * Racine d'une langue, ex. « http://site/en/ ».
+ *
+ * `pll_home_url()` ne renvoie pas la racine de la langue mais l'URL de la page
+ * d'accueil traduite. Les deux coïncident quand Polylang est réglé pour
+ * (option « redirect_lang »), et divergent sinon : on récupère alors
+ * « /en/home/ », et tout ce qu'on lui accole donne « /en/home/boutique/ » —
+ * une redirection dans le meilleur cas, une 404 dans les autres.
+ *
+ * On retire donc le nom de la page d'accueil s'il est là. Le thème ne dépend
+ * plus d'un réglage de Polylang pour construire des adresses justes.
+ */
+function morgane_lang_root( $lang ) {
+	if ( ! function_exists( 'pll_home_url' ) ) {
+		return home_url( '/' );
+	}
+
+	$root  = (string) pll_home_url( $lang );
+	$front = (int) get_option( 'page_on_front' );
+	if ( ! $front ) {
+		return $root;
+	}
+
+	if ( function_exists( 'pll_get_post' ) ) {
+		$translated = pll_get_post( $front, $lang );
+		if ( $translated ) {
+			$front = $translated;
+		}
+	}
+
+	$slug = get_post_field( 'post_name', $front );
+	if ( ! $slug ) {
+		return $root;
+	}
+
+	$motif = '~/' . preg_quote( $slug, '~' ) . '/?$~';
+	return preg_match( $motif, $root ) ? preg_replace( $motif, '/', $root ) : $root;
+}
+
+/**
  * URL d'une page WooCommerce (boutique, panier…) dans la langue active.
  *
  * Polylang gratuit ne traduit pas les pages WooCommerce (l'extension qui le
@@ -117,8 +156,8 @@ function morgane_wc_page_url( $page ) {
 	$url = (string) get_permalink( $id );
 
 	if ( function_exists( 'pll_home_url' ) ) {
-		$path = wp_make_link_relative( $url );          // /shop/
-		$url  = untrailingslashit( pll_home_url( $lang ) ) . $path;
+		$path = wp_make_link_relative( $url );          // /boutique/
+		$url  = untrailingslashit( morgane_lang_root( $lang ) ) . $path;
 	}
 
 	return $url;
@@ -130,3 +169,26 @@ function morgane_wc_page_url( $page ) {
 function morgane_shop_url() {
 	return morgane_wc_page_url( 'shop' );
 }
+
+/**
+ * Slogan du site, dans la langue de la page.
+ *
+ * Le slogan part dans la balise `<title>`, dans les résultats de recherche et
+ * dans les aperçus de partage. Sans ce filtre, tout le site anglais annonçait
+ * « Illustratrice, artiste peintre et muraliste à Montréal ».
+ *
+ * Le nom du site n'est volontairement pas filtré : « Morgane Cachia – Art » est
+ * un nom propre, il s'écrit pareil dans les deux langues.
+ *
+ * Côté administration on ne touche à rien : Morgane doit voir et modifier la
+ * valeur qu'elle a saisie, pas une traduction posée par le thème.
+ */
+add_filter( 'option_blogdescription', function ( $value ) {
+	if ( is_admin() || 'fr' === morgane_lang() ) {
+		return $value;
+	}
+	return morgane_t( array(
+		'fr' => $value,
+		'en' => 'Illustrator, painter and mural artist based in Montreal',
+	) );
+} );
