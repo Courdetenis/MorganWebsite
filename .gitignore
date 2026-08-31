@@ -13,3 +13,6 @@ desktop.ini
 .vscode/
 *.swp
 *~
+
+# Photos préparées pour la mise en ligne : reproductibles, donc pas versionnées.
+dist/

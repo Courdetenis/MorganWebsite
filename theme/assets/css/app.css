@@ -634,8 +634,18 @@ hr.wp-block-separator.rule:not(.alignwide),
 
 /* La taille des h1 est fixée dans theme.json, pour couvrir aussi les gabarits
    de WooCommerce qui n'ont pas cette classe. */
+/* 24 rem cadrait les titres courts (« Boutique », « Contact »), mais WordPress
+   pose `word-break: break-word` sur les titres d'article : « Retours et
+   remboursements » se coupait en plein mot, à 64 px, en plein milieu de la
+   page. On élargit la mesure de quoi loger le mot le plus long, et on interdit
+   la coupure — un titre qui déborderait vaut mieux qu'un titre tronçonné, et
+   `text-wrap: balance` équilibre les lignes de toute façon.
+   Sans effet sur les titres courts, qui n'atteignaient déjà pas la borne. */
 .page-title.wp-block-post-title {
-  max-width: 24rem; margin-inline: auto; text-align: center;
+  word-break: normal;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+  max-width: 32rem; margin-inline: auto; text-align: center;
 }
 
 /* Chapeau : le premier paragraphe d'une page. Plus posé par les scripts — les
@@ -669,6 +679,14 @@ hr.wp-block-separator.rule:not(.alignwide),
 .prose > :first-child { margin-top: 0; }
 .prose > :last-child { margin-bottom: 0; }
 .prose .wp-block-buttons { justify-content: center; }
+/* Chapeau d'une page sans bandeau. Les pages de bas de page — contact, retours,
+   confidentialité — ouvrent sur le titre de leur gabarit et non sur un hero :
+   elles n'ont donc pas de `hero__lede` pour porter leur phrase d'entrée. */
+.prose .lede {
+  font-size: var(--wp--preset--font-size--large);
+  line-height: 1.45; text-wrap: pretty;
+}
+.prose .note-date { font-size: var(--wp--preset--font-size--small); color: var(--wp--preset--color--ink-soft); }
 
 /* Bande : titre centré, contenu centré dessous. Ce n'est pas pour autant une
    colonne étroite — les étapes s'étalent sur deux colonnes et les bandeaux
@@ -1159,7 +1177,16 @@ hr.wp-block-separator.rule:not(.alignwide),
 }
 .site-footer__social { justify-self: start; }
 .site-footer__mail   { justify-self: center; }
-.site-footer__legal  { justify-self: end; margin: 0; }
+/* La colonne de droite empile les liens légaux et la mention : trois liens de
+   plus ne tiennent pas sur la rangée sans repousser le courriel hors du centre. */
+.site-footer__legal {
+  justify-self: end; margin: 0;
+  display: grid; gap: .35rem; justify-items: end; text-align: right;
+}
+.site-footer__links { display: flex; flex-wrap: wrap; gap: .4rem .9rem; justify-content: flex-end; }
+.site-footer__links a { color: var(--wp--preset--color--ink-soft); text-decoration: none; font-size: .9rem; }
+.site-footer__links a:hover { color: var(--wp--preset--color--blush); text-decoration: underline; }
+.site-footer__copy { margin: 0; }
 /* Les trois zones ne tiennent sur une ligne qu'à partir de 900 px : en dessous,
    la mention légale se coupait en deux et se tassait contre le bord. */
 @media (max-width: 899px) {
@@ -1167,6 +1194,8 @@ hr.wp-block-separator.rule:not(.alignwide),
   .site-footer__social,
   .site-footer__mail,
   .site-footer__legal { justify-self: center; }
+  .site-footer__legal { justify-items: center; text-align: center; }
+  .site-footer__links { justify-content: center; }
 }
 .site-footer__social { display: flex; align-items: center; gap: .35rem; }
 .site-footer__social a {

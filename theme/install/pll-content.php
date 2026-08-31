@@ -17,8 +17,10 @@ $map = array(
 	'Marée basse — tirage'     => 'Low Tide — print',
 );
 
+// Toutes langues confondues : on cherche les produits à traduire.
 $products = get_posts(
 	array(
+		'lang'           => '',
 		'post_type'   => 'product',
 		'numberposts' => -1,
 		'post_status' => 'any',

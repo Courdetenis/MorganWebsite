@@ -139,7 +139,7 @@ WP_CLI::log( 'Tailles : ' . implode( ', ', $sizes ) );
    3. Produits de démonstration rangés dans « Prints »
    ------------------------------------------------------------------------- */
 
-$demo = get_posts( array( 'post_type' => 'product', 'numberposts' => -1, 'fields' => 'ids', 'post_status' => 'any' ) );
+$demo = get_posts( array( 'post_type' => 'product', 'numberposts' => -1, 'fields' => 'ids', 'post_status' => 'any', 'lang' => '' ) );
 foreach ( $demo as $pid ) {
 	$lang = pll_get_post_language( $pid );
 	$cat  = $cat_ids['prints'][ $lang ] ?? null;

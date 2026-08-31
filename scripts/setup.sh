@@ -126,15 +126,30 @@ fi
 
 # Bilingue + contenus. Ordre imposé : langues, puis produits traduisibles,
 # puis assignation, puis pages et boutique.
+# Les scripts de contenu vivent dans le thème et non plus dans /scripts : ils
+# voyagent ainsi dans le zip du thème, et l'installateur de wp-admin peut les
+# lancer sur un hébergement sans SSH. Une seule copie, deux façons de l'appeler.
+INSTALL=/var/www/html/wp-content/themes/morgane/install
+
 echo "Configuring Polylang and content..."
-wp eval-file /scripts/pll-setup.php
-wp eval-file /scripts/pll-cpt.php
-wp eval-file /scripts/pll-assign.php
-wp eval-file /scripts/pll-content.php
+wp eval-file $INSTALL/pll-setup.php
+wp eval-file $INSTALL/pll-cpt.php
+wp eval-file $INSTALL/pll-assign.php
+wp eval-file $INSTALL/pll-content.php
 # Avant les pages : pages.php lit la table des photos écrite par media.php.
-wp eval-file /scripts/media.php
-wp eval-file /scripts/pages.php
-wp eval-file /scripts/shop.php
+wp eval-file $INSTALL/media.php
+wp eval-file $INSTALL/pages.php
+wp eval-file $INSTALL/shop.php
+
+# Page de confidentialité officielle. WordPress s'en sert pour ses propres
+# écrans, et WooCommerce l'annonce d'elle-même au moment du paiement
+# (« vos données serviront à traiter votre commande… ») avec le lien qui va bien.
+# Sans ce réglage, la page existe mais personne ne la voit au bon moment.
+PRIVACY_ID=$(wp post list --name=confidentialite --post_type=page --field=ID --format=ids 2>/dev/null || true)
+if [ -n "$PRIVACY_ID" ]; then
+  wp option update wp_page_for_privacy_policy "$PRIVACY_ID" >/dev/null
+  echo "Page de confidentialité : #$PRIVACY_ID"
+fi
 
 wp rewrite flush --hard
 

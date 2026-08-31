@@ -18,8 +18,11 @@ $post_types = array( 'post', 'page', 'product' );
 $n_posts    = 0;
 
 foreach ( $post_types as $pt ) {
+	// Toutes langues confondues : la requête sert justement à trouver ce qui
+	// n'a pas encore de langue.
 	$ids = get_posts(
 		array(
+		'lang'           => '',
 			'post_type'   => $pt,
 			'numberposts' => -1,
 			'post_status' => 'any',
