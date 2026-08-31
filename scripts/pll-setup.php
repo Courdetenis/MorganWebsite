@@ -87,8 +87,26 @@ if ( is_array( $options ) ) {
 	delete_transient( 'pll_languages_list' );
 	delete_option( 'rewrite_rules' ); // régénérées à la prochaine visite, filtres Polylang inclus
 	WP_CLI::log( 'Options Polylang : défaut=fr (racine), anglais sous /en/' );
+} elseif ( is_object( $options ) && $options instanceof ArrayAccess ) {
+	/*
+	 * Polylang 3.7 et suivants ne stockent plus un tableau mais un objet
+	 * `Options`. Il implémente ArrayAccess, donc les mêmes affectations
+	 * fonctionnent — mais la branche précédente, elle, ne les voyait pas
+	 * passer : les trois réglages étaient silencieusement ignorés, et /en/
+	 * repartait en redirection vers /en/home/.
+	 */
+	$options['default_lang']  = 'fr';
+	$options['force_lang']    = 1;
+	$options['hide_default']  = 1;
+	$options['redirect_lang'] = true;
+
+	update_option( 'polylang', $options );
+
+	delete_transient( 'pll_languages_list' );
+	delete_option( 'rewrite_rules' );
+	WP_CLI::log( 'Options Polylang (objet) : défaut=fr (racine), anglais sous /en/' );
 } else {
-	WP_CLI::warning( 'Options Polylang au format objet — configurer via l\'admin.' );
+	WP_CLI::warning( 'Options Polylang dans un format inconnu — à configurer depuis l\'admin.' );
 }
 
 WP_CLI::success( 'Langues Polylang configurées.' );

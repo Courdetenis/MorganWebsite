@@ -12,6 +12,12 @@
 *.yml  text eol=lf
 *.md   text eol=lf
 
+# Polices et binaires : jamais de conversion. `text=auto` les détecte déjà, mais
+# une police corrompue par une normalisation de fins de ligne ne se voit qu'à
+# l'affichage, longtemps après. Autant l'écrire.
+*.woff2 binary
+*.woff  binary
+
 # Photos : jamais de conversion.
 *.jpg  binary
 *.JPG  binary

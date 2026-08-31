@@ -54,13 +54,42 @@ wp option update woocommerce_onboarding_profile '{"completed":true}' --format=js
 wp option update woocommerce_coming_soon "no" >/dev/null 2>&1 || true
 wp option update woocommerce_store_pages_only "no" >/dev/null 2>&1 || true
 
-# La page boutique de WooCommerce est créée en anglais (« Shop ») : sur un site
-# dont la langue par défaut est le français, c'est le titre affiché en haut du
-# catalogue et dans le fil d'Ariane.
-SHOP_ID=$(wp option get woocommerce_shop_page_id 2>/dev/null || true)
-if [ -n "$SHOP_ID" ] && [ "$(wp post get "$SHOP_ID" --field=post_name 2>/dev/null)" = "shop" ]; then
-  wp post update "$SHOP_ID" --post_title="Boutique" --post_name="boutique" >/dev/null
-fi
+# WooCommerce crée ses quatre pages en anglais (« Shop », « Cart », « Checkout »,
+# « My account ») : sur un site dont la langue par défaut est le français, ces
+# titres s'affichent en haut du catalogue, dans le fil d'Ariane, dans l'onglet du
+# navigateur et dans l'adresse. On les repasse en français, une fois.
+#
+# Chaque ligne : option WooCommerce | slug d'origine | titre FR | slug FR.
+# La condition sur le slug d'origine rend l'opération rejouable sans risque et
+# respecte un renommage fait à la main depuis l'administration.
+rename_wc_page() {
+  _id=$(wp option get "$1" 2>/dev/null || true)
+  [ -n "$_id" ] || return 0
+  [ "$(wp post get "$_id" --field=post_name 2>/dev/null)" = "$2" ] || return 0
+  wp post update "$_id" --post_title="$3" --post_name="$4" >/dev/null
+  echo "  $2 -> $4"
+}
+
+echo "Renaming WooCommerce pages..."
+rename_wc_page woocommerce_shop_page_id       shop       "Boutique"   "boutique"
+rename_wc_page woocommerce_cart_page_id       cart       "Panier"     "panier"
+rename_wc_page woocommerce_checkout_page_id   checkout   "Commande"   "commande"
+rename_wc_page woocommerce_myaccount_page_id  my-account "Mon compte" "mon-compte"
+
+# Contenu de démonstration de WordPress : l'article « Hello world! » et la page
+# « Page d'exemple ». Publiés tels quels, ils finissent dans le plan du site et
+# se font indexer.
+#
+# La page « Politique de confidentialité » n'est pas touchée : elle est en
+# brouillon, donc invisible, et une boutique québécoise devra la remplir pour la
+# Loi 25. Autant garder le brouillon que WordPress a préparé.
+echo "Removing WordPress sample content..."
+for _slug in hello-world sample-page; do
+  _id=$(wp post list --name="$_slug" --post_type=post,page --field=ID --format=ids 2>/dev/null || true)
+  if [ -n "$_id" ]; then
+    wp post delete $_id --force >/dev/null 2>&1 && echo "  supprimé : $_slug"
+  fi
+done
 
 echo "Activating theme..."
 wp theme activate morgane

@@ -46,13 +46,23 @@ docker compose down -v
 
 La seconde efface la base et WordPress — on repart de zéro.
 
+## Mise en ligne
+
+Voir **`docs/deploiement.md`** : ce qu'on envoie, les identifiants de page que le
+menu attend, l'envoi de courriel, les en-têtes HTTP.
+
 ## Structure
 
 - `theme/` — le thème, seul dossier versionné.
   - `theme.json` — design system (couleurs, typo, espacements).
   - `inc/i18n.php` — libellés FR/EN et résolution des URL par langue.
-  - `inc/blocks.php` — menu, bascule de langue, bascule de thème, grille d'œuvres.
+  - `inc/blocks.php` — menu, bascule de langue, bascule de thème, grille
+    d'œuvres, contenu de la page 404.
   - `inc/forms.php` — les trois formulaires.
+  - `assets/fonts/` et `assets/js/vendor/` — polices et GSAP, **auto-hébergés**.
+    Rien n'est chargé depuis un CDN : les scripts du thème s'exécutent aussi sur
+    le panier et la page de commande, et une adresse IP de visiteur n'a pas à
+    partir chez Google (Loi 25).
 - `scripts/` — installation reproductible, tous idempotents.
 - `pictures/` — photos d'origine, en JPEG pleine résolution. Elles ne sont pas
   servies telles quelles : `scripts/media.php` les convertit en WebP (2000 px de
