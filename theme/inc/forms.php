@@ -117,8 +117,46 @@ function &morgane_form_state() {
 		'type'   => '',
 		'errors' => array(),
 		'values' => array(),
+		'notice' => '',
 	);
 	return $state;
+}
+
+/**
+ * Limite de débit, par empreinte d'adresse IP.
+ *
+ * Le piège à robots arrête les moissonneuses génériques, pas un envoi
+ * automatisé écrit pour ce site : il suffit de laisser le champ vide. Sans
+ * plafond, chaque soumission déclenche un `wp_mail` — de quoi noyer la boîte
+ * de Morgane et abîmer la réputation d'envoi du domaine.
+ *
+ * L'adresse n'est pas stockée telle quelle mais hachée avec les clés de
+ * sécurité du site : le transient ne contient rien de réidentifiable, et il
+ * s'efface tout seul au bout d'une heure.
+ *
+ * @return bool true si l'envoi est autorisé.
+ */
+function morgane_form_rate_ok() {
+	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	if ( '' === $ip ) {
+		return true;
+	}
+
+	$key   = 'morgane_fq_' . substr( wp_hash( $ip ), 0, 20 );
+	$count = (int) get_transient( $key );
+
+	/**
+	 * Plafond horaire. Cinq laisse la place à une hésitation, à un renvoi après
+	 * une erreur de saisie et à deux formulaires différents ; au-delà, ce n'est
+	 * plus quelqu'un qui écrit.
+	 */
+	$max = (int) apply_filters( 'morgane_form_max_per_hour', 5 );
+	if ( $count >= $max ) {
+		return false;
+	}
+
+	set_transient( $key, $count + 1, HOUR_IN_SECONDS );
+	return true;
 }
 
 /**
@@ -148,18 +186,17 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
-	if ( ! isset( $_POST['morgane_nonce'] ) ||
-		! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['morgane_nonce'] ) ), 'morgane_form_' . $type ) ) {
-		wp_die( esc_html( morgane_t( array(
-			'fr' => 'Votre session a expiré. Revenez en arrière et renvoyez le formulaire.',
-			'en' => 'Your session expired. Go back and submit the form again.',
-		) ) ), 403 );
-	}
-
-	$state           = &morgane_form_state();
-	$state['type']   = $type;
-	$errors          = array();
-	$values          = array();
+	/**
+	 * Les valeurs sont relues et assainies avant la vérification du nonce, pour
+	 * pouvoir les réafficher si celui-ci a expiré. Rien n'est envoyé ni
+	 * enregistré à ce stade : la seule chose qui arrive à des données non
+	 * vérifiées, c'est de repartir échappées vers le navigateur qui les a
+	 * postées. Le traitement réel, lui, reste derrière le nonce.
+	 */
+	$state         = &morgane_form_state();
+	$state['type'] = $type;
+	$errors        = array();
+	$values        = array();
 
 	foreach ( $forms[ $type ]['fields'] as $name => $field ) {
 		$raw = isset( $_POST[ $name ] ) ? wp_unslash( $_POST[ $name ] ) : '';
@@ -184,9 +221,36 @@ add_action( 'template_redirect', function () {
 
 	$state['values'] = $values;
 
+	/**
+	 * Nonce expiré : on réaffiche la page plutôt que de mourir en 403.
+	 *
+	 * Sur un formulaire public, le nonce est le même pour tous les visiteurs
+	 * déconnectés et vit douze à vingt-quatre heures. Derrière un cache pleine
+	 * page — le réglage par défaut de beaucoup d'hébergeurs — la page servie
+	 * fige un nonce qui finit par expirer, et un visiteur parfaitement légitime
+	 * se retrouvait devant une page blanche, son texte perdu. Le formulaire
+	 * réaffiché porte un nonce frais : il suffit de renvoyer.
+	 */
+	if ( ! isset( $_POST['morgane_nonce'] ) ||
+		! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['morgane_nonce'] ) ), 'morgane_form_' . $type ) ) {
+		$state['notice'] = morgane_t( array(
+			'fr' => 'Votre session avait expiré, votre message n\'est pas parti. Vos réponses sont toujours là : renvoyez le formulaire.',
+			'en' => 'Your session had expired, so your message was not sent. Your answers are still here — just submit again.',
+		) );
+		return;
+	}
+
 	if ( $errors ) {
 		$state['errors'] = $errors;
 		return; // On réaffiche la page avec les erreurs et les valeurs saisies.
+	}
+
+	if ( ! morgane_form_rate_ok() ) {
+		$state['notice'] = morgane_t( array(
+			'fr' => 'Vous avez envoyé plusieurs messages coup sur coup. Patientez une heure, ou écrivez directement à ' . morgane_contact_email() . '.',
+			'en' => 'You have sent several messages in a row. Please wait an hour, or write directly to ' . morgane_contact_email() . '.',
+		) );
+		return;
 	}
 
 	// --- Envoi ---------------------------------------------------------
@@ -209,7 +273,25 @@ add_action( 'template_redirect', function () {
 		$headers[] = 'Reply-To: ' . $values['email'];
 	}
 
-	wp_mail( morgane_contact_email(), $subjects[ $type ], implode( "\n", $lines ), $headers );
+	$sent = wp_mail( morgane_contact_email(), $subjects[ $type ], implode( "\n", $lines ), $headers );
+
+	/**
+	 * Un envoi qui échoue ne doit pas afficher « message parti ».
+	 *
+	 * Sur un serveur neuf, `mail()` n'est presque jamais configuré : sans ce
+	 * contrôle, le visiteur repartait rassuré, Morgane ne recevait rien, et la
+	 * demande était perdue sans que personne ne le sache. Les formulaires sont
+	 * la seule voie de contact du site.
+	 *
+	 * En repli on donne l'adresse en clair : le visiteur peut toujours écrire.
+	 */
+	if ( ! $sent ) {
+		$state['notice'] = morgane_t( array(
+			'fr' => 'L\'envoi a échoué de notre côté — rien n\'est perdu, votre texte est toujours là. Écrivez-nous directement à ' . morgane_contact_email() . '.',
+			'en' => 'Sending failed on our side — nothing is lost, your text is still here. Please write to us directly at ' . morgane_contact_email() . '.',
+		) );
+		return;
+	}
 
 	wp_safe_redirect( $done );
 	exit;
@@ -237,6 +319,12 @@ function morgane_render_form( $attrs ) {
 			'fr' => 'Merci, votre message est parti. Je vous réponds dès que possible.',
 			'en' => 'Thank you, your message is on its way. I will get back to you as soon as possible.',
 		) ) ) . '</p>';
+	}
+
+	// Session expirée, plafond atteint, échec d'envoi : un message qui explique
+	// ce qui s'est passé et ce qu'il reste à faire, jamais un cul-de-sac.
+	if ( $mine && ! empty( $state['notice'] ) ) {
+		$out .= '<p class="form__message form__message--error" role="alert">' . esc_html( $state['notice'] ) . '</p>';
 	}
 
 	if ( $mine && $state['errors'] ) {

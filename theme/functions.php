@@ -59,24 +59,56 @@ add_action( 'wp_enqueue_scripts', function () {
 	$css_ver = (string) @filemtime( get_theme_file_path( 'assets/css/app.css' ) ) ?: $ver;
 	$js_ver  = (string) @filemtime( get_theme_file_path( 'assets/js/app.js' ) ) ?: $ver;
 
-	wp_enqueue_style( 'morgane-style', get_stylesheet_uri(), array(), $ver );
-	wp_enqueue_style( 'morgane-app', get_theme_file_uri( 'assets/css/app.css' ), array(), $css_ver );
-
 	/**
-	 * Polices + GSAP.
-	 * ponytail: CDN pour itérer vite en dev.
-	 * AVANT PROD : auto-héberger (.woff2 + gsap.min.js locaux) — perf + Loi 25.
+	 * Polices, feuilles de style, GSAP — tout est servi depuis le thème.
+	 *
+	 * Rien n'est appelé chez un tiers : ni Google Fonts, ni jsDelivr. Deux
+	 * raisons, et la seconde est la plus sérieuse. D'abord la Loi 25 — une
+	 * requête vers Google transmet l'adresse IP de chaque visiteur. Ensuite le
+	 * paiement : les scripts enfilés ici s'exécutent aussi sur le panier et la
+	 * validation de commande, avec les mêmes droits que notre propre code. Un
+	 * fichier altéré chez un hébergeur de CDN y lirait ce que le client saisit.
+	 * Servir les fichiers nous-mêmes supprime ce risque au lieu de le surveiller.
+	 *
+	 * Les polices sont chargées avant `app.css` : elle s'en sert.
 	 */
-	wp_enqueue_style(
-		'morgane-fonts-dev',
-		'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=DM+Sans:opsz,wght@9..40,400..700&family=Caveat:wght@500;600&display=swap',
-		array(),
-		null
-	);
+	$fonts_ver = (string) @filemtime( get_theme_file_path( 'assets/css/fonts.css' ) ) ?: $ver;
 
-	wp_enqueue_script( 'gsap', 'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js', array(), '3.13.0', true );
-	wp_enqueue_script( 'gsap-st', 'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js', array( 'gsap' ), '3.13.0', true );
+	wp_enqueue_style( 'morgane-fonts', get_theme_file_uri( 'assets/css/fonts.css' ), array(), $fonts_ver );
+	wp_enqueue_style( 'morgane-style', get_stylesheet_uri(), array( 'morgane-fonts' ), $ver );
+	wp_enqueue_style( 'morgane-app', get_theme_file_uri( 'assets/css/app.css' ), array( 'morgane-fonts' ), $css_ver );
+
+	$gsap_ver = (string) @filemtime( get_theme_file_path( 'assets/js/vendor/gsap.min.js' ) ) ?: '3.13.0';
+
+	wp_enqueue_script( 'gsap', get_theme_file_uri( 'assets/js/vendor/gsap.min.js' ), array(), $gsap_ver, true );
+	wp_enqueue_script( 'gsap-st', get_theme_file_uri( 'assets/js/vendor/ScrollTrigger.min.js' ), array( 'gsap' ), $gsap_ver, true );
 	wp_enqueue_script( 'morgane-app', get_theme_file_uri( 'assets/js/app.js' ), array( 'gsap', 'gsap-st' ), $js_ver, true );
+} );
+
+/**
+ * En-têtes de sécurité, sur le site public uniquement.
+ *
+ * Posés ici pour qu'ils suivent le thème d'un serveur à l'autre : la
+ * configuration Apache ou Nginx d'un hébergement mutualisé n'est pas toujours
+ * accessible. Si le serveur les pose déjà, il gagne — ces trois-là sont
+ * idempotents.
+ *
+ * Volontairement absents : `Strict-Transport-Security`, qui n'a de sens qu'en
+ * HTTPS et se pose au niveau du serveur, et la politique de sécurité de contenu,
+ * qui demande d'inventorier les scripts de WooCommerce et de la passerelle de
+ * paiement avant de pouvoir être stricte. Voir docs/deploiement.md.
+ */
+add_filter( 'wp_headers', function ( $headers ) {
+	if ( is_admin() ) {
+		return $headers;
+	}
+	// Empêche un navigateur de deviner le type d'un fichier et de l'exécuter.
+	$headers['X-Content-Type-Options'] = 'nosniff';
+	// Le site ne s'affiche pas dans le cadre d'un autre : pas de détournement de clic.
+	$headers['X-Frame-Options']        = 'SAMEORIGIN';
+	// L'adresse complète d'une page ne fuite pas vers les sites tiers liés.
+	$headers['Referrer-Policy']        = 'strict-origin-when-cross-origin';
+	return $headers;
 } );
 
 /**

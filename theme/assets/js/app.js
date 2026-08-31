@@ -171,9 +171,26 @@
   document.querySelectorAll('.hero h1, [data-split]').forEach(function (el) {
     if (el.dataset.splitDone) return;
     el.dataset.splitDone = '1';
-    el.innerHTML = el.textContent.trim().split(/\s+/).map(function (w) {
-      return '<span class="word"><span class="word__i">' + w + '</span></span>';
-    }).join(' ');
+
+    /* Construit en DOM plutôt qu'en chaîne de caractères : le titre vient de
+       WordPress, et le repasser par `innerHTML` réinterprétait son texte comme
+       du balisage. Une esperluette ou un chevron dans un titre suffisait à
+       casser l'affichage. `textContent` ne réinterprète rien. */
+    var mots = el.textContent.trim().split(/\s+/);
+    var frag = document.createDocumentFragment();
+
+    mots.forEach(function (mot, i) {
+      if (i) frag.appendChild(document.createTextNode(' '));
+      var enveloppe = document.createElement('span');
+      enveloppe.className = 'word';
+      var interieur = document.createElement('span');
+      interieur.className = 'word__i';
+      interieur.textContent = mot;
+      enveloppe.appendChild(interieur);
+      frag.appendChild(enveloppe);
+    });
+
+    el.replaceChildren(frag);
   });
 
   /* Les contenus vivent dans WordPress : on ne va pas demander à Morgane de
@@ -229,7 +246,10 @@
       });
     });
 
-    ScrollTrigger.refresh();
+    // GSAP et ScrollTrigger sont deux fichiers : le second peut manquer à l'appel
+    // alors que le premier a chargé. Les animations sont déjà posées à ce stade,
+    // seul ce rafraîchissement lèverait une erreur.
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
   };
 
   if (document.readyState === 'complete') { start(); }
