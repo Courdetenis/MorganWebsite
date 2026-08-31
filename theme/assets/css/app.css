@@ -688,6 +688,40 @@ hr.wp-block-separator.rule:not(.alignwide),
 }
 .prose .note-date { font-size: var(--wp--preset--font-size--small); color: var(--wp--preset--color--ink-soft); }
 
+/* --- Pages de conditions : contact, retours, confidentialité -----------------
+   Une colonne alignée à gauche, sur une mesure de lecture. Ces pages se lisent,
+   elles ne se contemplent pas : le centrage de `.prose` convient à une accroche
+   de trois mots, pas à cinq lignes de conditions de retour, et la mise en regard
+   de `.band` laissait un rail à moitié vide sous des titres longs. */
+.legal { text-align: left; }
+/* La mesure est posée sur les sections, pas sur leur conteneur : `.legal` est un
+   bloc `alignwide`, et la mise en page contrainte de WordPress lui impose sa
+   propre largeur maximale avec une spécificité plus forte — la nôtre perdait, la
+   colonne s'étalait sur 1240 px et le texte se collait au bord gauche. Les
+   sections, elles, ne sont pas des enfants directs de la mise en page : rien ne
+   leur dispute leur largeur. */
+.legal__part, .legal > .note-date {
+  max-width: 40rem; margin-inline: auto;
+}
+.legal__part + .legal__part { margin-top: clamp(2rem, 4vw, 3.25rem); }
+.legal__part h2 {
+  text-align: left;
+  margin: 0 0 .7rem;
+  font-size: clamp(1.25rem, 1.9vw, 1.6rem);
+}
+.legal p { margin-block: .7rem; text-wrap: pretty; }
+.legal > .legal__part > :first-child { margin-top: 0; }
+.legal ul, .legal ol { padding-left: 1.15rem; margin-block: .7rem; }
+.legal li { text-wrap: pretty; }
+.legal li + li { margin-top: .45rem; }
+/* L'encadré prend toute la mesure : elle est déjà étroite. */
+.legal .note { max-width: none; margin-top: 1.25rem; }
+.legal .note-date {
+  margin-top: clamp(2rem, 4vw, 3.25rem); margin-inline: auto;
+  font-size: var(--wp--preset--font-size--small);
+  color: var(--wp--preset--color--ink-soft);
+}
+
 /* Bande : titre centré, contenu centré dessous. Ce n'est pas pour autant une
    colonne étroite — les étapes s'étalent sur deux colonnes et les bandeaux
    d'images gardent la pleine largeur. */

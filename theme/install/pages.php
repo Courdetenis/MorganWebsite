@@ -444,7 +444,7 @@ function mg_head( $eyebrow, $title ) {
  *                        image en paysage.
  * @param array  $floats  Deux array( numéro, alt ), employées sans photo.
  */
-function mg_hero( $eyebrow, $title, array $lede, array $buttons, array $photo = array(), array $floats = array() ) {
+function mg_hero( $eyebrow, $title, array $lede, array $buttons, array $photo = array(), array $floats = array(), $min_height = '72vh' ) {
 
 	// Les formes floues vivent dans un bloc HTML : ce sont des éléments de
 	// décor, rien que Morgane ait à modifier depuis l'éditeur.
@@ -497,12 +497,23 @@ function mg_hero( $eyebrow, $title, array $lede, array $buttons, array $photo = 
 		$inner = '<!-- wp:group {"className":"hero__inner","layout":{"type":"default"}} -->' . "\n"
 			. '<div class="wp-block-group hero__inner">' . "\n"
 			. $text
-			. mg_buttons( $buttons, true ) . "\n"
+			// Sans boutons, pas de bloc de boutons : un conteneur vide laisse une
+			// gouttière sous l'accroche, et l'éditeur signale un bloc sans contenu.
+			. ( $buttons ? mg_buttons( $buttons, true ) . "\n" : '' )
 			. '</div>' . "\n" . '<!-- /wp:group -->' . "\n";
 	}
 
-	return '<!-- wp:group {"tagName":"section","align":"full","className":"hero","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}},"dimensions":{"minHeight":"72vh"}},"layout":{"type":"constrained","contentSize":"' . $size . '"}} -->' . "\n"
-		. '<section class="wp-block-group alignfull hero" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">' . "\n"
+	/*
+	 * La hauteur minimale se règle : 72vh donne son ampleur à un bandeau qui
+	 * porte une œuvre, mais laissait 450 px de vide sous trois lignes de texte
+	 * sur les pages de conditions. Le fond « aurore » reste, la respiration est
+	 * proportionnée à ce qu'il y a dedans.
+	 */
+	$mh_attr  = $min_height ? ',"dimensions":{"minHeight":"' . $min_height . '"}' : '';
+	$mh_style = $min_height ? 'min-height:' . $min_height . ';' : '';
+
+	return '<!-- wp:group {"tagName":"section","align":"full","className":"hero","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}' . $mh_attr . '},"layout":{"type":"constrained","contentSize":"' . $size . '"}} -->' . "\n"
+		. '<section class="wp-block-group alignfull hero" style="' . $mh_style . 'padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">' . "\n"
 		. $html . $inner
 		. '</section>' . "\n" . '<!-- /wp:group -->';
 }
@@ -606,6 +617,32 @@ function mg_band( $title, $inner ) {
 		. '<!-- wp:group {"className":"band__body","layout":{"type":"default"}} -->' . "\n"
 		. '<div class="wp-block-group band__body">' . "\n" . $inner . "\n"
 		. '</div>' . "\n" . '<!-- /wp:group -->' . "\n"
+		. '</div>' . "\n" . '<!-- /wp:group -->';
+}
+
+/**
+ * Pages de conditions : contact, retours, confidentialité.
+ *
+ * Une colonne, alignée à gauche, sur une mesure de lecture. On n'emploie pas
+ * `mg_band()` ici : celle-ci met le titre dans un rail et le texte en regard,
+ * ce qui sert l'éditorial mais dessert un texte de conditions — le titre y
+ * annonce ce qui suit et doit rester au-dessus de lui. Avec des intitulés
+ * longs (« Qui est responsable »), le rail se cassait en deux lignes et
+ * laissait un grand vide sous lui.
+ */
+function mg_legal( $inner ) {
+	return '<!-- wp:group {"align":"wide","className":"legal","layout":{"type":"default"}} -->' . "\n"
+		. '<div class="wp-block-group alignwide legal">' . "\n" . $inner . "\n"
+		. '</div>' . "\n" . '<!-- /wp:group -->';
+}
+
+/**
+ * Une section : son titre, puis son contenu, dans le fil.
+ */
+function mg_legal_part( $title, $inner ) {
+	return '<!-- wp:group {"className":"legal__part","layout":{"type":"default"}} -->' . "\n"
+		. '<div class="wp-block-group legal__part">' . "\n"
+		. mg_h2( $title ) . "\n" . $inner . "\n"
 		. '</div>' . "\n" . '<!-- /wp:group -->';
 }
 
@@ -1507,116 +1544,126 @@ function mg_content( $key, $lang ) {
 		case 'contact':
 			$c     = function_exists( 'morgane_contact_info' ) ? morgane_contact_info() : array();
 			$ville = isset( $c['city'][ $lang ] ) ? $c['city'][ $lang ] : 'Montréal';
-			$lien  = $mg_lien_mail;
 
 			return implode( "\n\n", array(
-				mg_prose(
-					mg_p(
+				mg_hero(
+					$fr ? 'Écrire à Morgane' : 'Get in touch',
+					'Contact',
+					array(
 						$fr
 							? 'Pour une question, une commande passée, un projet ou simplement pour dire bonjour — le courriel est le plus direct.'
 							: 'For a question, an existing order, a project, or simply to say hello — email is the most direct way.',
-						'lede'
-					) . "\n\n"
-					. mg_p(
-						$fr
-							? 'Courriel : ' . $lien . '<br>Basée à ' . $ville . '.'
-							: 'Email: ' . $lien . '<br>Based in ' . $ville . '.'
-					) . "\n\n"
-					. mg_p(
-						$fr
-							? 'Je réponds en général sous deux à trois jours ouvrables. Si vous n’avez rien reçu au bout d’une semaine, votre message s’est probablement perdu : réécrivez-moi sans hésiter.'
-							: 'I usually reply within two to three business days. If you have heard nothing after a week, your message has most likely gone astray — please do write again.'
-					)
+					),
+					array(),   // pas de bouton
+					array(),   // pas de photo
+					array(),   // pas d'œuvres flottantes
+					'44vh'
 				),
-				mg_band(
-					$fr ? 'Un projet en tête ?' : 'A project in mind?',
-					mg_p(
-						$fr
-							? 'Pour une œuvre sur mesure, une collaboration ou une murale, les <a href="{{hub}}">formulaires dédiés</a> me font gagner un aller-retour : ils demandent d’emblée les dimensions, le lieu, les délais et le médium souhaité.'
-							: 'For a custom piece, a collaboration or a mural, the <a href="{{hub}}">dedicated forms</a> save us a round trip: they ask up front about dimensions, location, timing and the medium you have in mind.'
+				mg_legal(
+					mg_legal_part(
+						$fr ? 'Où m’écrire' : 'Where to write',
+						mg_p( ( $fr ? 'Courriel : ' : 'Email: ' ) . $mg_lien_mail )
+						. "\n\n" . mg_p( ( $fr ? 'Basée à ' : 'Based in ' ) . $ville . '.' )
+						. "\n\n" . mg_p(
+							$fr
+								? 'Je réponds en général sous deux à trois jours ouvrables. Si vous n’avez rien reçu au bout d’une semaine, votre message s’est probablement perdu : réécrivez-moi sans hésiter.'
+								: 'I usually reply within two to three business days. If you have heard nothing after a week, your message has most likely gone astray — please do write again.'
+						)
 					)
-				),
-				mg_band(
-					$fr ? 'Une commande de la boutique' : 'A shop order',
-					mg_p(
-						$fr
-							? 'Indiquez votre numéro de commande dans le message : il figure dans le courriel de confirmation. Les conditions de retour sont détaillées sur la page <a href="{{returns}}">Retours et remboursements</a>.'
-							: 'Please include your order number — it appears in your confirmation email. Return conditions are set out on the <a href="{{returns}}">Returns and refunds</a> page.'
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Un projet en tête ?' : 'A project in mind?',
+						mg_p(
+							$fr
+								? 'Pour une œuvre sur mesure, une collaboration ou une murale, les <a href="{{hub}}">formulaires dédiés</a> me font gagner un aller-retour : ils demandent d’emblée les dimensions, le lieu, les délais et le médium souhaité.'
+								: 'For a custom piece, a collaboration or a mural, the <a href="{{hub}}">dedicated forms</a> save us a round trip: they ask up front about dimensions, location, timing and the medium you have in mind.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Une commande de la boutique' : 'A shop order',
+						mg_p(
+							$fr
+								? 'Indiquez votre numéro de commande dans le message : il figure dans le courriel de confirmation. Les conditions de retour sont détaillées sur la page <a href="{{returns}}">Retours et remboursements</a>.'
+								: 'Please include your order number — it appears in your confirmation email. Return conditions are set out on the <a href="{{returns}}">Returns and refunds</a> page.'
+						)
 					)
 				),
 			) );
 
 		/* ------------------------------------------ Retours, remboursements */
 		case 'returns':
-			$c    = function_exists( 'morgane_contact_info' ) ? morgane_contact_info() : array();
-			$lien = $mg_lien_mail;
-
 			return implode( "\n\n", array(
-				mg_prose(
-					mg_p(
+				mg_hero(
+					$fr ? 'Avant d’acheter' : 'Before you buy',
+					$fr ? 'Retours et remboursements' : 'Returns and refunds',
+					array(
 						$fr
 							? 'Les tirages peuvent être retournés, les originaux non. La raison est simple : un tirage se réimprime, une pièce unique ne se remplace pas.'
 							: 'Prints can be returned, originals cannot. The reason is simple: a print can be reprinted, a one-of-a-kind piece cannot be replaced.',
-						'lede'
+					),
+					array(),   // pas de bouton
+					array(),   // pas de photo
+					array(),   // pas d'œuvres flottantes
+					'44vh'
+				),
+				mg_legal(
+					mg_legal_part(
+						$fr ? 'Tirages' : 'Prints',
+						mg_bullets( $fr ? array(
+							'Vous avez <strong>14 jours</strong> après réception pour demander un retour.',
+							'L’œuvre doit revenir <strong>non utilisée, dans son emballage d’origine</strong>. Un tirage encadré ou marouflé n’est plus retournable.',
+							'Les <strong>frais de retour sont à votre charge</strong> s’il s’agit d’un changement d’avis, ainsi que les frais de livraison initiaux.',
+						) : array(
+							'You have <strong>14 days</strong> from delivery to request a return.',
+							'The piece must come back <strong>unused, in its original packaging</strong>. A print that has been framed or mounted can no longer be returned.',
+							'<strong>Return shipping is at your expense</strong> if you simply changed your mind, as are the original shipping costs.',
+						) )
 					)
-				),
-				mg_band(
-					$fr ? 'Tirages' : 'Prints',
-					mg_bullets( $fr ? array(
-						'Vous avez <strong>14 jours</strong> après réception pour demander un retour.',
-						'L’œuvre doit revenir <strong>non utilisée, dans son emballage d’origine</strong>. Un tirage encadré ou marouflé n’est plus retournable.',
-						'Les <strong>frais de retour sont à votre charge</strong> s’il s’agit d’un changement d’avis, ainsi que les frais de livraison initiaux.',
-					) : array(
-						'You have <strong>14 days</strong> from delivery to request a return.',
-						'The piece must come back <strong>unused, in its original packaging</strong>. A print that has been framed or mounted can no longer be returned.',
-						'<strong>Return shipping is at your expense</strong> if you simply changed your mind, as are the original shipping costs.',
-					) )
-				),
-				mg_band(
-					$fr ? 'Originaux' : 'Originals',
-					mg_p(
-						$fr
-							? 'Un original est une pièce unique, peinte ou dessinée à la main : il n’est pas repris en cas de changement d’avis. Prenez le temps de regarder les photos, et écrivez-moi avant d’acheter si un détail vous échappe — une question posée avant vaut mieux qu’un regret après.'
-							: 'An original is a unique, hand-painted or hand-drawn piece: it cannot be returned if you change your mind. Take the time to look at the photographs, and write to me before buying if anything is unclear — a question asked beforehand beats a regret afterwards.'
-					)
-				),
-				mg_band(
-					$fr ? 'Casse ou erreur d’envoi' : 'Damage or wrong item',
-					mg_p(
-						$fr
-							? 'Cela vaut pour <strong>tout</strong>, originaux compris. Si l’œuvre arrive abîmée, ou si je me suis trompée d’envoi :'
-							: 'This applies to <strong>everything</strong>, originals included. If a piece arrives damaged, or if I sent the wrong one:'
-					) . "\n\n"
-					. mg_steps( $fr ? array(
-						'Écrivez-moi <strong>sous 48 heures</strong> après réception, avec une photo de l’œuvre et une de l’emballage.',
-						'Je vous réponds avec la marche à suivre. Les <strong>frais sont à ma charge</strong>.',
-						'Au choix : remboursement complet, ou remplacement quand la pièce est un tirage.',
-					) : array(
-						'Write to me <strong>within 48 hours</strong> of delivery, with a photo of the piece and one of the packaging.',
-						'I will reply with what to do next. <strong>Costs are on me</strong>.',
-						'Your choice: a full refund, or a replacement where the piece is a print.',
-					) )
-				),
-				mg_band(
-					$fr ? 'Demander un retour' : 'Requesting a return',
-					mg_p(
-						$fr
-							? 'Écrivez à ' . $lien . ' en indiquant votre <strong>numéro de commande</strong>, l’œuvre concernée et le motif. Je vous réponds avec l’adresse de retour — ne renvoyez rien avant d’avoir reçu cette réponse, sans quoi le colis risque de se perdre.'
-							: 'Write to ' . $lien . ' with your <strong>order number</strong>, the piece concerned and the reason. I will reply with the return address — please do not send anything back before you receive that reply, or the parcel may go astray.'
-					)
-				),
-				mg_band(
-					$fr ? 'Remboursement' : 'Refunds',
-					mg_p(
-						$fr
-							? 'Une fois le retour reçu et vérifié, le remboursement part <strong>sous 10 jours ouvrables</strong>, sur le moyen de paiement utilisé lors de l’achat. Le délai d’apparition sur votre relevé dépend ensuite de votre banque.'
-							: 'Once the return has arrived and been checked, the refund is issued <strong>within 10 business days</strong>, to the payment method used at purchase. How long it then takes to appear on your statement is up to your bank.'
-					) . "\n\n"
-					. mg_note(
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Originaux' : 'Originals',
 						mg_p(
 							$fr
-								? 'Les frais de livraison initiaux sont remboursés en cas de casse ou d’erreur de ma part. Ils ne le sont pas pour un simple changement d’avis.'
-								: 'Original shipping costs are refunded in the event of damage or a mistake on my side. They are not refunded if you simply changed your mind.'
+								? 'Un original est une pièce unique, peinte ou dessinée à la main : il n’est pas repris en cas de changement d’avis. Prenez le temps de regarder les photos, et écrivez-moi avant d’acheter si un détail vous échappe — une question posée avant vaut mieux qu’un regret après.'
+								: 'An original is a unique, hand-painted or hand-drawn piece: it cannot be returned if you change your mind. Take the time to look at the photographs, and write to me before buying if anything is unclear — a question asked beforehand beats a regret afterwards.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Casse ou erreur d’envoi' : 'Damage or wrong item',
+						mg_p(
+							$fr
+								? 'Cela vaut pour <strong>tout</strong>, originaux compris. Si l’œuvre arrive abîmée, ou si je me suis trompée d’envoi :'
+								: 'This applies to <strong>everything</strong>, originals included. If a piece arrives damaged, or if I sent the wrong one:'
+						)
+						. "\n\n" . mg_steps( $fr ? array(
+							'Écrivez-moi <strong>sous 48 heures</strong> après réception, avec une photo de l’œuvre et une de l’emballage.',
+							'Je vous réponds avec la marche à suivre. Les <strong>frais sont à ma charge</strong>.',
+							'Au choix : remboursement complet, ou remplacement quand la pièce est un tirage.',
+						) : array(
+							'Write to me <strong>within 48 hours</strong> of delivery, with a photo of the piece and one of the packaging.',
+							'I will reply with what to do next. <strong>Costs are on me</strong>.',
+							'Your choice: a full refund, or a replacement where the piece is a print.',
+						) )
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Demander un retour' : 'Requesting a return',
+						mg_p(
+							$fr
+								? 'Écrivez à ' . $mg_lien_mail . ' en indiquant votre <strong>numéro de commande</strong>, l’œuvre concernée et le motif. Je vous réponds avec l’adresse de retour — ne renvoyez rien avant d’avoir reçu cette réponse, sans quoi le colis risque de se perdre.'
+								: 'Write to ' . $mg_lien_mail . ' with your <strong>order number</strong>, the piece concerned and the reason. I will reply with the return address — please do not send anything back before you receive that reply, or the parcel may go astray.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Remboursement' : 'Refunds',
+						mg_p(
+							$fr
+								? 'Une fois le retour reçu et vérifié, le remboursement part <strong>sous 10 jours ouvrables</strong>, sur le moyen de paiement utilisé lors de l’achat. Le délai d’apparition sur votre relevé dépend ensuite de votre banque.'
+								: 'Once the return has arrived and been checked, the refund is issued <strong>within 10 business days</strong>, to the payment method used at purchase. How long it then takes to appear on your statement is up to your bank.'
+						)
+						. "\n\n" . mg_note(
+							mg_p(
+								$fr
+									? 'Les frais de livraison initiaux sont remboursés en cas de casse ou d’erreur de ma part. Ils ne le sont pas pour un simple changement d’avis.'
+									: 'Original shipping costs are refunded in the event of damage or a mistake on my side. They are not refunded if you simply changed your mind.'
+							)
 						)
 					)
 				),
@@ -1626,75 +1673,76 @@ function mg_content( $key, $lang ) {
 		case 'privacy':
 			$c     = function_exists( 'morgane_contact_info' ) ? morgane_contact_info() : array();
 			$ville = isset( $c['city'][ $lang ] ) ? $c['city'][ $lang ] : 'Montréal';
-			$lien  = $mg_lien_mail;
 			$maj   = date_i18n( $fr ? 'j F Y' : 'F j, Y' );
 
 			return implode( "\n\n", array(
-				mg_prose(
-					mg_p(
+				mg_hero(
+					$fr ? 'Vos renseignements' : 'Your information',
+					$fr ? 'Politique de confidentialité' : 'Privacy policy',
+					array(
 						$fr
 							? 'Ce site recueille le strict nécessaire pour honorer une commande et répondre à un message. Rien n’est vendu, rien n’est cédé, et aucune page n’appelle de service extérieur.'
 							: 'This site collects only what is needed to fulfil an order and answer a message. Nothing is sold, nothing is passed on, and no page calls out to an outside service.',
-						'lede'
+					),
+					array(),   // pas de bouton
+					array(),   // pas de photo
+					array(),   // pas d'œuvres flottantes
+					'44vh'
+				),
+				mg_legal(
+					mg_legal_part(
+						$fr ? 'Qui est responsable' : 'Who is responsible',
+						mg_p(
+							$fr
+								? 'Morgane Cachia, travailleuse autonome, ' . $ville . '. C’est elle qui répond des renseignements personnels recueillis par ce site, au sens de la loi québécoise sur la protection des renseignements personnels dans le secteur privé. Pour toute question : ' . $mg_lien_mail . '.'
+								: 'Morgane Cachia, self-employed artist, ' . $ville . '. She is the person accountable for the personal information collected by this site, under Quebec’s private-sector privacy legislation. For any question: ' . $mg_lien_mail . '.'
+						)
 					)
-				),
-				mg_band(
-					$fr ? 'Qui est responsable' : 'Who is responsible',
-					mg_p(
-						$fr
-							? 'Morgane Cachia, travailleuse autonome, ' . $ville . '. C’est elle qui répond des renseignements personnels recueillis par ce site, au sens de la loi québécoise sur la protection des renseignements personnels dans le secteur privé. Pour toute question : ' . $lien . '.'
-							: 'Morgane Cachia, self-employed artist, ' . $ville . '. She is the person accountable for the personal information collected by this site, under Quebec’s private-sector privacy legislation. For any question: ' . $lien . '.'
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Ce qui est recueilli' : 'What is collected',
+						mg_bullets( $fr ? array(
+							'<strong>Une commande</strong> : votre nom, votre adresse de livraison, votre courriel et le contenu de votre panier. Le paiement est traité par le prestataire de paiement — <strong>je ne vois jamais votre numéro de carte</strong>, il ne transite pas par ce site.',
+							'<strong>Un formulaire</strong> (commissions, collaborations, murales) : vos réponses me sont envoyées par courriel et <strong>ne sont pas enregistrées sur le site</strong>. Elles vivent ensuite dans ma boîte de réception, comme n’importe quel courriel.',
+							'<strong>Des témoins</strong> : le panier de la boutique et la langue choisie. Ils servent au fonctionnement du site, pas à vous suivre.',
+							'<strong>Votre navigateur</strong> retient votre préférence de thème clair ou sombre. Cette information reste chez vous et ne m’est jamais transmise.',
+							'<strong>Une empreinte de votre adresse IP</strong>, chiffrée à sens unique, quand vous envoyez un formulaire — elle limite les envois automatisés. Elle ne permet pas de remonter à vous et s’efface au bout d’une heure.',
+						) : array(
+							'<strong>An order</strong>: your name, delivery address, email and basket contents. Payment is handled by the payment provider — <strong>I never see your card number</strong>, and it does not pass through this site.',
+							'<strong>A form</strong> (commissions, collaborations, murals): your answers are emailed to me and <strong>are not stored on the site</strong>. They then live in my inbox, like any other email.',
+							'<strong>Cookies</strong>: your shopping basket and your chosen language. They make the site work; they do not track you.',
+							'<strong>Your browser</strong> remembers whether you prefer the light or dark theme. That stays with you and is never sent to me.',
+							'<strong>A one-way fingerprint of your IP address</strong> when you submit a form — it caps automated submissions. It cannot be traced back to you and is erased after an hour.',
+						) )
 					)
-				),
-				mg_band(
-					$fr ? 'Ce qui est recueilli' : 'What is collected',
-					mg_bullets( $fr ? array(
-						'<strong>Une commande</strong> : votre nom, votre adresse de livraison, votre courriel et le contenu de votre panier. Le paiement est traité par le prestataire de paiement — <strong>je ne vois jamais votre numéro de carte</strong>, il ne transite pas par ce site.',
-						'<strong>Un formulaire</strong> (commissions, collaborations, murales) : vos réponses me sont envoyées par courriel et <strong>ne sont pas enregistrées sur le site</strong>. Elles vivent ensuite dans ma boîte de réception, comme n’importe quel courriel.',
-						'<strong>Des témoins</strong> : le panier de la boutique et la langue choisie. Ils servent au fonctionnement du site, pas à vous suivre.',
-						'<strong>Votre navigateur</strong> retient votre préférence de thème clair ou sombre. Cette information reste chez vous et ne m’est jamais transmise.',
-						'<strong>Une empreinte de votre adresse IP</strong>, chiffrée à sens unique, quand vous envoyez un formulaire — elle limite les envois automatisés. Elle ne permet pas de remonter à vous et s’efface au bout d’une heure.',
-					) : array(
-						'<strong>An order</strong>: your name, delivery address, email and basket contents. Payment is handled by the payment provider — <strong>I never see your card number</strong>, and it does not pass through this site.',
-						'<strong>A form</strong> (commissions, collaborations, murals): your answers are emailed to me and <strong>are not stored on the site</strong>. They then live in my inbox, like any other email.',
-						'<strong>Cookies</strong>: your shopping basket and your chosen language. They make the site work; they do not track you.',
-						'<strong>Your browser</strong> remembers whether you prefer the light or dark theme. That stays with you and is never sent to me.',
-						'<strong>A one-way fingerprint of your IP address</strong> when you submit a form — it caps automated submissions. It cannot be traced back to you and is erased after an hour.',
-					) )
-				),
-				mg_band(
-					$fr ? 'Ce qui n’est pas fait' : 'What is not done',
-					mg_bullets( $fr ? array(
-						'Aucune mesure d’audience, aucun pixel publicitaire, aucun réseau social intégré dans les pages.',
-						'<strong>Aucune ressource n’est chargée depuis un tiers</strong> : les polices et les scripts d’animation sont servis par ce site. Votre visite n’est donc signalée à personne.',
-						'Vos renseignements ne sont ni vendus, ni loués, ni échangés.',
-					) : array(
-						'No analytics, no advertising pixels, no social media widgets embedded in the pages.',
-						'<strong>No resource is loaded from a third party</strong>: fonts and animation scripts are served by this site. Your visit is therefore reported to no one.',
-						'Your information is never sold, rented or traded.',
-					) )
-				),
-				mg_band(
-					$fr ? 'Combien de temps' : 'For how long',
-					mg_p(
-						$fr
-							? 'Les données d’une commande sont conservées le temps requis par les obligations comptables et fiscales. Les courriels sont conservés tant que l’échange peut encore servir, puis supprimés.'
-							: 'Order data is kept for as long as accounting and tax obligations require. Emails are kept as long as the exchange may still be useful, then deleted.'
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Ce qui n’est pas fait' : 'What is not done',
+						mg_bullets( $fr ? array(
+							'Aucune mesure d’audience, aucun pixel publicitaire, aucun réseau social intégré dans les pages.',
+							'<strong>Aucune ressource n’est chargée depuis un tiers</strong> : les polices et les scripts d’animation sont servis par ce site. Votre visite n’est donc signalée à personne.',
+							'Vos renseignements ne sont ni vendus, ni loués, ni échangés.',
+						) : array(
+							'No analytics, no advertising pixels, no social media widgets embedded in the pages.',
+							'<strong>No resource is loaded from a third party</strong>: fonts and animation scripts are served by this site. Your visit is therefore reported to no one.',
+							'Your information is never sold, rented or traded.',
+						) )
 					)
-				),
-				mg_band(
-					$fr ? 'Vos droits' : 'Your rights',
-					mg_p(
-						$fr
-							? 'Vous pouvez demander à <strong>consulter</strong> les renseignements que je détiens sur vous, à les faire <strong>corriger</strong>, ou à les faire <strong>supprimer</strong> lorsque rien ne m’oblige à les garder. Écrivez à ' . $lien . ' : je réponds dans les trente jours. Si ma réponse ne vous satisfait pas, vous pouvez vous adresser à la Commission d’accès à l’information du Québec.'
-							: 'You may ask to <strong>see</strong> the information I hold about you, to have it <strong>corrected</strong>, or to have it <strong>deleted</strong> where nothing obliges me to keep it. Write to ' . $lien . ' and I will reply within thirty days. If my answer does not satisfy you, you may contact the Commission d’accès à l’information du Québec.'
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Combien de temps' : 'For how long',
+						mg_p(
+							$fr
+								? 'Les données d’une commande sont conservées le temps requis par les obligations comptables et fiscales. Les courriels sont conservés tant que l’échange peut encore servir, puis supprimés.'
+								: 'Order data is kept for as long as accounting and tax obligations require. Emails are kept as long as the exchange may still be useful, then deleted.'
+						)
 					)
-				),
-				mg_prose(
-					mg_p(
-						( $fr ? 'Dernière mise à jour : ' : 'Last updated: ' ) . $maj . '.',
-						'note-date'
+					. "\n\n" . mg_legal_part(
+						$fr ? 'Vos droits' : 'Your rights',
+						mg_p(
+							$fr
+								? 'Vous pouvez demander à <strong>consulter</strong> les renseignements que je détiens sur vous, à les faire <strong>corriger</strong>, ou à les faire <strong>supprimer</strong> lorsque rien ne m’oblige à les garder. Écrivez à ' . $mg_lien_mail . ' : je réponds dans les trente jours. Si ma réponse ne vous satisfait pas, vous pouvez vous adresser à la Commission d’accès à l’information du Québec.'
+								: 'You may ask to <strong>see</strong> the information I hold about you, to have it <strong>corrected</strong>, or to have it <strong>deleted</strong> where nothing obliges me to keep it. Write to ' . $mg_lien_mail . ' and I will reply within thirty days. If my answer does not satisfy you, you may contact the Commission d’accès à l’information du Québec.'
+						)
 					)
+					. "\n\n" . mg_p( ( $fr ? 'Dernière mise à jour : ' : 'Last updated: ' ) . $maj . '.', 'note-date' )
 				),
 			) );
 	}
@@ -1717,6 +1765,7 @@ function mg_content( $key, $lang ) {
  */
 $no_title = array_flip( array(
 	'about', 'portfolio', 'pf_youth', 'pf_illus', 'pf_draw', 'pf_murals',
+	'contact', 'returns', 'privacy',
 	'murals', 'hub', 'commissions', 'collaborations',
 ) );
 
