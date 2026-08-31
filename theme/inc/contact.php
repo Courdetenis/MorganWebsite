@@ -19,14 +19,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Coordonnées de Morgane.
  *
- * TODO AVANT MISE EN LIGNE : remplacer les trois valeurs marquées.
- * Modifiables sans toucher au code via le filtre `morgane_contact_info`.
+ * Modifiables sans toucher au code par le filtre `morgane_contact_info`.
+ *
+ * Attention en cas de changement : le pied de page lit ces valeurs à chaque
+ * affichage, mais les pages Contact, Retours et Confidentialité les ont
+ * recopiées dans leur contenu au moment de leur création. Changer l'adresse ici
+ * ne suffit donc pas — il faut régénérer ces trois pages :
+ *
+ *   MORGANE_FORCE=contact wp eval-file .../install/pages.php   (puis returns, privacy)
  */
 function morgane_contact_info() {
 	return (array) apply_filters( 'morgane_contact_info', array(
-		'email'     => 'contact@morganecachia-art.com',  // TODO : courriel professionnel
-		'instagram' => 'https://www.instagram.com/',      // TODO : vrai compte
-		'tiktok'    => 'https://www.tiktok.com/',         // TODO : vrai compte
+		'email'     => 'morganecachia.art@gmail.com',
+		'instagram' => 'https://www.instagram.com/morganecachia/',
+		'tiktok'    => 'https://www.tiktok.com/@morganecachia',
 		'city'      => array( 'fr' => 'Montréal, Québec', 'en' => 'Montreal, Quebec' ),
 		'name'      => 'Morgane Cachia',
 	) );

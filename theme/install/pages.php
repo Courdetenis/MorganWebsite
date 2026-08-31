@@ -677,6 +677,20 @@ function mg_sep() {
 function mg_content( $key, $lang ) {
 	$fr = ( 'fr' === $lang );
 
+	/*
+	 * Le lien courriel vient de theme/inc/contact.php, jamais d'une adresse
+	 * recopiée : quatre pages l'affichent, et une adresse changée en oubliant
+	 * l'une des quatre, c'est un client qui écrit dans le vide.
+	 */
+	$mg_mail = '';
+	if ( function_exists( 'morgane_contact_info' ) ) {
+		$c       = morgane_contact_info();
+		$mg_mail = isset( $c['email'] ) ? $c['email'] : '';
+	}
+	$mg_lien_mail = $mg_mail
+		? '<a href="mailto:' . esc_attr( $mg_mail ) . '">' . esc_html( $mg_mail ) . '</a>'
+		: '';
+
 	switch ( $key ) {
 
 		/* ---------------------------------------------------------- Accueil */
@@ -944,8 +958,8 @@ function mg_content( $key, $lang ) {
 					mg_sep() . "\n\n"
 					. mg_p(
 						$fr
-							? 'Écrivez-moi : <a href="mailto:contact@morganecachia-art.com">contact@morganecachia-art.com</a>'
-							: 'Write to me: <a href="mailto:contact@morganecachia-art.com">contact@morganecachia-art.com</a>'
+							? 'Écrivez-moi : ' . $mg_lien_mail
+							: 'Write to me: ' . $mg_lien_mail
 					) . "\n\n"
 					. mg_buttons( array(
 						array( '{{hub}}', $fr ? 'Travailler ensemble' : 'Work together' ),
@@ -1322,8 +1336,8 @@ function mg_content( $key, $lang ) {
 					mg_sep() . "\n\n"
 					. mg_p(
 						$fr
-							? 'Une question avant de vous lancer ? <a href="mailto:contact@morganecachia-art.com">contact@morganecachia-art.com</a>'
-							: 'A question before you begin? <a href="mailto:contact@morganecachia-art.com">contact@morganecachia-art.com</a>'
+							? 'Une question avant de vous lancer ? ' . $mg_lien_mail
+							: 'A question before you begin? ' . $mg_lien_mail
 					) . "\n\n"
 					. mg_buttons( array(
 						array( '{{portfolio}}', $fr ? 'Voir les portfolios' : 'View the portfolios' ),
@@ -1491,10 +1505,9 @@ function mg_content( $key, $lang ) {
 
 		/* ---------------------------------------------------------- Contact */
 		case 'contact':
-			$c    = function_exists( 'morgane_contact_info' ) ? morgane_contact_info() : array();
-			$mail = isset( $c['email'] ) ? $c['email'] : '';
+			$c     = function_exists( 'morgane_contact_info' ) ? morgane_contact_info() : array();
 			$ville = isset( $c['city'][ $lang ] ) ? $c['city'][ $lang ] : 'Montréal';
-			$lien = '<a href="mailto:' . esc_attr( $mail ) . '">' . esc_html( $mail ) . '</a>';
+			$lien  = $mg_lien_mail;
 
 			return implode( "\n\n", array(
 				mg_prose(
@@ -1536,8 +1549,7 @@ function mg_content( $key, $lang ) {
 		/* ------------------------------------------ Retours, remboursements */
 		case 'returns':
 			$c    = function_exists( 'morgane_contact_info' ) ? morgane_contact_info() : array();
-			$mail = isset( $c['email'] ) ? $c['email'] : '';
-			$lien = '<a href="mailto:' . esc_attr( $mail ) . '">' . esc_html( $mail ) . '</a>';
+			$lien = $mg_lien_mail;
 
 			return implode( "\n\n", array(
 				mg_prose(
@@ -1613,9 +1625,8 @@ function mg_content( $key, $lang ) {
 		/* ------------------------------------------------- Confidentialité */
 		case 'privacy':
 			$c     = function_exists( 'morgane_contact_info' ) ? morgane_contact_info() : array();
-			$mail  = isset( $c['email'] ) ? $c['email'] : '';
 			$ville = isset( $c['city'][ $lang ] ) ? $c['city'][ $lang ] : 'Montréal';
-			$lien  = '<a href="mailto:' . esc_attr( $mail ) . '">' . esc_html( $mail ) . '</a>';
+			$lien  = $mg_lien_mail;
 			$maj   = date_i18n( $fr ? 'j F Y' : 'F j, Y' );
 
 			return implode( "\n\n", array(

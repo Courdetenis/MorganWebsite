@@ -17,11 +17,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Adresse qui reçoit les demandes.
- * TODO : remplacer par l'adresse professionnelle de Morgane
- * (Réglages > Général, ou le filtre ci-dessous).
+ *
+ * Celle de `inc/contact.php`, la même que le site affiche partout. Elle prime
+ * sur l'adresse d'administration de WordPress : sur un hébergement, celle-ci
+ * est souvent une adresse technique que personne ne relève, et les trois
+ * formulaires sont la seule voie de contact du site.
  */
 function morgane_contact_email() {
-	return (string) apply_filters( 'morgane_contact_email', get_option( 'admin_email' ) );
+	$defaut = get_option( 'admin_email' );
+
+	if ( function_exists( 'morgane_contact_info' ) ) {
+		$c = morgane_contact_info();
+		if ( ! empty( $c['email'] ) && is_email( $c['email'] ) ) {
+			$defaut = $c['email'];
+		}
+	}
+
+	return (string) apply_filters( 'morgane_contact_email', $defaut );
 }
 
 /**
