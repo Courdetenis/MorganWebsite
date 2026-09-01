@@ -49,6 +49,7 @@ function morgane_install_steps() {
 
 	$steps[] = array( 'id' => 'pages',    'file' => 'pages.php', 'label' => 'Créer les pages et leurs textes (FR et EN)' );
 	$steps[] = array( 'id' => 'shop',     'file' => 'shop.php',  'label' => 'Monter la boutique (catégories, tailles)' );
+	$steps[] = array( 'id' => 'langues',  'file' => '',          'label' => 'Télécharger les traductions françaises' );
 	$steps[] = array( 'id' => 'menage',   'file' => '',          'label' => 'Ranger : doublons, confidentialité, icône' );
 
 	return $steps;
@@ -115,6 +116,43 @@ function morgane_install_site() {
 	}
 
 	WP_CLI::success( 'Site préparé.' );
+}
+
+/**
+ * Traductions françaises de WordPress, de WooCommerce et de Polylang.
+ *
+ * Sans elles, la page de paiement s'affiche en anglais — « Contact information »,
+ * « Shipping address », « Place Order » — sur un site dont la langue est le
+ * français. Ce n'est pas le thème : ces libellés viennent du paquet de langue de
+ * WooCommerce, qu'un WordPress fraîchement installé n'a pas toujours téléchargé.
+ *
+ * C'est exactement ce que fait le bouton « Mettre à jour les traductions » du
+ * tableau de bord. On le déclenche ici pour ne pas dépendre d'un clic de plus.
+ */
+function morgane_install_langues() {
+	// `file.php` avant l'upgrader : c'est lui qui apporte
+	// request_filesystem_credentials(), dont Language_Pack_Upgrader a besoin et
+	// que WordPress ne charge pas de lui-même hors des écrans d'administration.
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/misc.php';
+	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+	require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+
+	if ( ! class_exists( 'Language_Pack_Upgrader' ) ) {
+		WP_CLI::warning( 'Mise à jour des traductions indisponible sur cet hébergement.' );
+		return;
+	}
+
+	$upgrader = new Language_Pack_Upgrader( new Automatic_Upgrader_Skin() );
+	$resultat = $upgrader->bulk_upgrade();
+
+	if ( is_wp_error( $resultat ) ) {
+		WP_CLI::warning( 'Traductions : ' . $resultat->get_error_message() );
+		return;
+	}
+
+	$posees = is_array( $resultat ) ? count( array_filter( $resultat ) ) : 0;
+	WP_CLI::success( $posees . ' paquet(s) de langue installé(s) ou mis à jour.' );
 }
 
 /**
@@ -469,6 +507,8 @@ add_action( 'admin_post_morgane_install_step', function () {
 		if ( '' === $etape['file'] ) {
 			if ( 'site' === $etape['id'] ) {
 				morgane_install_site();
+			} elseif ( 'langues' === $etape['id'] ) {
+				morgane_install_langues();
 			} else {
 				morgane_install_menage();
 			}
