@@ -440,6 +440,21 @@ function morgane_install_page() {
 			<?php endif; ?>
 		</p>
 
+		<h2>Traductions</h2>
+		<p style="max-width:42em">
+			Si la boutique ou la page « Mon compte » s’affichent en anglais, c’est
+			que le paquet de langue de WooCommerce manque. Le bouton « Mettre à
+			jour les traductions » du tableau de bord répond alors « tout est à
+			jour » : il ne ment pas, il répond d’après une liste que WordPress ne
+			redemande que toutes les douze heures, et où une extension installée
+			depuis ne figure pas. Ce bouton-ci vide cette liste et redemande.
+		</p>
+		<p>
+			<button type="button" class="button button-secondary" id="morgane-langues">
+				Télécharger les traductions françaises
+			</button>
+		</p>
+
 		<div id="morgane-progres" style="display:none;max-width:52em">
 			<div style="background:#e0e0e0;border-radius:3px;height:22px;overflow:hidden">
 				<div id="morgane-barre" style="background:#2271b1;height:100%;width:0;transition:width .2s"></div>
@@ -469,15 +484,15 @@ function morgane_install_page() {
 			journal.scrollTop = journal.scrollHeight;
 		}
 
-		bouton.addEventListener('click', async function () {
-			bouton.disabled = true;
+		async function lancer(liste, boutonCliqué) {
+			boutonCliqué.disabled = true;
 			zone.style.display = 'block';
 			journal.textContent = '';
 
-			for (var i = 0; i < etapes.length; i++) {
-				var e = etapes[i];
-				titre.textContent = e.label + '  (' + (i + 1) + '/' + etapes.length + ')';
-				barre.style.width = Math.round((i / etapes.length) * 100) + '%';
+			for (var i = 0; i < liste.length; i++) {
+				var e = liste[i];
+				titre.textContent = e.label + '  (' + (i + 1) + '/' + liste.length + ')';
+				barre.style.width = Math.round((i / liste.length) * 100) + '%';
 
 				var corps = new FormData();
 				corps.append('action', 'morgane_install_step');
@@ -491,7 +506,7 @@ function morgane_install_page() {
 				} catch (err) {
 					ecrire('warning', 'Étape « ' + e.label + " » : la requête n'a pas abouti (" + err.message + ').');
 					titre.textContent = 'Interrompu.';
-					bouton.disabled = false;
+					boutonCliqué.disabled = false;
 					return;
 				}
 
@@ -500,16 +515,25 @@ function morgane_install_page() {
 				if (!data.success) {
 					ecrire('warning', 'Arrêt : ' + ((data.data || {}).message || 'erreur inconnue'));
 					titre.textContent = 'Interrompu à l’étape « ' + e.label + ' ».';
-					bouton.disabled = false;
+					boutonCliqué.disabled = false;
 					return;
 				}
 			}
 
 			barre.style.width = '100%';
 			titre.textContent = 'Terminé.';
-			ecrire('success', 'Installation terminée. Allez voir le site.');
-			bouton.disabled = false;
-		});
+			ecrire('success', 'Terminé. Allez voir le site.');
+			boutonCliqué.disabled = false;
+		}
+
+		bouton.addEventListener('click', function () { lancer(etapes, bouton); });
+
+		var boutonLangues = document.getElementById('morgane-langues');
+		if (boutonLangues) {
+			boutonLangues.addEventListener('click', function () {
+				lancer(etapes.filter(function (e) { return e.id === 'langues'; }), boutonLangues);
+			});
+		}
 	})();
 	</script>
 	<?php
