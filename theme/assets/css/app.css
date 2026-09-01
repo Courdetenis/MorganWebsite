@@ -1370,6 +1370,100 @@ hr.wp-block-separator.rule:not(.alignwide),
   }
 }
 
+
+/* --- Champs de formulaire de WooCommerce -------------------------------------
+   WooCommerce livre ses contrôles habillés pour un fond clair : entrée blanche,
+   texte presque noir, liste déroulante au fond transparent. Sur le thème sombre,
+   la liste déroulante affichait du texte sombre sur du sombre — illisible. C'est
+   la page où l'on sort sa carte : elle ne peut pas être la seule à ne pas être
+   traitée.
+
+   On leur donne l'habillage des trois formulaires du thème, avec les mêmes
+   variables : elles basculent d'elles-mêmes entre clair et sombre, donc rien
+   n'est écrit deux fois.
+
+   La spécificité est délibérée. WooCommerce vise ses entrées avec
+   `.wc-block-components-form .wc-block-components-text-input input[type="email"]`
+   — trois classes et un attribut. Une règle plus courte perd en silence, et le
+   champ reste blanc. On ajoute l'enveloppe du bloc pour passer devant, plutôt
+   qu'un `!important` : celui-ci gagnerait aussi, mais empêcherait de reprendre
+   la main depuis l'éditeur de site.
+
+   Attention aussi au nom des classes : les entrées sont en `wc-block-…`, les
+   listes déroulantes en `wc-blocks-…`, avec un s. */
+
+/* Entrées de texte */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-form .wc-block-components-text-input input[type],
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-text-input input[type] {
+  background: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+  border: 1.5px solid var(--control-line);
+  border-radius: 12px;
+  transition: border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+}
+
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-text-input input[type]:focus {
+  border-color: var(--wp--preset--color--blush);
+  box-shadow: 0 6px 20px rgba(148,70,84,.12);
+  outline: none;
+}
+
+/* L'étiquette flottante vit à l'intérieur du champ : couleur de texte
+   secondaire, pas celle du fond de page. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-text-input label {
+  color: var(--wp--preset--color--ink-soft);
+}
+
+/* Listes déroulantes — pays, province. Le défaut le plus grave. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-blocks-components-select .wc-blocks-components-select__select {
+  background-color: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+  border: 1.5px solid var(--control-line);
+  border-radius: 12px;
+}
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-blocks-components-select .wc-blocks-components-select__label {
+  color: var(--wp--preset--color--ink-soft);
+}
+/* Les options sont dessinées par le système : sans couleur explicite, certains
+   navigateurs les rendent blanc sur blanc. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) select option {
+  background: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+}
+
+/* Cases à cocher et boutons radio : `accent-color` suffit, le navigateur
+   compose le reste — et il tient compte du thème tout seul. */
+.wp-block-woocommerce-cart,
+.wp-block-woocommerce-checkout {
+  accent-color: var(--wp--preset--color--blush);
+}
+
+/* Choix de livraison et de paiement : des cartes, comme le reste du site. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  :is(.wc-block-components-radio-control-accordion-option,
+      .wc-block-components-radio-control__option) {
+  background: var(--wp--preset--color--cream);
+  border: 1.5px solid var(--control-line);
+  border-radius: 12px;
+}
+
+/* Messages d'erreur : lisibles sur les deux fonds, sans le rouge cru par défaut. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  :is(.wc-block-components-validation-error, .wc-block-components-validation-error p) {
+  color: var(--wp--preset--color--blush);
+}
+
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-notice-banner {
+  border-radius: 12px;
+}
+
 /* ---------------------------------------------------------
    16. Motion réduite — dernier mot
    --------------------------------------------------------- */
