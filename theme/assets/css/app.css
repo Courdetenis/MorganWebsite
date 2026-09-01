@@ -153,6 +153,17 @@ input, textarea, select { box-sizing: border-box; }
               box-shadow .25s var(--ease-out), color .25s var(--ease-out);
   box-shadow: 0 6px 18px rgba(67,32,38,.12);
 }
+/* Même hauteur pour tous les boutons, plein ou contour.
+   Le style « contour » de WordPress remplace le remplissage du thème par le sien,
+   plus petit : côte à côte, un bouton plein faisait 56 px et son voisin 46. Un
+   plancher de hauteur et un centrage en flex règlent la question sans toucher aux
+   remplissages, donc sans risquer d'en casser un ailleurs.
+   Le bouton « ajouter au panier » de WooCommerce est écarté : il porte la même
+   classe mais a son propre traitement, plus compact, dans les grilles d'œuvres. */
+.wp-block-button__link:not(.wc-block-components-product-button__button) {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 3.4rem;
+}
 .wp-block-button__link:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
 .wp-block-button__link:active { transform: translateY(-1px); }
 
@@ -529,6 +540,27 @@ input, textarea, select { box-sizing: border-box; }
 }
 .hero__lede { margin: 0; max-width: 46ch; text-wrap: pretty; color: var(--wp--preset--color--ink-soft); }
 .hero .wp-block-buttons { margin-top: .5rem; }
+/* Les deux boutons du bandeau prennent la même largeur.
+   « Découvrir les œuvres » faisait 227 px et « Travailler ensemble » 194 : le
+   groupe était bien centré, mais le milieu *entre* les deux tombait 17 px plus à
+   droite — et c'est ce milieu-là que l'œil lit comme l'axe de la page, pas le
+   centre du groupe. Le trait de défilement, lui, était sur le vrai centre : les
+   deux repères se contredisaient.
+   Une largeur minimale plutôt qu'une grille à colonnes égales : l'anglais
+   « Work together » ne fait que treize caractères contre vingt et un pour
+   « Discover the artworks », et une répartition à parts égales aurait coupé le
+   plus long. En `rem`, la mesure suit la taille du texte ; plafonnée à la
+   largeur disponible, elle ne déborde jamais sur un téléphone. */
+/* Une valeur absolue, sans `100%` : le conteneur des boutons se dimensionne lui
+   aussi sur son contenu, donc tout pourcentage écrit ici se référait à une
+   largeur qui dépendait de lui — et la règle ne faisait rien. */
+.hero .wp-block-button__link { min-width: 15rem; }
+/* Sous 420 px, 15 rem ne tient plus à deux : les boutons prennent toute la
+   largeur, l'un sous l'autre. */
+@media (max-width: 420px) {
+  .hero .wp-block-button { flex: 1 0 100%; }
+  .hero .wp-block-button__link { min-width: 0; width: 100%; }
+}
 
 /* Découpe du titre en mots, pour l'animation d'entrée. */
 .word { display: inline-block; overflow: hidden; padding-bottom: .1em; }
