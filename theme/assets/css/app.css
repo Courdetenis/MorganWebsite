@@ -534,16 +534,36 @@ input, textarea, select { box-sizing: border-box; }
 .word { display: inline-block; overflow: hidden; padding-bottom: .1em; }
 .word__i { display: inline-block; }
 
+/* Indice de défilement.
+   C'était le contour d'une souris d'ordinateur avec sa molette qui descend —
+   une métaphore matérielle que la moitié des visiteuses n'a pas sous la main, et
+   qui ne veut rien dire au doigt. Sur un site qui parle de peinture, elle
+   détonnait deux fois.
+   À la place : un cheveu vertical le long duquel un reflet descend, comme une
+   coulée d'encre. Pas d'objet, pas de mot à traduire, et le geste se comprend
+   aussi bien sur un écran tactile. Sa hauteur suit la fenêtre — 56 px sur un
+   grand écran, 32 sur un téléphone, où la place verticale est comptée. */
 .scroll-cue {
-  width: 24px; height: 40px; border: 2px solid var(--wp--preset--color--ink-soft);
-  border-radius: 20px; position: relative; margin: 0 auto; opacity: .45;
+  position: relative; margin: 0 auto; overflow: hidden;
+  width: 1px; height: clamp(32px, 6vw, 56px);
+  background: linear-gradient(to bottom,
+    transparent,
+    color-mix(in srgb, var(--wp--preset--color--ink-soft) 50%, transparent) 22%,
+    color-mix(in srgb, var(--wp--preset--color--ink-soft) 50%, transparent) 78%,
+    transparent);
 }
 .scroll-cue::after {
-  content: ""; position: absolute; top: 7px; left: 50%; width: 3px; height: 8px; margin-left: -1.5px;
-  background: var(--wp--preset--color--ink-soft); border-radius: 2px;
-  animation: cue 1.8s var(--ease-out) infinite;
+  content: ""; position: absolute; left: 0; top: 0;
+  width: 100%; height: 45%;
+  background: linear-gradient(to bottom, transparent, var(--wp--preset--color--blush));
+  animation: cue 2.6s var(--ease-out) infinite;
 }
-@keyframes cue { 0%{transform:translateY(0);opacity:1} 70%{transform:translateY(12px);opacity:0} 100%{opacity:0} }
+@keyframes cue {
+  0%   { transform: translateY(-110%); opacity: 0; }
+  22%  { opacity: 1; }
+  72%  { opacity: 1; }
+  100% { transform: translateY(240%); opacity: 0; }
+}
 
 /* Formes flottantes (parallaxe au défilement, via JS). */
 .blob {
@@ -1722,7 +1742,9 @@ hr.wp-block-separator.rule:not(.alignwide),
   .atelier::before,
   .color-band .marquee,
   .menu__panel,
-  .scroll-cue::after { animation: none !important; }
+  /* Le reflet ne descend plus : il resterait figé en haut du trait, ce qui ne
+     voudrait rien dire. On ne garde que le cheveu. */
+  .scroll-cue::after { animation: none !important; opacity: 0; }
   *, *::before, *::after {
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
