@@ -187,6 +187,43 @@ function morgane_install_langues() {
 	wp_update_plugins();
 	wp_update_themes();
 
+	/*
+	 * Installer d'abord les langues au niveau du cœur.
+	 *
+	 * WordPress ne va chercher la traduction d'une extension que pour les
+	 * langues qu'il a déjà installées pour lui-même. Tant que `fr_CA` n'est pas
+	 * dans cette liste, il n'a rien à mettre à jour pour WooCommerce et répond
+	 * « 0 paquet » — sans que rien ne soit en panne.
+	 *
+	 * On lui demande donc explicitement les locales dont ce site a besoin :
+	 * la sienne, et celles que Polylang déclare.
+	 */
+	$locales = array( get_locale() );
+	if ( function_exists( 'pll_languages_list' ) ) {
+		$locales = array_merge( $locales, (array) pll_languages_list( array( 'fields' => 'locale' ) ) );
+	}
+	$locales = array_unique( array_filter( $locales ) );
+	$deja    = get_available_languages();
+
+	WP_CLI::log( 'Langue du site : ' . get_locale() . ' — installées : ' . ( implode( ', ', $deja ) ?: 'aucune' ) );
+	WP_CLI::log( 'Langues nécessaires : ' . implode( ', ', $locales ) );
+
+	foreach ( $locales as $locale ) {
+		if ( 'en_US' === $locale || in_array( $locale, $deja, true ) ) {
+			continue;
+		}
+		$pose = wp_download_language_pack( $locale );
+		if ( $pose ) {
+			WP_CLI::log( 'Langue ' . $locale . ' installée pour WordPress.' );
+		} else {
+			WP_CLI::warning( 'Langue ' . $locale . ' : téléchargement refusé par wordpress.org.' );
+		}
+	}
+
+	// La liste a pu changer : on la relit avant de demander les extensions.
+	delete_site_transient( 'update_plugins' );
+	wp_update_plugins();
+
 	$upgrader = new Language_Pack_Upgrader( new Automatic_Upgrader_Skin() );
 	$resultat = $upgrader->bulk_upgrade();
 
