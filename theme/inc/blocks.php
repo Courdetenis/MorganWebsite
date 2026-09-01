@@ -85,8 +85,18 @@ function morgane_home_url() {
 }
 
 /**
- * Sélecteur de langue (FR / EN).
- * S'appuie sur Polylang. N'affiche rien si Polylang est absent ou si une
+ * Sélecteur de langue (FR / EN), en menu déroulant.
+ *
+ * C'était une pastille à deux segments, large de 90 px. Elle occupait à elle
+ * seule la place de deux boutons ronds dans un en-tête déjà dense — et il n'y
+ * avait plus de quoi loger le compte client. Réduite à un bouton rond de 44 px
+ * qui affiche la langue courante et déroule les autres, elle rentre dans le
+ * rang : quatre commandes de même taille.
+ *
+ * Le panneau s'ouvre au survol là où le survol existe, et au clic partout —
+ * donc aussi sur téléphone et tablette, où survoler ne veut rien dire.
+ *
+ * S'appuie sur Polylang. N'affiche rien si l'extension est absente ou si une
  * seule langue est configurée.
  */
 function morgane_render_lang_switcher() {
@@ -128,10 +138,48 @@ function morgane_render_lang_switcher() {
 		);
 	}
 
+	$label = morgane_t( array( 'fr' => 'Choix de la langue', 'en' => 'Language' ) );
+
 	return sprintf(
-		'<div class="lang-switch" role="group" aria-label="%s">%s</div>',
-		esc_attr( morgane_t( array( 'fr' => 'Choix de la langue', 'en' => 'Language' ) ) ),
+		'<div class="lang-switch" data-lang-switch>
+			<button class="lang-switch__trigger" type="button" aria-expanded="false" aria-controls="lang-panel" aria-label="%1$s" title="%1$s">%2$s</button>
+			<div class="lang-switch__panel" id="lang-panel">%3$s</div>
+		</div>',
+		esc_attr( $label ),
+		esc_html( strtoupper( $current ) ),
 		$items
+	);
+}
+
+/**
+ * Compte client.
+ *
+ * Un lien vers la page « Mon compte » de WooCommerce — connexion, inscription,
+ * commandes, adresses. Le libellé change selon qu'on est identifié ou non :
+ * une cliente connectée ne cherche pas « se connecter ».
+ *
+ * Rendu seulement si WooCommerce est là : sans lui, la page n'existe pas et le
+ * bouton mènerait à l'accueil.
+ */
+function morgane_render_account() {
+	if ( ! function_exists( 'wc_get_page_id' ) || wc_get_page_id( 'myaccount' ) <= 0 ) {
+		return '';
+	}
+
+	$connecte = is_user_logged_in();
+	$label    = $connecte
+		? morgane_t( array( 'fr' => 'Mon compte', 'en' => 'My account' ) )
+		: morgane_t( array( 'fr' => 'Se connecter', 'en' => 'Sign in' ) );
+
+	$icone = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>';
+
+	return sprintf(
+		'<a class="account-link%s" href="%s" aria-label="%s" title="%s">%s</a>',
+		$connecte ? ' is-connected' : '',
+		esc_url( morgane_wc_page_url( 'myaccount' ) ),
+		esc_attr( $label ),
+		esc_attr( $label ),
+		$icone
 	);
 }
 
@@ -340,6 +388,16 @@ add_action(
 				'title'           => __( 'Sélecteur de langue', 'morgane' ),
 				'category'        => 'design',
 				'render_callback' => 'morgane_render_lang_switcher',
+			)
+		);
+
+		register_block_type(
+			'morgane/account',
+			array(
+				'api_version'     => 3,
+				'title'           => __( 'Compte client', 'morgane' ),
+				'category'        => 'woocommerce',
+				'render_callback' => 'morgane_render_account',
 			)
 		);
 

@@ -100,6 +100,30 @@ function morgane_install_site() {
 		update_option( 'woocommerce_store_pages_only', 'no' );
 		update_option( 'woocommerce_default_country', 'CA:QC' );
 		update_option( 'woocommerce_currency', 'CAD' );
+
+		/*
+		 * Comptes clients. WooCommerce ferme l'inscription par défaut : la page
+		 * « Mon compte » n'affiche alors qu'un formulaire de connexion, sans
+		 * moyen d'en créer un — un cul-de-sac pour qui vient d'acheter.
+		 *
+		 * La commande en tant qu'invité reste ouverte : obliger à créer un
+		 * compte pour acheter un tirage fait perdre des ventes, et rien dans ce
+		 * site n'exige un compte.
+		 */
+		update_option( 'woocommerce_enable_myaccount_registration', 'yes' );
+		update_option( 'woocommerce_enable_signup_and_login_from_checkout', 'yes' );
+		update_option( 'woocommerce_enable_guest_checkout', 'yes' );
+
+		// Le texte de confidentialité de l'inscription est livré en anglais et
+		// n'est pas une chaîne traduisible : c'est une option, à écrire.
+		update_option(
+			'woocommerce_registration_privacy_policy_text',
+			'Vos données servent à traiter votre commande, à vous accompagner sur ce site et pour les usages décrits dans notre [privacy_policy].'
+		);
+		update_option(
+			'woocommerce_checkout_privacy_policy_text',
+			'Vos données servent à traiter votre commande, à vous accompagner sur ce site et pour les usages décrits dans notre [privacy_policy].'
+		);
 		WP_CLI::log( 'WooCommerce : boutique ouverte, devise CAD, Québec.' );
 
 		foreach ( morgane_wc_pages() as $option => $cible ) {

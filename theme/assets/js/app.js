@@ -73,6 +73,39 @@
   }
 
   /* -------------------------------------------------------
+     2 bis. Sélecteur de langue
+     Le panneau s'ouvre au survol par le CSS seul, ce qui suffit à la souris.
+     Ici on ne traite que le clic — indispensable sur téléphone et tablette,
+     où il n'y a pas de survol. Sans ce script, le survol continue de marcher
+     et le panneau reste atteignable au clavier par `:focus-within`.
+     ------------------------------------------------------- */
+  var lang = document.querySelector('[data-lang-switch]');
+  if (lang) {
+    var langTrigger = lang.querySelector('.lang-switch__trigger');
+
+    var setLangOpen = function (open) {
+      if (open) { lang.setAttribute('data-open', ''); }
+      else { lang.removeAttribute('data-open'); }
+      langTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    langTrigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setLangOpen(!lang.hasAttribute('data-open'));
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !lang.hasAttribute('data-open')) return;
+      setLangOpen(false);
+      langTrigger.focus();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!lang.contains(e.target)) setLangOpen(false);
+    });
+  }
+
+  /* -------------------------------------------------------
      3. En-tête : fond givré au défilement
      ------------------------------------------------------- */
   var header = document.querySelector('.site-header');
