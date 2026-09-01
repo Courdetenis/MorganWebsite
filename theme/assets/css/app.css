@@ -253,10 +253,10 @@ input, textarea, select { box-sizing: border-box; }
 }
 [data-theme="dark"] .site-header__brand a { background-color: var(--wp--preset--color--ink); }
 
-.site-header__tools {
-  flex: 0 0 auto;
-  display: flex; align-items: center; gap: .5rem;
-}
+.site-header__tools { position: relative; flex: 0 0 auto; }
+.tools__panel { display: flex; align-items: center; gap: .5rem; }
+/* Sur grand écran il n'y a rien à déplier : les quatre commandes tiennent. */
+.tools__trigger { display: none; }
 
 /* Liens à plat dans la barre, à partir de 1280 px seulement.
    Le seuil est dicté par l'anglais, pas par le français : « Commissions and
@@ -1379,13 +1379,72 @@ hr.wp-block-separator.rule:not(.alignwide),
   }
   .menu__trigger-text { display: none; }
 
-  /* Les quatre commandes se resserrent. La langue n'est plus une pastille à deux
-     segments mais un bouton comme les autres : plus rien à masquer ici. */
-  .site-header__tools { gap: .3rem; }
+  /* Les quatre commandes passent derrière un bouton à trois points : c'est la
+     seule façon de garder le logo au centre d'une barre d'une seule rangée. Le
+     hamburger tient déjà la gauche — d'où trois points et non trois barres, pour
+     que les deux boutons n'annoncent pas la même chose. */
+  .tools__trigger {
+    display: inline-grid; place-items: center; position: relative;
+    width: 38px; height: 38px; padding: 0;
+    border: 1px solid var(--control-line);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+    color: var(--wp--preset--color--ink);
+    cursor: pointer;
+    transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), color .25s var(--ease-out);
+  }
+  .tools__trigger:hover { border-color: var(--wp--preset--color--lilac); color: var(--wp--preset--color--lilac); }
+
+  /* Le compte d'articles remonte sur le déclencheur : panneau fermé, une cliente
+     qui a rempli son panier doit continuer de le voir. */
+  .tools__badge {
+    position: absolute; top: -5px; right: -5px;
+    min-width: 18px; height: 18px; padding: 0 4px;
+    display: grid; place-items: center;
+    border-radius: var(--radius-pill);
+    background: var(--grad-pill); color: #FFF;
+    font-family: var(--wp--preset--font-family--body);
+    font-size: .65rem; font-weight: 700; line-height: 1;
+  }
+
+  .tools__panel {
+    position: absolute; top: calc(100% + .6rem); right: 0;
+    gap: .35rem; padding: .4rem;
+    border: 1px solid var(--control-line);
+    border-radius: 18px;
+    background: var(--surface-blur);
+    backdrop-filter: saturate(1.3) blur(14px);
+    -webkit-backdrop-filter: saturate(1.3) blur(14px);
+    box-shadow: var(--shadow-soft);
+    opacity: 0; visibility: hidden; transform: translateY(-6px);
+    transition: opacity .2s var(--ease-out), transform .2s var(--ease-out), visibility .2s;
+    z-index: 40;
+  }
+  .site-header__tools[data-open] .tools__panel {
+    opacity: 1; visibility: visible; transform: none;
+  }
+
   .lang-switch__trigger,
   .account-link,
   .theme-toggle,
   .cart-link { width: 38px; height: 38px; }
+
+  /* La langue s'affiche à plat dans le panneau : un menu dans un menu se
+     déroulerait hors de l'écran, et ne se refermerait pas au bon moment. */
+  .tools__panel .lang-switch__trigger { display: none; }
+  .tools__panel .lang-switch__panel {
+    position: static; transform: none;
+    opacity: 1; visibility: visible;
+    display: flex; gap: 2px; padding: 0; min-width: 0;
+    border: 0; background: none; box-shadow: none;
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  .tools__panel .lang-switch__item {
+    min-width: 38px; min-height: 38px; display: grid; place-items: center; padding: 0 .35rem;
+    border: 1px solid var(--control-line);
+    background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+  }
+  .tools__panel .lang-switch__item.is-active { border-color: transparent; }
 
   .hero { min-height: 80vh !important; }
   .steps li { grid-template-columns: 1.9rem 1fr; gap: .75rem; }
@@ -1399,12 +1458,9 @@ hr.wp-block-separator.rule:not(.alignwide),
    des outils n'en laissent plus que 32 au logo — il chevauchait le panier.
    Il reprend alors sa propre rangée, centré.
    --------------------------------------------------------- */
-/* Le seuil était à 359 px quand la barre portait trois commandes. La quatrième —
-   le compte client — pousse les outils à 166 px : additionnés au bouton menu, il
-   ne reste plus la place de centrer le logo sur un écran de téléphone. Il prend
-   donc sa propre rangée dès 480 px, ce qui rend aussi les quatre boutons plus
-   confortables à viser. */
-@media (max-width: 480px) {
+/* Dernier recours, sous 360 px : même avec les commandes repliées derrière leur
+   bouton, il ne reste plus de quoi centrer le logo entre deux boutons. */
+@media (max-width: 359px) {
   .site-header { --logo-h: 52px; }
   .site-header.is-scrolled { --logo-h: 40px; }
   .site-header__bar { flex-wrap: wrap; row-gap: .35rem; min-height: 0; }

@@ -348,6 +348,51 @@ function morgane_render_not_found() {
 	return $out;
 }
 
+/**
+ * Les quatre commandes de droite : langue, thème, compte, panier.
+ *
+ * Sur grand écran elles sont posées à plat. Sur téléphone et tablette, quatre
+ * boutons plus le bouton menu ne laissent plus au logo la place de tenir le
+ * centre de la barre — et faire descendre le logo sur sa propre rangée abîmait
+ * l'en-tête. Elles passent donc derrière un bouton qui les déroule.
+ *
+ * Ce bouton porte trois points et non trois barres : le menu principal est déjà
+ * un hamburger, à gauche. Deux boutons identiques aux deux bouts d'une barre
+ * n'annonceraient pas deux choses différentes.
+ *
+ * Le nombre d'articles du panier remonte sur le déclencheur quand le panneau est
+ * fermé : sans ça, une cliente qui a rempli son panier n'en verrait plus la
+ * trace tant qu'elle n'ouvre pas le menu.
+ */
+function morgane_render_tools() {
+	$label = morgane_t( array( 'fr' => 'Langue, thème, compte et panier', 'en' => 'Language, theme, account and cart' ) );
+
+	$points = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">'
+		. '<circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>';
+
+	$badge = '';
+	if ( function_exists( 'WC' ) && WC()->cart ) {
+		$n = WC()->cart->get_cart_contents_count();
+		if ( $n > 0 ) {
+			$badge = '<span class="tools__badge" aria-hidden="true">' . esc_html( number_format_i18n( $n ) ) . '</span>';
+		}
+	}
+
+	return sprintf(
+		'<div class="site-header__tools" data-tools>
+			<button class="tools__trigger" type="button" aria-expanded="false" aria-controls="tools-panel" aria-label="%1$s" title="%1$s">%2$s%3$s</button>
+			<div class="tools__panel" id="tools-panel">%4$s%5$s%6$s%7$s</div>
+		</div>',
+		esc_attr( $label ),
+		$points,
+		$badge,
+		morgane_render_lang_switcher(),
+		morgane_render_theme_toggle(),
+		morgane_render_account(),
+		morgane_render_cart()
+	);
+}
+
 add_action(
 	'init',
 	function () {
@@ -388,6 +433,16 @@ add_action(
 				'title'           => __( 'Sélecteur de langue', 'morgane' ),
 				'category'        => 'design',
 				'render_callback' => 'morgane_render_lang_switcher',
+			)
+		);
+
+		register_block_type(
+			'morgane/tools',
+			array(
+				'api_version'     => 3,
+				'title'           => __( 'Commandes de l\'en-tête', 'morgane' ),
+				'category'        => 'design',
+				'render_callback' => 'morgane_render_tools',
 			)
 		);
 

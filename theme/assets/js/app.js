@@ -73,6 +73,38 @@
   }
 
   /* -------------------------------------------------------
+     2 bis. Commandes de l'en-tête (langue, thème, compte, panier)
+     Repliées derrière un bouton à trois points en dessous de 720 px. Au-dessus,
+     le CSS laisse le panneau à plat et le déclencheur masqué : ce qui suit ne
+     sert qu'en dessous, et ne gêne pas au-dessus.
+     ------------------------------------------------------- */
+  var tools = document.querySelector('[data-tools]');
+  if (tools) {
+    var toolsTrigger = tools.querySelector('.tools__trigger');
+
+    var setToolsOpen = function (open) {
+      if (open) { tools.setAttribute('data-open', ''); }
+      else { tools.removeAttribute('data-open'); }
+      toolsTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    toolsTrigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setToolsOpen(!tools.hasAttribute('data-open'));
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !tools.hasAttribute('data-open')) return;
+      setToolsOpen(false);
+      toolsTrigger.focus();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!tools.contains(e.target)) setToolsOpen(false);
+    });
+  }
+
+  /* -------------------------------------------------------
      2 bis. Sélecteur de langue
      Le panneau s'ouvre au survol par le CSS seul, ce qui suffit à la souris.
      Ici on ne traite que le clic — indispensable sur téléphone et tablette,
