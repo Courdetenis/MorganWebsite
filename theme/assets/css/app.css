@@ -385,16 +385,13 @@ input, textarea, select { box-sizing: border-box; }
    le plus discret possible. */
 .account-link.is-connected { border-color: var(--wp--preset--color--blush); }
 
+/* Le panneau n'est pas une boîte : juste une colonne de boutons ronds, du même
+   gabarit que ceux de la barre. Un cadre autour aurait fait une deuxième forme
+   là où l'œil n'en attend qu'une. */
 .lang-switch__panel {
   position: absolute; top: calc(100% + .5rem); left: 50%;
   transform: translateX(-50%) translateY(-6px);
-  display: grid; gap: 2px; padding: 4px; min-width: 100%;
-  border: 1px solid var(--control-line);
-  border-radius: 14px;
-  background: var(--surface-blur);
-  backdrop-filter: saturate(1.3) blur(14px);
-  -webkit-backdrop-filter: saturate(1.3) blur(14px);
-  box-shadow: var(--shadow-soft);
+  display: grid; gap: .4rem;
   opacity: 0; visibility: hidden;
   transition: opacity .2s var(--ease-out), transform .2s var(--ease-out), visibility .2s;
   z-index: 30;
@@ -415,17 +412,28 @@ input, textarea, select { box-sizing: border-box; }
 }
 
 .lang-switch__item {
-  display: block; text-align: center;
-  min-width: 44px; padding: .5rem .6rem;
+  display: grid; place-items: center;
+  width: 44px; height: 44px;
   font-family: var(--wp--preset--font-family--body);
   font-size: .78rem; font-weight: 600; letter-spacing: .06em;
   color: var(--wp--preset--color--ink-soft);
   text-decoration: none !important;
+  border: 1px solid var(--control-line);
   border-radius: var(--radius-pill);
-  transition: color .2s var(--ease-out), background-color .2s var(--ease-out);
+  background: var(--surface-blur);
+  backdrop-filter: saturate(1.3) blur(14px);
+  -webkit-backdrop-filter: saturate(1.3) blur(14px);
+  box-shadow: var(--shadow-soft);
+  transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), color .25s var(--ease-out);
 }
-.lang-switch__item:hover { color: var(--wp--preset--color--ink); background: var(--hairline); }
-.lang-switch__item.is-active { color: #FFF; background: var(--grad-pill); }
+.lang-switch__item:hover {
+  transform: translateY(-2px);
+  border-color: var(--wp--preset--color--lilac);
+  color: var(--wp--preset--color--lilac);
+}
+.lang-switch__item.is-active {
+  color: #FFF; background: var(--grad-pill); border-color: transparent;
+}
 [data-theme="dark"] .lang-switch__item.is-active { color: #2A1418; }
 
 /* ---------------------------------------------------------
@@ -1611,6 +1619,99 @@ hr.wp-block-separator.rule:not(.alignwide),
 .woocommerce-account .woocommerce-MyAccount-navigation .is-active a {
   color: var(--wp--preset--color--blush);
 }
+/* Deux colonnes qui respirent, et une mesure : le formulaire ne s'étire pas sur
+   1240 px. Même largeur de lecture que les pages de conditions. */
+.woocommerce-account .woocommerce .u-columns.col2-set {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  max-width: 58rem; margin-inline: auto;
+}
+/* Placement explicite : WooCommerce pose un `order` sur ses colonnes pour sa
+   propre mise en page flottante, et il inversait les deux cartes dans la grille.
+   On nomme la colonne de chacune plutôt que de deviner l'ordre. */
+.woocommerce-account .woocommerce .u-columns .col-1,
+.woocommerce-account .woocommerce .u-columns .col-2 {
+  width: auto; float: none; order: 0;
+}
+.woocommerce-account .woocommerce .u-columns .col-1 { grid-column: 1; }
+.woocommerce-account .woocommerce .u-columns .col-2 { grid-column: 2; }
+@media (max-width: 780px) {
+  .woocommerce-account .woocommerce .u-columns .col-1,
+  .woocommerce-account .woocommerce .u-columns .col-2 { grid-column: 1; }
+}
+@media (max-width: 780px) {
+  .woocommerce-account .woocommerce .u-columns.col2-set { grid-template-columns: 1fr; }
+}
+
+/* Les deux titres reprennent la police d'affichage et la taille des chapeaux de
+   section, pas celle d'un h2 de contenu. */
+.woocommerce-account .woocommerce .u-columns h2 {
+  font-family: var(--wp--preset--font-family--heading);
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  margin: 0 0 1rem;
+  text-align: left;
+}
+
+.woocommerce-account .woocommerce form.login,
+.woocommerce-account .woocommerce form.register {
+  display: grid; gap: .9rem;
+  margin: 0;
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 60%, transparent);
+  box-shadow: var(--shadow-soft);
+  padding: clamp(1.4rem, 3vw, 2rem);
+}
+.woocommerce-account .woocommerce form p { margin: 0; }
+
+/* Les boutons prennent la pilule du thème, comme partout ailleurs. */
+.woocommerce-account .woocommerce button.button,
+.woocommerce-account .woocommerce a.button,
+.woocommerce-account .woocommerce input.button {
+  justify-self: start;
+  padding: .85rem 1.9rem;
+  border: 0; border-radius: var(--radius-pill);
+  background: var(--wp--preset--color--ink);
+  color: var(--wp--preset--color--paper);
+  font-family: var(--wp--preset--font-family--body);
+  font-size: 1rem; font-weight: 600; line-height: 1.2;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(67,32,38,.12);
+  transition: transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
+}
+.woocommerce-account .woocommerce button.button:hover,
+.woocommerce-account .woocommerce a.button:hover,
+.woocommerce-account .woocommerce input.button:hover {
+  transform: translateY(-2px); box-shadow: var(--shadow-soft);
+}
+
+/* « Se souvenir de moi » sur une ligne, et le lien de mot de passe oublié
+   détaché du bouton. */
+.woocommerce-account .woocommerce .woocommerce-form-login__rememberme {
+  display: inline-flex; align-items: center; gap: .5rem;
+  color: var(--wp--preset--color--ink-soft); font-size: .92rem;
+}
+.woocommerce-account .woocommerce .lost_password { margin-top: .2rem; font-size: .92rem; }
+.woocommerce-account .woocommerce .lost_password a { color: var(--wp--preset--color--ink-soft); }
+.woocommerce-account .woocommerce .lost_password a:hover { color: var(--wp--preset--color--blush); }
+.woocommerce-account .woocommerce .woocommerce-privacy-policy-text p {
+  font-size: .92rem; color: var(--wp--preset--color--ink-soft);
+}
+
+/* Une fois connectée : la colonne d'onglets devient une vraie navigation. */
+.woocommerce-account .woocommerce-MyAccount-navigation ul {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: .15rem;
+}
+.woocommerce-account .woocommerce-MyAccount-navigation li a {
+  display: block; padding: .6rem .9rem;
+  border-radius: 10px;
+  transition: background-color .2s var(--ease-out), color .2s var(--ease-out);
+}
+.woocommerce-account .woocommerce-MyAccount-navigation li.is-active a {
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 60%, transparent);
+}
+.woocommerce-account .woocommerce-MyAccount-content { max-width: 46rem; }
+
 
 /* ---------------------------------------------------------
    16. Motion réduite — dernier mot

@@ -167,6 +167,26 @@ function morgane_install_langues() {
 		return;
 	}
 
+	/*
+	 * Forcer une nouvelle interrogation de wordpress.org avant de télécharger.
+	 *
+	 * Le bouton « Mettre à jour les traductions » du tableau de bord répond
+	 * souvent « tout est à jour » alors que le paquet manque : WordPress ne
+	 * redemande la liste que toutes les douze heures, et une extension installée
+	 * depuis la dernière vérification n'y figure pas. Il ne ment pas — il répond
+	 * d'après un cache qui ignore WooCommerce.
+	 *
+	 * On vide ce cache et on redemande. C'est la seule façon d'obtenir le paquet
+	 * le jour même de l'installation.
+	 */
+	delete_site_transient( 'update_plugins' );
+	delete_site_transient( 'update_themes' );
+	delete_site_transient( 'update_core' );
+	wp_clean_plugins_cache( true );
+	wp_clean_themes_cache( true );
+	wp_update_plugins();
+	wp_update_themes();
+
 	$upgrader = new Language_Pack_Upgrader( new Automatic_Upgrader_Skin() );
 	$resultat = $upgrader->bulk_upgrade();
 
