@@ -234,6 +234,33 @@ function morgane_install_langues() {
 
 	$posees = is_array( $resultat ) ? count( array_filter( $resultat ) ) : 0;
 	WP_CLI::success( $posees . ' paquet(s) de langue installé(s) ou mis à jour.' );
+
+	/*
+	 * Constat, pas action. Un « 0 paquet » ne dit pas si la traduction est déjà
+	 * là ou si personne ne la propose : sans ces trois lignes, il n'y a rien à
+	 * diagnostiquer à distance.
+	 */
+	$dossier = WP_LANG_DIR . '/plugins/';
+	foreach ( $locales as $locale ) {
+		$mo = $dossier . 'woocommerce-' . $locale . '.mo';
+		WP_CLI::log( 'woocommerce-' . $locale . '.mo : ' . ( file_exists( $mo ) ? 'présent' : 'ABSENT' ) );
+	}
+
+	$dispo = wp_get_translation_updates();
+	WP_CLI::log( 'Mises à jour de traduction proposées : ' . count( $dispo ) );
+	foreach ( array_slice( $dispo, 0, 4 ) as $d ) {
+		WP_CLI::log( '  · ' . $d->slug . ' (' . $d->language . ')' );
+	}
+
+	// La langue réellement servie sur la page « Mon compte » : si Polylang la
+	// range en anglais, aucun paquet français n'y changera rien.
+	if ( function_exists( 'pll_get_post_language' ) && function_exists( 'wc_get_page_id' ) ) {
+		$compte = wc_get_page_id( 'myaccount' );
+		if ( $compte > 0 ) {
+			$lang = pll_get_post_language( $compte, 'locale' );
+			WP_CLI::log( 'Page « Mon compte » (#' . $compte . ') rangée par Polylang en : ' . ( $lang ?: 'AUCUNE LANGUE' ) );
+		}
+	}
 }
 
 /**
