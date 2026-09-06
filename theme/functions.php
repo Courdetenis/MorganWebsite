@@ -13,6 +13,7 @@ require_once get_theme_file_path( 'inc/i18n.php' );
 require_once get_theme_file_path( 'inc/blocks.php' );
 require_once get_theme_file_path( 'inc/forms.php' );
 require_once get_theme_file_path( 'inc/contact.php' );
+require_once get_theme_file_path( 'inc/livraison.php' );
 
 // L'installateur ne sert qu'à l'administration : inutile de le charger sur le
 // site public, où personne ne peut l'atteindre.
