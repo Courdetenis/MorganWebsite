@@ -122,17 +122,43 @@ if ( ! taxonomy_exists( $taxonomy ) ) {
 }
 
 $sizes = array(
-	'5-x-7-po'   => '5 × 7 po',
-	'8-x-10-po'  => '8 × 10 po',
-	'11-x-14-po' => '11 × 14 po',
-	'12-x-18-po' => '12 × 18 po',
+	'a5' => 'A5 — 14,8 × 21 cm',
+	'a4' => 'A4 — 21 × 29,7 cm',
 );
 
+$term_ids = array();
+
 foreach ( $sizes as $slug => $name ) {
-	if ( ! get_term_by( 'slug', $slug, $taxonomy ) ) {
-		wp_insert_term( $name, $taxonomy, array( 'slug' => $slug ) );
+	$term = get_term_by( 'slug', $slug, $taxonomy );
+
+	if ( ! $term ) {
+		$res = wp_insert_term( $name, $taxonomy, array( 'slug' => $slug ) );
+		if ( is_wp_error( $res ) ) {
+			WP_CLI::warning( 'Taille ' . $slug . ' : ' . $res->get_error_message() );
+			continue;
+		}
+		$term_ids[ $slug ] = (int) $res['term_id'];
+		continue;
+	}
+
+	$term_ids[ $slug ] = (int) $term->term_id;
+}
+
+/*
+ * Une ancienne version posait les tailles sur le produit sous forme de slugs
+ * plutôt que d'identifiants. WordPress ne les reconnaissait pas et créait à
+ * chaque fois un terme jumeau nommé « 5-x-7-po », de slug « 5-x-7-po-2 », que
+ * plus aucune variation ne réclamait. On les enlève : le terme légitime, lui,
+ * s'appelle « 5 × 7 po » et ne peut pas être confondu.
+ */
+foreach ( array_keys( $sizes ) as $slug ) {
+	$jumeau = get_term_by( 'name', $slug, $taxonomy );
+	if ( $jumeau && ! isset( $term_ids[ $jumeau->slug ] ) ) {
+		wp_delete_term( (int) $jumeau->term_id, $taxonomy );
+		WP_CLI::log( 'Terme en double supprimé : ' . $jumeau->slug );
 	}
 }
+
 WP_CLI::log( 'Tailles : ' . implode( ', ', $sizes ) );
 
 /* -------------------------------------------------------------------------
@@ -155,6 +181,27 @@ foreach ( $demo as $pid ) {
 
 $model_slug = 'modele-print-plusieurs-tailles';
 
+/*
+ * Prix, poids et dimensions de chaque format — en kilos et en centimètres, les
+ * unités de la boutique. Sans poids ni dimensions, aucun transporteur ne sait
+ * chiffrer l'envoi : le client arrive au paiement et ne voit aucun mode de
+ * livraison. C'est la panne la plus fréquente d'une boutique d'art.
+ *
+ * Le poids est celui du tirage seul — papier 250 g/m² et pochette — jamais
+ * celui du colis. L'enveloppe rigide est déclarée une fois pour toutes du côté
+ * du transporteur ; la compter ici la ferait payer autant de fois qu'il y a de
+ * tirages dans la commande. L'épaisseur reste mince pour que trois tirages
+ * tiennent dans une seule enveloppe plutôt que dans trois.
+ *
+ * Les prix, eux, ne sont que des repères : le gabarit est un brouillon,
+ * Morgane pose les siens sur chaque tirage.
+ */
+$formats = array(
+	//              prix  poids  long.  larg.  épais.
+	'a5' => array( 30,   0.02,  21.0,  14.8,  0.2 ),
+	'a4' => array( 55,   0.03,  29.7,  21.0,  0.2 ),
+);
+
 if ( ! get_page_by_path( $model_slug, OBJECT, 'product' ) ) {
 	$product = new WC_Product_Variable();
 	$product->set_name( 'Modèle — print en plusieurs tailles' );
@@ -172,19 +219,18 @@ if ( ! get_page_by_path( $model_slug, OBJECT, 'product' ) ) {
 	$attribute = new WC_Product_Attribute();
 	$attribute->set_id( wc_attribute_taxonomy_id_by_name( 'taille' ) );
 	$attribute->set_name( $taxonomy );
-	$attribute->set_options( array_keys( $sizes ) );
+	$attribute->set_options( array_values( $term_ids ) ); // des identifiants, pas des slugs
 	$attribute->set_visible( true );
 	$attribute->set_variation( true );
 	$product->set_attributes( array( $attribute ) );
 
 	$product_id = $product->save();
 
-	$prices = array( '5-x-7-po' => 25, '8-x-10-po' => 40, '11-x-14-po' => 65, '12-x-18-po' => 90 );
-	foreach ( $prices as $slug => $price ) {
+	foreach ( $formats as $slug => $format ) {
 		$variation = new WC_Product_Variation();
 		$variation->set_parent_id( $product_id );
-		$variation->set_attributes( array( 'taille' => $slug ) );
-		$variation->set_regular_price( (string) $price );
+		$variation->set_attributes( array( $taxonomy => $slug ) );
+		$variation->set_regular_price( (string) $format[0] );
 		$variation->set_manage_stock( true );
 		$variation->set_stock_quantity( 20 );
 		$variation->save();
@@ -192,6 +238,113 @@ if ( ! get_page_by_path( $model_slug, OBJECT, 'product' ) ) {
 
 	pll_set_post_language( $product_id, 'fr' );
 	WP_CLI::log( 'Modèle de print créé (brouillon) : #' . $product_id );
+}
+
+/* -------------------------------------------------------------------------
+   5. Taille, poids et dimensions des variations du modèle
+
+   Rejoué à chaque exécution, et non seulement à la création : une boutique
+   déjà installée se répare, et chaque tirage dupliqué depuis le modèle part
+   avec les bonnes valeurs.
+   ------------------------------------------------------------------------- */
+
+$modele_post = get_page_by_path( $model_slug, OBJECT, 'product' );
+$modele      = $modele_post ? wc_get_product( $modele_post->ID ) : null;
+
+/*
+ * La classe de livraison « lettre » : c'est elle que `inc/livraison.php`
+ * interroge pour décider si l'option courrier a le droit de s'afficher. Un
+ * tirage l'a, un original ne l'a pas — il part en colis, suivi et protégé.
+ * Créée ici pour que le thème ne dépende pas d'une donnée saisie à la main.
+ */
+if ( ! get_term_by( 'slug', 'lettre', 'product_shipping_class' ) ) {
+	wp_insert_term(
+		'Lettre',
+		'product_shipping_class',
+		array( 'slug' => 'lettre', 'description' => 'Tirages plats, postables en courrier.' )
+	);
+	WP_CLI::log( 'Classe de livraison « Lettre » créée.' );
+}
+
+if ( $modele ) {
+	// Remettre les bons termes sur le produit, à la place des éventuels jumeaux.
+	wp_set_object_terms( $modele->get_id(), array_values( $term_ids ), $taxonomy );
+
+	// Le modèle est un tirage : tout ce qui en est dupliqué naît postable.
+	wp_set_object_terms( $modele->get_id(), 'lettre', 'product_shipping_class' );
+
+	$corrigees = 0;
+	$vues      = array();
+
+	foreach ( $modele->get_children() as $variation_id ) {
+		$variation = wc_get_product( $variation_id );
+		if ( ! $variation ) {
+			continue;
+		}
+
+		/*
+		 * La variation annonce sa taille sous « pa_taille », le nom de la
+		 * taxonomie. Une ancienne version l'écrivait sous « taille » : le produit
+		 * parent cherchait alors une variation qu'il ne trouvait jamais, le
+		 * sélecteur de format restait sans réponse et le tirage était invendable.
+		 */
+		$slug = get_post_meta( $variation_id, 'attribute_' . $taxonomy, true );
+		if ( ! $slug ) {
+			$slug = get_post_meta( $variation_id, 'attribute_taille', true );
+		}
+
+		/*
+		 * Une variation d'un format qui n'existe plus au catalogue — les tailles
+		 * en pouces d'avant le passage au A4/A5 — resterait proposée au client
+		 * sans poids ni dimensions, donc sans tarif de livraison. Le gabarit
+		 * appartient à ce script : il le remet en accord avec les formats.
+		 */
+		if ( ! isset( $formats[ $slug ] ) ) {
+			$variation->delete( true );
+			WP_CLI::log( 'Variation retirée du modèle : format « ' . $slug .' » hors catalogue.' );
+			continue;
+		}
+
+		$vues[] = $slug;
+
+		list( , $poids, $longueur, $largeur, $epaisseur ) = $formats[ $slug ];
+
+		$variation->set_attributes( array( $taxonomy => $slug ) );
+		$variation->set_weight( (string) $poids );
+		$variation->set_length( (string) $longueur );
+		$variation->set_width( (string) $largeur );
+		$variation->set_height( (string) $epaisseur );
+		$variation->save();
+
+		$corrigees++;
+	}
+
+	// Et créer celles qui manquent, pour que le gabarit couvre tous les formats.
+	foreach ( $formats as $slug => $format ) {
+		if ( in_array( $slug, $vues, true ) ) {
+			continue;
+		}
+
+		list( $prix, $poids, $longueur, $largeur, $epaisseur ) = $format;
+
+		$variation = new WC_Product_Variation();
+		$variation->set_parent_id( $modele->get_id() );
+		$variation->set_attributes( array( $taxonomy => $slug ) );
+		$variation->set_regular_price( (string) $prix );
+		$variation->set_manage_stock( true );
+		$variation->set_stock_quantity( 20 );
+		$variation->set_weight( (string) $poids );
+		$variation->set_length( (string) $longueur );
+		$variation->set_width( (string) $largeur );
+		$variation->set_height( (string) $epaisseur );
+		$variation->save();
+
+		WP_CLI::log( 'Variation ajoutée au modèle : ' . $slug );
+		$corrigees++;
+	}
+
+	wc_delete_product_transients( $modele->get_id() );
+	WP_CLI::log( 'Modèle : ' . $corrigees . ' variations avec taille, poids et dimensions.' );
 }
 
 WP_CLI::success( 'Boutique structurée : catégories, tailles, modèle de print.' );
