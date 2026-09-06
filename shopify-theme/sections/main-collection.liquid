@@ -1,0 +1,33 @@
+{%- comment -%} Boutique et collections. Même grille que l'accueil. {%- endcomment -%}
+{%- assign heading = collection.title -%}
+{%- if heading == blank -%}{%- assign heading = 'collection.all' | t -%}{%- endif -%}
+
+<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+  <div class="mg-inner">
+    <header class="woocommerce-products-header section-head">
+      <p class="eyebrow">{{ 'collection.count' | t: count: collection.products_count }}</p>
+      <h1 class="woocommerce-products-header__title page-title">{{ heading }}</h1>
+      {%- if collection.description != blank -%}<div class="prose">{{ collection.description }}</div>{%- endif -%}
+    </header>
+
+    {%- if collection.products.size > 0 -%}
+      {%- paginate collection.products by 24 -%}
+        <div class="woocommerce artworks-grid">
+          <ul class="products">
+            {%- for product in collection.products -%}
+              {%- render 'artwork-card', product: product -%}
+            {%- endfor -%}
+          </ul>
+        </div>
+        {%- if paginate.pages > 1 -%}
+          <nav class="mg-center" style="margin-top:var(--wp--preset--spacing--50)">{{ paginate | default_pagination }}</nav>
+        {%- endif -%}
+      {%- endpaginate -%}
+    {%- else -%}
+      <p class="mg-notice">{{ 'collection.empty' | t }}</p>
+    {%- endif -%}
+  </div>
+</section>
+{% schema %}
+{ "name": "Boutique", "settings": [] }
+{% endschema %}

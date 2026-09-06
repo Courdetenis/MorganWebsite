@@ -1,0 +1,28 @@
+<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+  <div class="mg-inner">
+    <div class="section-head">
+      <p class="eyebrow">{{ shop.name }}</p>
+      <h1 class="wp-block-heading page-title">{{ blog.title }}</h1>
+    </div>
+    {%- if blog.articles.size > 0 -%}
+      <div class="nav-cards alignwide" data-reveal>
+        {%- for article in blog.articles -%}
+          <div class="nav-card">
+            <a href="{{ article.url }}">
+              <span class="nav-card__frame">
+                {%- if article.image -%}{{ article.image | image_url: width: 800 | image_tag: loading: 'lazy', alt: article.title }}{%- endif -%}
+              </span>
+              <span class="nav-card__label">{{ article.title }}</span>
+              <span class="nav-card__note">{{ article.published_at | date: '%-d %B %Y' }}</span>
+            </a>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p class="mg-notice">{{ 'blog.empty' | t }}</p>
+    {%- endif -%}
+  </div>
+</section>
+{% schema %}
+{ "name": "Blogue", "settings": [] }
+{% endschema %}

@@ -1,0 +1,32 @@
+<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+  <div class="mg-inner">
+    <div class="section-head">
+      <p class="eyebrow">{{ 'search.title' | t }}</p>
+      <h1 class="wp-block-heading page-title">
+        {%- if search.performed -%}{{ 'search.results' | t: count: search.results_count, terms: search.terms }}{%- else -%}{{ 'search.title' | t }}{%- endif -%}
+      </h1>
+    </div>
+
+    <form action="{{ routes.search_url }}" method="get" role="search" class="mg-field" style="max-width:32rem">
+      <label for="q">{{ 'search.placeholder' | t }}</label>
+      <input type="search" id="q" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'search.placeholder' | t }}">
+    </form>
+
+    {%- if search.performed -%}
+      {%- if search.results_count > 0 -%}
+        <div class="woocommerce artworks-grid" style="margin-top:var(--wp--preset--spacing--40)">
+          <ul class="products">
+            {%- for item in search.results -%}
+              {%- if item.object_type == 'product' -%}{%- render 'artwork-card', product: item -%}{%- endif -%}
+            {%- endfor -%}
+          </ul>
+        </div>
+      {%- else -%}
+        <p class="mg-notice">{{ 'search.no_results' | t: terms: search.terms }}</p>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</section>
+{% schema %}
+{ "name": "Recherche", "settings": [] }
+{% endschema %}

@@ -1,0 +1,87 @@
+{
+  "general": {
+    "skip": "Skip to content",
+    "menu": "Menu",
+    "main_menu": "Main menu",
+    "language": "Language",
+    "theme_toggle": "Light / dark theme",
+    "account": "My account",
+    "sign_in": "Sign in",
+    "cart": "Cart",
+    "cart_count": "Cart, {{ count }} item(s)",
+    "tools": "Language, theme, account and cart",
+    "social": "Social media",
+    "legal": "Legal information",
+    "prev": "Previous artworks",
+    "next": "Next artworks",
+    "close": "Close",
+    "home": "Home"
+  },
+  "product": {
+    "add_to_cart": "Add to cart",
+    "sold_out": "Sold",
+    "sale": "Sale",
+    "unavailable": "Unavailable",
+    "view_all": "Browse the shop",
+    "quantity": "Quantity",
+    "description": "About this artwork",
+    "shipping_note": "Packed with care, shipped tracked and insured.",
+    "empty": "No artworks online yet."
+  },
+  "collection": {
+    "empty": "No artworks in this collection.",
+    "all": "All artworks",
+    "count": "{{ count }} artwork(s)"
+  },
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty.",
+    "continue": "Discover the artworks",
+    "product": "Artwork",
+    "price": "Price",
+    "quantity": "Quantity",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "shipping_note": "Shipping and taxes calculated at checkout.",
+    "checkout": "Check out",
+    "remove": "Remove",
+    "update": "Update"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search for an artwork",
+    "submit": "Search",
+    "results": "{{ count }} result(s) for “{{ terms }}”",
+    "no_results": "Nothing found for “{{ terms }}”."
+  },
+  "blog": {
+    "read_more": "Read more",
+    "empty": "No posts yet."
+  },
+  "not_found": {
+    "eyebrow": "Error 404",
+    "title": "This page has wandered off",
+    "text": "This address leads nowhere — it may have changed, or contain a typo. Here are two that do lead somewhere.",
+    "home": "Back to home",
+    "shop": "Browse the shop"
+  },
+  "customer": {
+    "login": "Sign in",
+    "register": "Create an account",
+    "logout": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "account": "My account",
+    "orders": "Orders",
+    "no_orders": "No orders yet.",
+    "addresses": "Addresses",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "forgot": "Forgot your password?",
+    "reset": "Reset",
+    "order": "Order",
+    "date": "Date",
+    "status": "Status",
+    "total": "Total"
+  }
+}

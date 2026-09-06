@@ -1,0 +1,61 @@
+{%- comment -%} Trois portes d'entrée. mg_head() + mg_cards(). {%- endcomment -%}
+<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--60)">
+  <div class="mg-inner">
+    {%- if section.settings.eyebrow != blank or section.settings.title != blank -%}
+      <div class="wp-block-group section-head">
+        {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+        {%- if section.settings.title != blank -%}<h2 class="wp-block-heading">{{ section.settings.title }}</h2>{%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="nav-cards alignwide" data-reveal>
+      {%- for block in section.blocks -%}
+        <div class="nav-card" {{ block.shopify_attributes }}>
+          <a href="{{ block.settings.url | default: routes.root_url }}">
+            <span class="nav-card__frame">
+              {%- if block.settings.image != blank -%}
+                {{ block.settings.image | image_url: width: 800 | image_tag: loading: 'lazy', sizes: '(max-width: 780px) 100vw, 390px', alt: block.settings.alt }}
+              {%- elsif block.settings.fallback != blank -%}
+                <img src="{{ block.settings.fallback | asset_url }}" alt="{{ block.settings.alt | escape }}" loading="lazy" width="800" height="600">
+              {%- endif -%}
+            </span>
+            <span class="nav-card__label">{{ block.settings.label }}</span>
+            {%- if block.settings.note != blank -%}<span class="nav-card__note">{{ block.settings.note }}</span>{%- endif -%}
+          </a>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+{% schema %}
+{
+  "name": "Portes d'entrée",
+  "max_blocks": 6,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Accroche", "default": "Par où commencer" },
+    { "type": "text", "id": "title", "label": "Titre", "default": "Trois chemins" }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Carte",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Titre", "default": "Boutique" },
+        { "type": "text", "id": "note", "label": "Sous-titre", "default": "Prints et originaux" },
+        { "type": "url", "id": "url", "label": "Lien" },
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "fallback", "label": "Image livrée avec le thème (nom de fichier)", "default": "art-02.webp" },
+        { "type": "text", "id": "alt", "label": "Texte alternatif" }
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "Portes d'entrée",
+    "blocks": [
+      { "type": "card", "settings": { "label": "Boutique", "note": "Prints et originaux", "fallback": "art-02.webp", "alt": "Ensemble de tirages d'art des illustrations à la gouache de Morgane Cachia" } },
+      { "type": "card", "settings": { "label": "Commissions et collaborations", "note": "Une œuvre pensée pour vous", "fallback": "art-03.webp", "alt": "Peinture d'un épouvantail coiffé d'un chapeau fleuri dans un champ de tournesols" } },
+      { "type": "card", "settings": { "label": "Murales", "note": "Transformer un lieu", "fallback": "art-04.webp", "alt": "Morgane Cachia devant sa murale : un enfant en imperméable jaune qui creuse la terre" } }
+    ]
+  }]
+}
+{% endschema %}

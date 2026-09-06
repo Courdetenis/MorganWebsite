@@ -1,0 +1,1785 @@
+/* =========================================================
+   Morgane Cachia – Art
+   Design system = theme.json. Ici : thèmes clair/sombre,
+   composants et motion.
+
+   Direction : la mise en scène « aurore » d'origine (dégradés
+   mesh, bandeau défilant, formes flottantes, mouvement au
+   défilement), repeinte avec la palette sable / bordeaux.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. Thèmes
+   Les presets WP sont redéfinis sous [data-theme="dark"] :
+   tout ce qui utilise --wp--preset--color--* bascule d'un coup.
+   --------------------------------------------------------- */
+:root {
+  --ease-out: cubic-bezier(.22,.61,.36,1);
+  --radius-card: 16px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 14px 40px rgba(67,32,38,.10);
+  --shadow-lift: 0 24px 60px rgba(67,32,38,.16);
+
+  --aurora-opacity: .60;
+  --aurora-blur: 46px;
+  --surface-blur: rgba(255,253,247,.82);
+  --hairline: rgba(67,32,38,.09);
+  /* Le filet sert à séparer, pas à dessiner un bouton : à 1,2:1 il disparaît.
+     Les contours de commande (boutons, champs, bascules) prennent celui-ci,
+     au-dessus de 3:1 dans les deux thèmes — WCAG 1.4.11. */
+  --control-line: color-mix(in srgb, var(--wp--preset--color--ink) 55%, transparent);
+
+  --grad-aurora: linear-gradient(120deg,#F4DEA5 0%,#DEB0A9 26%,#C18076 52%,#B8AF6A 76%,#944654 100%);
+  --grad-sunset: linear-gradient(135deg,#DEB0A9 0%,#944654 100%);
+  --grad-meadow: linear-gradient(135deg,#B8AF6A 0%,#DEB0A9 100%);
+  --grad-dusk:   linear-gradient(135deg,#C18076 0%,#B8AF6A 100%);
+  /* Fond de pastille : assez foncé pour porter du texte blanc. */
+  --grad-pill:   linear-gradient(135deg,#944654 0%,#7A3846 100%);
+}
+
+/* Mode sombre : prune profond. */
+[data-theme="dark"] {
+  --wp--preset--color--paper:    #221316;
+  --wp--preset--color--cream:    #2E1C20;
+  --wp--preset--color--ink:      #F2E3C4;
+  --wp--preset--color--ink-soft: #C9B49B;
+  --wp--preset--color--line:     #3D272B;
+  /* accents remontés en luminosité pour tenir sur fond sombre */
+  --wp--preset--color--blush:    #DEB0A9;
+  --wp--preset--color--rose:     #E6C4BE;
+  --wp--preset--color--sage:     #CAC38F;
+  --wp--preset--color--lilac:    #D0A098;
+
+  --shadow-soft: 0 14px 40px rgba(0,0,0,.40);
+  --shadow-lift: 0 24px 60px rgba(0,0,0,.55);
+  --aurora-opacity: .34;
+  --aurora-blur: 58px;
+  --surface-blur: rgba(34,19,22,.84);
+  --hairline: rgba(255,255,255,.10);
+
+  --grad-pill: linear-gradient(135deg,#DEB0A9 0%,#C18076 100%);
+}
+
+/* Bascule douce, sans repeindre le monde à chaque frame. */
+body,
+.site-header.is-scrolled,
+.wp-block-button__link,
+.artwork__frame,
+.nav-card__frame,
+.artwork__title {
+  transition: background-color .3s var(--ease-out), color .3s var(--ease-out), border-color .3s var(--ease-out);
+}
+
+html { scroll-behavior: smooth; }
+body { overflow-x: hidden; }
+
+/* Pied de page tenu en bas de l'écran sur les pages courtes. Le portfolio n'a
+   que 833 px de contenu : sur un écran haut, le pied s'arrêtait à 1281 px et
+   laissait le fond nu en dessous — une bande sombre sous le pied de page.
+   `main` absorbe ce qui reste.
+   Flex et non grid : le bloc conteneur d'un élément de grille est sa zone de
+   grille. L'en-tête collant se retrouverait enfermé dans sa propre rangée, haute
+   de sa seule hauteur, et n'aurait plus aucune course. En flex, le bloc
+   conteneur est le conteneur entier — l'en-tête garde la sienne. */
+.wp-site-blocks {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  /* `dvh` pour les navigateurs mobiles dont la barre d'outils se rétracte :
+     `100vh` y vaut la hauteur barre déployée et ferait déborder la page. */
+  min-height: 100dvh;
+}
+/* `flex: 1 0 auto` fait grandir `main` jusqu'à pousser le pied de page en bas,
+   mais tout l'excédent tombait sous le contenu : sur le portfolio, 104 px
+   au-dessus contre 334 px en dessous, d'où un bloc mort au bas de la page.
+   Centrer répartit cet excédent de part et d'autre. Sans effet sur les pages
+   longues, où il n'y a rien à répartir.
+   `safe` : si le contenu dépassait malgré tout, le centrage le ferait déborder
+   par le haut, hors d'atteinte du défilement. */
+.wp-site-blocks > main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+}
+/* `main` étant devenu un conteneur flex, ses enfants sont des éléments flex.
+   La mise en page contrainte de WordPress pose `margin-inline: auto !important`
+   sur tout enfant qui n'est pas `alignfull` — or un élément flex dont une marge
+   transversale vaut `auto` n'est plus étiré par `align-items: stretch` : il
+   retombe sur sa largeur de contenu. Les gabarits du thème sortaient indemnes,
+   leur `post-content` étant en `alignfull` ; les pages de WooCommerce, qui
+   remplacent le gabarit par le leur en `alignwide`, s'effondraient — panier
+   réduit à 0 px, boutique à 908 au lieu de 1240, titre de « Mon compte » à 315.
+   Rendre la largeur explicite rétablit l'étirement sans toucher aux marges,
+   donc sans décentrer quoi que ce soit.
+   `alignfull` est écarté : ces éléments-là sont déjà étirés (la règle aux marges
+   automatiques les exclut) et débordent de la zone de contenu par des marges
+   négatives. Leur imposer `width: 100%` les rétrécissait de deux fois le
+   remplissage — le bandeau pleine largeur de la 404 s'arrêtait avant le bord. */
+.wp-site-blocks > main > *:not(.alignfull) {
+  width: 100%;
+}
+
+::selection { background: var(--wp--preset--color--rose); color: #432026; }
+
+:where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2.5px solid var(--wp--preset--color--blush);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* Lien d'évitement (accessibilité clavier).
+   Sorti sur le côté et non vers le haut : au-dessus, il dépassait d'un cheveu
+   sous l'en-tête collant. */
+.skip-link {
+  position: absolute; left: -9999px; top: 1rem; z-index: 200;
+  padding: .7rem 1.1rem; border-radius: var(--radius-pill);
+  background: var(--wp--preset--color--ink); color: var(--wp--preset--color--paper);
+  font-size: .9rem; text-decoration: none;
+}
+.skip-link:focus { left: 1rem; }
+
+/* Les champs de formulaire sont les derniers éléments que le navigateur laisse
+   en content-box : width:100% + padding déborde alors de son conteneur, et la
+   page part en défilement horizontal sur téléphone. */
+input, textarea, select { box-sizing: border-box; }
+
+/* ---------------------------------------------------------
+   2. Boutons
+   --------------------------------------------------------- */
+.wp-block-button__link {
+  transition: transform .25s var(--ease-out), background-color .25s var(--ease-out),
+              box-shadow .25s var(--ease-out), color .25s var(--ease-out);
+  box-shadow: 0 6px 18px rgba(67,32,38,.12);
+}
+/* Même hauteur pour tous les boutons, plein ou contour.
+   Le style « contour » de WordPress remplace le remplissage du thème par le sien,
+   plus petit : côte à côte, un bouton plein faisait 56 px et son voisin 46. Un
+   plancher de hauteur et un centrage en flex règlent la question sans toucher aux
+   remplissages, donc sans risquer d'en casser un ailleurs.
+   Le bouton « ajouter au panier » de WooCommerce est écarté : il porte la même
+   classe mais a son propre traitement, plus compact, dans les grilles d'œuvres. */
+.wp-block-button__link:not(.wc-block-components-product-button__button) {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 3.4rem;
+}
+.wp-block-button__link:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
+.wp-block-button__link:active { transform: translateY(-1px); }
+
+/* Le bouton « ajouter au panier » de la grille en blocs porte lui aussi la
+   classe wp-block-button__link, mais il a son propre traitement (section 12) :
+   ce remplissage général l'écraserait. */
+[data-theme="dark"] .wp-block-button:not(.is-style-outline) .wp-block-button__link:not(.wc-block-components-product-button__button) {
+  background-color: var(--wp--preset--color--ink);
+  color: var(--wp--preset--color--paper);
+}
+[data-theme="dark"] .wp-block-button:not(.is-style-outline) .wp-block-button__link:not(.wc-block-components-product-button__button):hover {
+  background-color: var(--wp--preset--color--blush);
+  color: #2A1418;
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link {
+  /* Le filet clair disparaît sur le fond rose : on prend une teinte d'encre. */
+  border: 1.5px solid color-mix(in srgb, var(--wp--preset--color--ink) 28%, transparent);
+  box-shadow: none;
+}
+.wp-block-button.is-style-outline .wp-block-button__link:hover {
+  border-color: var(--wp--preset--color--blush);
+  color: var(--wp--preset--color--blush) !important;
+  background: transparent !important;
+}
+
+/* ---------------------------------------------------------
+   3. En-tête
+   Trois zones sur une seule rangée : navigation à gauche, logo au centre,
+   outils à droite. La navigation est une rangée de liens au-dessus de 1280 px,
+   un bouton en dessous (§ 15) — c'est le seul moyen de garder le logo au
+   milieu : à plat, les six entrées pèsent ≈690 px et ne lui laissent rien.
+   --------------------------------------------------------- */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  border: 0 !important;
+  /* Hauteur du logo, pilotée d'un seul endroit : elle grandit avec la fenêtre
+     puis se fige, et c'est elle qui donne sa hauteur à la barre. La borne basse
+     est celle qui tient encore entre le bouton et les outils sur un 360 px. */
+  --logo-h: clamp(40px, 12vw, 76px);
+  /* Un peu d'air au-dessus, en haut de page. Le logo est hors flux et centré
+     sur la barre : le remplissage de la barre ne le déplace pas, c'est donc
+     l'en-tête lui-même qui s'ouvre. Sans ça, il ne restait que 8 px entre le
+     bord de la fenêtre et le haut du logo — la barre semblait posée de force
+     contre le bord. */
+  padding-top: clamp(.5rem, 1.4vw, 1.125rem);
+  transition: background-color .3s var(--ease-out), box-shadow .3s var(--ease-out),
+              backdrop-filter .3s var(--ease-out), padding-top .3s var(--ease-out);
+}
+/* Au défilement l'espace se referme : cet air-là sert l'ouverture de la page,
+   pas la barre collante, qui doit rester la plus discrète possible une fois
+   qu'elle flotte au-dessus du contenu. Il part en même temps que le logo
+   rétrécit, donc en un seul mouvement. */
+.site-header.is-scrolled {
+  --logo-h: clamp(32px, 9vw, 56px);
+  padding-top: 0;
+}
+
+.site-header__bar {
+  display: flex; position: relative;
+  align-items: center; justify-content: space-between;
+  gap: 1rem;
+  /* Le logo est hors flux : sans plancher, la barre se replierait sur la
+     hauteur des liens et le logo déborderait. */
+  min-height: calc(var(--logo-h) + 1.4rem);
+  padding-block: .5rem;
+}
+.site-header.is-scrolled {
+  background: var(--surface-blur);
+  backdrop-filter: saturate(1.3) blur(14px);
+  -webkit-backdrop-filter: saturate(1.3) blur(14px);
+  box-shadow: 0 1px 0 var(--hairline), 0 12px 32px rgba(67,32,38,.06);
+}
+
+/* Le logo tient lieu de nom. Le bloc site-title garde son lien et son texte —
+   Polylang le traduit, les lecteurs d'écran et Google le lisent — le texte est
+   seulement retiré de la vue. Le logo est un trait monochrome : un seul fichier,
+   repeint par le masque selon le thème, donc rien à basculer à la main.
+
+   Hors flux, donc centré sur la barre entière et non sur ce qui reste entre la
+   navigation et les outils : il tient le milieu quelles que soient leurs
+   largeurs — ce qu'une grille `1fr auto 1fr` ne sait pas faire quand elles
+   diffèrent. */
+.site-header__brand {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0; line-height: 0; text-align: center;
+}
+.site-header__brand a {
+  display: inline-block;
+  height: var(--logo-h);
+  aspect-ratio: 2154 / 1689;
+  font-size: 0;
+  background-color: var(--wp--preset--color--blush);
+  -webkit-mask: url(../img/logo.webp) center / contain no-repeat;
+  mask: url(../img/logo.webp) center / contain no-repeat;
+  transition: height .3s var(--ease-out), background-color .3s var(--ease-out);
+}
+[data-theme="dark"] .site-header__brand a { background-color: var(--wp--preset--color--ink); }
+
+.site-header__tools { position: relative; flex: 0 0 auto; }
+.tools__panel { display: flex; align-items: center; gap: .5rem; }
+/* Sur grand écran il n'y a rien à déplier : les quatre commandes tiennent. */
+.tools__trigger { display: none; }
+
+/* Liens à plat dans la barre, à partir de 1280 px seulement.
+   Le seuil est dicté par l'anglais, pas par le français : « Commissions and
+   collaborations » fait 247 px contre 236, et ses cinq liens 368 px contre 436.
+   Le logo étant centré sur la barre, c'est ce déséquilibre qui le rapproche le
+   plus de l'entrée secondaire — à 1240 px il n'en restait que 11 px. En dessous
+   du seuil, la navigation repasse derrière le bouton (§ 15). */
+@media (min-width: 1280px) {
+  /* Le menu prend toute la largeur sauf les outils. `space-between` sépare ses
+     deux groupes aux extrémités ; le vide qu'il laisse au milieu est la place
+     du logo. */
+  .menu { flex: 1 1 auto; }
+  /* Sélecteur qualifié : la présentation par défaut du panneau vit plus bas
+     dans le fichier (§ 4) et l'emporterait à spécificité égale — une requête
+     média n'ajoute aucune spécificité. */
+  .site-header__bar .menu__panel {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  /* La cale de la grille ferait un troisième élément flex et renverrait les
+     liens au centre. */
+  .site-header__bar .menu__panel::before { display: none; }
+}
+
+/* ---------------------------------------------------------
+   4. Menu principal
+   Un seul balisage, deux présentations :
+   au-dessus de 1280 px les liens sont posés à plat dans l'en-tête,
+   en dessous ils passent derrière un bouton (voir § 15).
+   --------------------------------------------------------- */
+.menu { position: relative; min-width: 0; }
+
+/* Bouton hamburger : en dessous de 1280 px. */
+.menu__trigger { display: none; }
+
+/* Trois traits qui deviennent une croix à l'ouverture. */
+.menu__bars { position: relative; width: 18px; height: 12px; flex: 0 0 auto; }
+.menu__bars span {
+  position: absolute; left: 0; width: 100%; height: 1.5px; border-radius: 2px;
+  background: currentColor;
+  transition: transform .28s var(--ease-out), opacity .2s var(--ease-out);
+}
+.menu__bars span:nth-child(1) { top: 0; }
+.menu__bars span:nth-child(2) { top: 5px; }
+.menu__bars span:nth-child(3) { top: 10px; }
+.menu[data-open] .menu__bars span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
+.menu[data-open] .menu__bars span:nth-child(2) { opacity: 0; }
+.menu[data-open] .menu__bars span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
+
+/* Rangée de liens (présentation grand écran, § ci-dessus). */
+/* Trois colonnes : une cale vide, les liens, l'entrée secondaire. Sans la cale,
+   « Commissions et collaborations » pèse à droite et décale visiblement le
+   groupe principal vers la gauche, alors que le logo au-dessus est centré. */
+.menu__panel {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  gap: clamp(.4rem, 1.4vw, 1rem);
+}
+.menu__panel::before { content: ""; }
+.menu__aside { justify-self: end; }
+.menu__list {
+  display: flex; align-items: center; gap: clamp(.2rem, .8vw, .6rem);
+  list-style: none; margin: 0; padding: 0;
+}
+.menu__list a {
+  position: relative;
+  display: block; padding: .45rem clamp(.35rem, .8vw, .6rem); border-radius: 8px;
+  color: var(--wp--preset--color--ink); text-decoration: none;
+  font-family: var(--wp--preset--font-family--body);
+  /* Se resserre plutôt que de passer à la ligne sur les petites tablettes. */
+  font-size: clamp(.88rem, 1.25vw, .98rem);
+  line-height: 1.4; white-space: nowrap;
+  transition: color .22s var(--ease-out);
+}
+.menu__list a::after {
+  content: ""; position: absolute; left: clamp(.35rem, .8vw, .6rem); right: 100%; bottom: .2rem; height: 2px;
+  background: var(--grad-sunset); border-radius: 2px;
+  transition: right .3s var(--ease-out);
+}
+.menu__list a:hover { color: var(--wp--preset--color--blush); }
+.menu__list a:hover::after,
+.menu__list a[aria-current="page"]::after { right: clamp(.35rem, .8vw, .6rem); }
+
+/* « Commissions et collaborations » : accessible, mais visiblement secondaire —
+   le cahier des charges le veut à portée sans alourdir la navigation. */
+.menu__aside { padding-left: clamp(.4rem, 1.2vw, .9rem); border-left: 1px solid var(--wp--preset--color--line); }
+.menu__aside a { font-size: .88rem; color: var(--wp--preset--color--ink-soft); }
+.menu__aside a:hover { color: var(--wp--preset--color--blush); }
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------------------------------------------------------
+   5. Sélecteur de langue
+   --------------------------------------------------------- */
+/* Sélecteur de langue — un bouton rond qui déroule les langues.
+   C'était une pastille à deux segments de 90 px : à elle seule la place de deux
+   boutons, dans un en-tête où le logo doit tenir le centre exact jusqu'à 360 px.
+   Réduite au même gabarit que les autres commandes, elle libère de quoi ajouter
+   le compte client sans toucher à l'équilibre de la barre. */
+.lang-switch { position: relative; flex: 0 0 auto; }
+
+.lang-switch__trigger,
+.account-link {
+  display: inline-grid; place-items: center; flex: 0 0 auto;
+  width: 44px; height: 44px; padding: 0;
+  border: 1px solid var(--control-line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+  color: var(--wp--preset--color--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.lang-switch__trigger {
+  font-family: var(--wp--preset--font-family--body);
+  font-size: .78rem; font-weight: 600; letter-spacing: .06em;
+}
+.lang-switch__trigger:hover,
+.account-link:hover {
+  transform: translateY(-2px);
+  border-color: var(--wp--preset--color--lilac);
+  color: var(--wp--preset--color--lilac);
+}
+/* Une cliente identifiée voit son bouton marqué : c'est l'accusé de réception
+   le plus discret possible. */
+.account-link.is-connected { border-color: var(--wp--preset--color--blush); }
+
+/* Le panneau n'est pas une boîte : juste une colonne de boutons ronds, du même
+   gabarit que ceux de la barre. Un cadre autour aurait fait une deuxième forme
+   là où l'œil n'en attend qu'une. */
+.lang-switch__panel {
+  position: absolute; top: calc(100% + .5rem); left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  display: grid; gap: .4rem;
+  opacity: 0; visibility: hidden;
+  transition: opacity .2s var(--ease-out), transform .2s var(--ease-out), visibility .2s;
+  z-index: 30;
+}
+
+/* Ouvert : au survol là où le survol existe — donc à la souris — et au clic
+   partout, ce qui couvre le téléphone et la tablette où survoler ne veut rien
+   dire. Le clavier passe par le clic : le déclencheur est un vrai bouton, Entrée
+   et Espace l'actionnent.
+   Pas de `:focus-within` : le rappel de focus après Échap rouvrait aussitôt le
+   panneau qu'on venait de fermer — `aria-expanded` disait « fermé » et l'écran
+   montrait « ouvert ». */
+@media (hover: hover) {
+  .lang-switch:hover .lang-switch__panel { opacity: 1; visibility: visible; transform: translateX(-50%); }
+}
+.lang-switch[data-open] .lang-switch__panel {
+  opacity: 1; visibility: visible; transform: translateX(-50%);
+}
+
+.lang-switch__item {
+  display: grid; place-items: center;
+  width: 44px; height: 44px;
+  font-family: var(--wp--preset--font-family--body);
+  font-size: .78rem; font-weight: 600; letter-spacing: .06em;
+  color: var(--wp--preset--color--ink-soft);
+  text-decoration: none !important;
+  border: 1px solid var(--control-line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-blur);
+  backdrop-filter: saturate(1.3) blur(14px);
+  -webkit-backdrop-filter: saturate(1.3) blur(14px);
+  box-shadow: var(--shadow-soft);
+  transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.lang-switch__item:hover {
+  transform: translateY(-2px);
+  border-color: var(--wp--preset--color--lilac);
+  color: var(--wp--preset--color--lilac);
+}
+.lang-switch__item.is-active {
+  color: #FFF; background: var(--grad-pill); border-color: transparent;
+}
+[data-theme="dark"] .lang-switch__item.is-active { color: #2A1418; }
+
+/* ---------------------------------------------------------
+   6. Bascule clair / sombre
+   --------------------------------------------------------- */
+.theme-toggle {
+  display: inline-grid; place-items: center; flex: 0 0 auto;
+  width: 44px; height: 44px; padding: 0;
+  border: 1px solid var(--control-line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+  color: var(--wp--preset--color--ink);
+  cursor: pointer;
+  transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.theme-toggle:hover { transform: translateY(-2px); border-color: var(--wp--preset--color--lilac); color: var(--wp--preset--color--lilac); }
+.theme-toggle svg { grid-area: 1 / 1; transition: opacity .3s var(--ease-out), transform .4s var(--ease-out); }
+.theme-toggle__moon { opacity: 0; transform: rotate(-45deg) scale(.6); }
+[data-theme="dark"] .theme-toggle__sun  { opacity: 0; transform: rotate(45deg) scale(.6); }
+[data-theme="dark"] .theme-toggle__moon { opacity: 1; transform: none; }
+
+/* ---------------------------------------------------------
+   7. Panier
+   --------------------------------------------------------- */
+.cart-link {
+  position: relative;
+  display: inline-grid; place-items: center; flex: 0 0 auto;
+  width: 44px; height: 44px;
+  border: 1px solid var(--control-line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+  color: var(--wp--preset--color--ink);
+  text-decoration: none !important;
+  transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.cart-link:hover { transform: translateY(-2px); border-color: var(--wp--preset--color--blush); color: var(--wp--preset--color--blush); }
+.cart-link__badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  display: grid; place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--grad-pill); color: #FFF;
+  font-size: .68rem; font-weight: 700; line-height: 1;
+}
+[data-theme="dark"] .cart-link__badge { color: #2A1418; }
+
+/* ---------------------------------------------------------
+   8. Hero — mise en scène « aurore »
+   --------------------------------------------------------- */
+.hero { position: relative; overflow: clip; isolation: isolate; display: grid; align-content: center; }
+/* « L'atelier » reprend exactement la mise en scène du hero. Les sélecteurs sont
+   mutualisés plutôt que recopiés : une seule définition, donc les deux sections
+   ne peuvent pas diverger au prochain réglage. La section garde en revanche sa
+   mise en page en flux (colonne contrainte de 720 px), d'où l'absence de
+   `display: grid` ici. */
+.atelier { position: relative; overflow: clip; isolation: isolate; }
+.hero::before,
+.atelier::before {
+  content: ""; position: absolute; inset: -25%; z-index: -2;
+  background:
+    radial-gradient(38% 38% at 20% 28%, #DEB0A9 0%, transparent 62%),
+    radial-gradient(34% 34% at 82% 22%, #E9C7A7 0%, transparent 62%),
+    radial-gradient(44% 44% at 72% 78%, #B8AF6A 0%, transparent 62%),
+    radial-gradient(40% 40% at 26% 82%, #D6C688 0%, transparent 62%),
+    radial-gradient(30% 30% at 52% 50%, #C18076 0%, transparent 60%);
+  filter: blur(var(--aurora-blur)) saturate(1.15);
+  opacity: var(--aurora-opacity);
+  animation: aurora-drift 20s ease-in-out infinite alternate;
+}
+.hero::after,
+.atelier::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(120% 78% at 50% 32%, transparent 38%, var(--wp--preset--color--paper) 100%);
+  opacity: .55;
+}
+@keyframes aurora-drift {
+  from { transform: scale(1) translate3d(0,0,0) rotate(0deg); }
+  to   { transform: scale(1.16) translate3d(2%,-1%,0) rotate(6deg); }
+}
+
+.hero__inner { display: grid; justify-items: center; gap: clamp(1.25rem, 2.5vw, 1.75rem); text-align: center; }
+.hero__eyebrow {
+  font-family: var(--wp--preset--font-family--accent);
+  color: var(--wp--preset--color--blush);
+  font-size: clamp(1.35rem, 2.8vw, 1.9rem);
+  line-height: 1; margin: 0;
+}
+/* L'accroche fait une phrase entière, pas trois mots : à la taille « Affiche »
+   elle occuperait cinq lignes et pousserait tout le reste hors de l'écran. */
+.hero h1 {
+  margin: 0; text-wrap: balance; max-width: 20ch;
+  font-size: clamp(2.1rem, 4.4vw, 3.5rem);
+}
+.hero__lede { margin: 0; max-width: 46ch; text-wrap: pretty; color: var(--wp--preset--color--ink-soft); }
+.hero .wp-block-buttons { margin-top: .5rem; }
+/* Les deux boutons du bandeau prennent la même largeur.
+   « Découvrir les œuvres » faisait 227 px et « Travailler ensemble » 194 : le
+   groupe était bien centré, mais le milieu *entre* les deux tombait 17 px plus à
+   droite — et c'est ce milieu-là que l'œil lit comme l'axe de la page, pas le
+   centre du groupe. Le trait de défilement, lui, était sur le vrai centre : les
+   deux repères se contredisaient.
+   Une largeur minimale plutôt qu'une grille à colonnes égales : l'anglais
+   « Work together » ne fait que treize caractères contre vingt et un pour
+   « Discover the artworks », et une répartition à parts égales aurait coupé le
+   plus long. En `rem`, la mesure suit la taille du texte ; plafonnée à la
+   largeur disponible, elle ne déborde jamais sur un téléphone. */
+/* Une valeur absolue, sans `100%` : le conteneur des boutons se dimensionne lui
+   aussi sur son contenu, donc tout pourcentage écrit ici se référait à une
+   largeur qui dépendait de lui — et la règle ne faisait rien. */
+.hero .wp-block-button__link { min-width: 15rem; }
+/* Sous 420 px, 15 rem ne tient plus à deux : les boutons prennent toute la
+   largeur, l'un sous l'autre. */
+@media (max-width: 420px) {
+  .hero .wp-block-button { flex: 1 0 100%; }
+  .hero .wp-block-button__link { min-width: 0; width: 100%; }
+}
+
+/* Découpe du titre en mots, pour l'animation d'entrée. */
+.word { display: inline-block; overflow: hidden; padding-bottom: .1em; }
+.word__i { display: inline-block; }
+
+/* Indice de défilement.
+   C'était le contour d'une souris d'ordinateur avec sa molette qui descend —
+   une métaphore matérielle que la moitié des visiteuses n'a pas sous la main, et
+   qui ne veut rien dire au doigt. Sur un site qui parle de peinture, elle
+   détonnait deux fois.
+   À la place : un cheveu vertical le long duquel un reflet descend, comme une
+   coulée d'encre. Pas d'objet, pas de mot à traduire, et le geste se comprend
+   aussi bien sur un écran tactile. Sa hauteur suit la fenêtre — 56 px sur un
+   grand écran, 32 sur un téléphone, où la place verticale est comptée. */
+.scroll-cue {
+  position: relative; margin: 0 auto; overflow: hidden;
+  width: 1px; height: clamp(32px, 6vw, 56px);
+  background: linear-gradient(to bottom,
+    transparent,
+    color-mix(in srgb, var(--wp--preset--color--ink-soft) 50%, transparent) 22%,
+    color-mix(in srgb, var(--wp--preset--color--ink-soft) 50%, transparent) 78%,
+    transparent);
+}
+.scroll-cue::after {
+  content: ""; position: absolute; left: 0; top: 0;
+  width: 100%; height: 45%;
+  background: linear-gradient(to bottom, transparent, var(--wp--preset--color--blush));
+  animation: cue 2.6s var(--ease-out) infinite;
+}
+@keyframes cue {
+  0%   { transform: translateY(-110%); opacity: 0; }
+  22%  { opacity: 1; }
+  72%  { opacity: 1; }
+  100% { transform: translateY(240%); opacity: 0; }
+}
+
+/* Formes flottantes (parallaxe au défilement, via JS). */
+.blob {
+  position: absolute; z-index: -1; pointer-events: none;
+  border-radius: 50% 42% 58% 45% / 55% 48% 52% 45%;
+  filter: blur(3px); opacity: .42;
+}
+.blob--rose  { background: var(--grad-sunset); }
+.blob--sage  { background: var(--grad-meadow); }
+.blob--lilac { background: var(--grad-dusk); }
+[data-theme="dark"] .blob { opacity: .3; }
+
+/* Deux œuvres posées de part et d'autre de la colonne de texte de « L'atelier ».
+   Elles n'ont pas de classe d'animation propre : `[data-reveal]` est déjà dans
+   la liste REVEAL de `app.js`, elles héritent de la même apparition que le reste
+   du site — opacité et 26 px de montée au passage du défilement. */
+.art-float {
+  position: absolute;
+  width: clamp(150px, 14vw, 210px); aspect-ratio: 3 / 4;
+  border-radius: var(--radius-card); overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  margin: 0;
+}
+.art-float img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* La propriété `rotate` et non `transform` : GSAP pilote `transform` pour
+   l'apparition, il écraserait une rotation posée là. Les deux propriétés sont
+   indépendantes, elles se composent sans se marcher dessus. */
+.art-float--left  { left: clamp(1rem, 5vw, 5rem); top: 15%; rotate: -5deg; }
+.art-float--right { right: clamp(1rem, 5vw, 5rem); bottom: 15%; rotate: 4deg; }
+/* Sous 1100 px, les 720 px de texte ne laissent plus assez de marge : les deux
+   œuvres viendraient mordre sur les mots. */
+@media (max-width: 1099px) { .art-float { display: none; } }
+
+/* Image d'accueil, en bandeau large. */
+/* Les photos d'accueil et d'À propos sont des portraits 3:4 : le cadre reprend
+   leurs proportions, donc rien n'est recadré et les visages restent entiers.
+   Un bandeau large en aurait gardé une bande centrale, sans les têtes. */
+.hero__media {
+  position: relative;
+  width: 100%; max-width: 520px; margin-inline: auto;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-card); overflow: hidden;
+  background: var(--grad-aurora);
+  box-shadow: var(--shadow-soft);
+}
+.hero__media img {
+  width: 100%; height: 100%; display: block; margin: 0;
+  /* Filet de sécurité si une photo n'est pas en 3:4 : on garde le haut. */
+  object-fit: cover; object-position: center 20%;
+}
+/* Photo en paysage : le cadre suit, sinon le recadrage n'en garderait qu'une
+   bande centrale. Plus large que haut, donc un plafond de largeur plus grand. */
+.hero__media--wide { aspect-ratio: 4 / 3; max-width: 640px; }
+.hero__media--wide img { object-position: center; }
+
+/* Bandeau d'ouverture en deux colonnes : image à gauche, texte à droite dès
+   qu'il y a la place. La section porte la classe `hero` — elle hérite du fond
+   « aurore » et de l'entrée en scène d'app.js. Il ne reste ici que les
+   colonnes. */
+.hero-split__text > p:first-child { margin-top: 0; }
+@media (min-width: 900px) {
+  .hero-split {
+    display: grid; align-items: center; justify-content: center;
+    /* La colonne de texte est plafonnée : en 1fr elle atteignait 736 px,
+       une ligne bien trop longue à lire. */
+    grid-template-columns: minmax(0, 460px) minmax(0, 640px);
+    gap: clamp(2.5rem, 5vw, 4.5rem);
+  }
+  .hero-split .hero__media { max-width: none; margin-inline: 0; }
+}
+/* Les thèmes cités dans la bio, posés en pastilles : ce sont ses mots, pas
+   une liste à puces de plus. */
+.tags {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: .55rem .6rem; list-style: none; padding: 0;
+  margin: clamp(1.25rem, 2.5vw, 1.75rem) 0 0;
+}
+.tags li {
+  padding: .35rem 1.1rem;
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+  font-family: var(--wp--preset--font-family--accent);
+  font-size: clamp(1.2rem, 2.2vw, 1.5rem); line-height: 1.3;
+  color: var(--wp--preset--color--ink);
+}
+
+/* Une phrase de Morgane sortie du texte courant : le moment où la page parle
+   à la première personne, en grand. Écrite dans la police manuscrite, comme
+   les accroches — c'est la même voix. */
+.pull-quote {
+  max-width: 40rem; margin-inline: auto; text-align: center;
+  font-family: var(--wp--preset--font-family--accent);
+  font-size: clamp(1.75rem, 4vw, 2.9rem);
+  line-height: 1.25; text-wrap: balance;
+  color: var(--wp--preset--color--blush);
+}
+
+/* ---------------------------------------------------------
+   9. Sections
+   --------------------------------------------------------- */
+.eyebrow {
+  font-family: var(--wp--preset--font-family--accent);
+  color: var(--wp--preset--color--blush);
+  font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+  display: block; line-height: 1; margin: 0 0 .35rem;
+}
+.section-head { margin-bottom: clamp(2.5rem, 5vw, 3.5rem); }
+.section-head h2 { margin: 0; }
+
+/* Bandeau couleur défilant */
+.color-band { background: var(--grad-aurora); overflow: hidden; }
+.color-band .marquee {
+  display: flex; align-items: center; gap: 2.5rem;
+  white-space: nowrap; width: max-content;
+  animation: marquee 30s linear infinite;
+  font-family: var(--wp--preset--font-family--heading);
+  color: #432026; font-size: clamp(1.15rem, 2.6vw, 1.9rem); font-weight: 500;
+  padding: .95rem 0;
+}
+.color-band .marquee span { display: inline-flex; align-items: center; gap: 2.5rem; }
+.color-band .marquee span::after { content: "✦"; opacity: .55; font-size: .7em; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Repère visuel léger entre deux blocs de texte long.
+   `:not(.alignwide)` et le nom de balise ne sont pas décoratifs : la feuille du
+   bloc séparateur impose 100 px et un centrage avec une spécificité supérieure. */
+hr.wp-block-separator.rule:not(.alignwide),
+.rule {
+  width: 56px; height: 1px; border: 0;
+  margin: clamp(2rem,4vw,3rem) auto;
+  background: var(--wp--preset--color--line); opacity: 1;
+}
+
+/* ---------------------------------------------------------
+   8 bis. Titres de page, chapeaux et bandes éditoriales
+
+   Tout est centré et symétrique. Les longueurs de ligne sont posées en `rem`
+   et non en `ch` : dans DM Sans, 1ch vaut environ 0,69 em, si bien que le
+   « 62ch » d'origine donnait 925 px, soit plus de 110 caractères par ligne —
+   d'où l'impression de texte courant d'un bord à l'autre.
+   --------------------------------------------------------- */
+
+/* La taille des h1 est fixée dans theme.json, pour couvrir aussi les gabarits
+   de WooCommerce qui n'ont pas cette classe. */
+/* 24 rem cadrait les titres courts (« Boutique », « Contact »), mais WordPress
+   pose `word-break: break-word` sur les titres d'article : « Retours et
+   remboursements » se coupait en plein mot, à 64 px, en plein milieu de la
+   page. On élargit la mesure de quoi loger le mot le plus long, et on interdit
+   la coupure — un titre qui déborderait vaut mieux qu'un titre tronçonné, et
+   `text-wrap: balance` équilibre les lignes de toute façon.
+   Sans effet sur les titres courts, qui n'atteignaient déjà pas la borne. */
+.page-title.wp-block-post-title {
+  word-break: normal;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+  max-width: 32rem; margin-inline: auto; text-align: center;
+}
+
+/* Chapeau : le premier paragraphe d'une page. Plus posé par les scripts — les
+   pages ouvrent désormais sur le bandeau de `mg_hero()` — mais conservé tant
+   qu'une page peut n'avoir pas été régénérée et porter encore cette classe. */
+.lead {
+  max-width: 44rem; margin-inline: auto; margin-top: 0;
+  font-size: clamp(1.15rem, 1.5vw, 1.4rem);
+  line-height: 1.6;
+  text-align: center;
+}
+/* L'écart vient de l'espacement entre blocs, posé sur l'enveloppe et non sur le
+   paragraphe : 26 px seulement entre le chapeau et la grille d'images qui suit,
+   quand le titre en a 32 au-dessus. Le texte paraissait collé aux images.
+   Le sélecteur double la classe pour passer devant la règle d'espacement de
+   WordPress, qui remet `margin-block-end: 0` à spécificité égale. */
+.wp-block-group.lead-wrap { margin-bottom: clamp(1.5rem, 3.4vw, 3rem); }
+/* Desktop : le chapeau s'élargit là où le texte courant ne le peut pas. Sa
+   police est grande, donc 50 rem lui font toujours une soixantaine de
+   caractères par ligne — la même mesure confortable qu'à 44 rem en corps de
+   texte. Il ouvre la page sur un moment centré, avant les bandes asymétriques. */
+@media (min-width: 1000px) {
+  .lead { max-width: 50rem; font-size: clamp(1.3rem, 1.65vw, 1.5rem); }
+}
+
+/* Texte courant : colonne centrée, autour de 70 caractères par ligne.
+   La largeur est posée sur les enfants et non sur `.prose` : l'enveloppe porte
+   `alignwide`, et la règle de WordPress qui lui impose 1240 px l'emporterait. */
+.prose { text-align: center; }
+.prose > * { max-width: 44rem; margin-inline: auto; }
+.prose > :first-child { margin-top: 0; }
+.prose > :last-child { margin-bottom: 0; }
+.prose .wp-block-buttons { justify-content: center; }
+/* Chapeau d'une page sans bandeau. Les pages de bas de page — contact, retours,
+   confidentialité — ouvrent sur le titre de leur gabarit et non sur un hero :
+   elles n'ont donc pas de `hero__lede` pour porter leur phrase d'entrée. */
+.prose .lede {
+  font-size: var(--wp--preset--font-size--large);
+  line-height: 1.45; text-wrap: pretty;
+}
+.prose .note-date { font-size: var(--wp--preset--font-size--small); color: var(--wp--preset--color--ink-soft); }
+
+/* --- Pages de conditions : contact, retours, confidentialité -----------------
+   Une colonne alignée à gauche, sur une mesure de lecture. Ces pages se lisent,
+   elles ne se contemplent pas : le centrage de `.prose` convient à une accroche
+   de trois mots, pas à cinq lignes de conditions de retour, et la mise en regard
+   de `.band` laissait un rail à moitié vide sous des titres longs. */
+.legal { text-align: left; }
+/* La mesure est posée sur les sections, pas sur leur conteneur : `.legal` est un
+   bloc `alignwide`, et la mise en page contrainte de WordPress lui impose sa
+   propre largeur maximale avec une spécificité plus forte — la nôtre perdait, la
+   colonne s'étalait sur 1240 px et le texte se collait au bord gauche. Les
+   sections, elles, ne sont pas des enfants directs de la mise en page : rien ne
+   leur dispute leur largeur. */
+.legal__part, .legal > .note-date {
+  max-width: 40rem; margin-inline: auto;
+}
+.legal__part + .legal__part { margin-top: clamp(2rem, 4vw, 3.25rem); }
+.legal__part h2 {
+  text-align: left;
+  margin: 0 0 .7rem;
+  font-size: clamp(1.25rem, 1.9vw, 1.6rem);
+}
+.legal p { margin-block: .7rem; text-wrap: pretty; }
+.legal > .legal__part > :first-child { margin-top: 0; }
+.legal ul, .legal ol { padding-left: 1.15rem; margin-block: .7rem; }
+.legal li { text-wrap: pretty; }
+.legal li + li { margin-top: .45rem; }
+/* L'encadré prend toute la mesure : elle est déjà étroite. */
+.legal .note { max-width: none; margin-top: 1.25rem; }
+.legal .note-date {
+  margin-top: clamp(2rem, 4vw, 3.25rem); margin-inline: auto;
+  font-size: var(--wp--preset--font-size--small);
+  color: var(--wp--preset--color--ink-soft);
+}
+
+/* Bande : titre centré, contenu centré dessous. Ce n'est pas pour autant une
+   colonne étroite — les étapes s'étalent sur deux colonnes et les bandeaux
+   d'images gardent la pleine largeur. */
+.band { margin-block: clamp(2.5rem, 5vw, 4.5rem); }
+.band__head h2 { margin: 0 0 clamp(1.5rem, 3vw, 2.25rem); text-align: center; }
+.band__body { max-width: 62rem; margin-inline: auto; }
+.band__body > :first-child { margin-top: 0; }
+.band__body > :last-child { margin-bottom: 0; }
+/* L'encadré reste plus étroit que les étapes : c'est du texte suivi. */
+.band__body .note { max-width: 44rem; margin-inline: auto; }
+
+/* Desktop : la bande passe en deux colonnes, titre à gauche et contenu à droite.
+   Un grand écran ne se remplit pas en étirant les paragraphes — à 1240 px une
+   ligne fait 160 caractères et l'œil perd le début de la suivante. Il se remplit
+   en mettant deux choses en regard. Le titre tient le rail de gauche, le contenu
+   prend toute la largeur qui reste. */
+@media (min-width: 1000px) {
+  .band__head h2 { font-size: clamp(1.75rem, 2.3vw, 2.35rem); }
+  /* `columns` et non une grille : la lecture descend la première colonne avant
+     de passer à la seconde, ce qu'on attend d'une liste numérotée. Vrai dans la
+     colonne centrée de 992 px comme dans le rail de droite : la règle vaut de
+     part et d'autre du seuil ci-dessous. */
+  .band__body .steps {
+    display: block; columns: 2; column-gap: clamp(2.5rem, 4vw, 4rem);
+  }
+  .band__body .steps li { break-inside: avoid; margin-bottom: 1.15rem; }
+}
+
+/* 1180 px et non 1000 : en dessous, le rail de gauche descend à 210 px et
+   « Comment ça se passe ? » se brise en trois lignes contre un contenu déjà
+   étroit. Au-dessus, le rail tient ses 14 rem et le contenu garde 745 px. */
+@media (min-width: 1180px) {
+  .band {
+    display: grid;
+    grid-template-columns: minmax(14rem, 1fr) minmax(0, 2.8fr);
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+  }
+  /* Le titre ne suit pas le défilement : le header est collant sur 174 px et
+     rétrécit en cours de route, un titre collant viendrait le percuter. */
+  .band__head h2 { margin-bottom: 0; text-align: left; text-wrap: balance; }
+  /* Les plafonds de la version mobile sont posés pour une colonne centrée :
+     dans le rail de droite, c'est la grille qui donne la largeur. */
+  .band__body { max-width: none; margin-inline: 0; }
+
+  /* L'encadré remplit le rail. Son texte, lui, reste lisible : à plusieurs
+     paragraphes il passe sur deux colonnes, un paragraphe par colonne grâce à
+     `break-inside`. À un seul paragraphe, deux colonnes laisseraient la seconde
+     vide — il garde alors une colonne, calée à gauche du rail. */
+  .band__body .note { max-width: none; margin-inline: 0; }
+  .band__body .note:has(> p:nth-of-type(2)) {
+    columns: 2; column-gap: clamp(2rem, 3.5vw, 3.25rem);
+  }
+  .band__body .note:has(> p:nth-of-type(2)) > p { break-inside: avoid; }
+  .band__body .note:not(:has(> p:nth-of-type(2))) > * { max-width: 44rem; }
+}
+
+/* Listes d'étapes (« comment ça se passe ») */
+.steps { counter-reset: step; list-style: none; margin: 0; padding: 0; display: grid; gap: 1.15rem; }
+/* Le numéro est posé hors flux, et le texte décalé par un remplissage — pas une
+   grille à deux colonnes. Une grille place chaque enfant dans sa propre cellule :
+   un `<strong>` au milieu d'une étape partait dans la colonne du numéro, large
+   de 2,15 rem, et s'y coupait mot par mot. Les étapes ne contenaient que du texte
+   brut jusqu'ici, ce qui masquait le défaut. */
+.steps li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 3.1rem;          /* largeur de la pastille + sa gouttière */
+  min-height: 2.15rem;
+}
+.steps li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 0;
+  display: grid; place-items: center;
+  width: 2.15rem; height: 2.15rem; border-radius: 50%;
+  background: var(--grad-sunset); color: #FFF;
+  font-family: var(--wp--preset--font-family--body);
+  font-size: .85rem; font-weight: 700;
+  box-shadow: 0 4px 12px rgba(148,70,84,.22);
+}
+[data-theme="dark"] .steps li::before { color: #2A1418; }
+
+/* Encadré rassurant (tarifs, entente, matériaux…) */
+.note {
+  position: relative;
+  padding: clamp(1.35rem, 3vw, 2rem);
+  background: var(--wp--preset--color--cream);
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.note::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 4px;
+  background: var(--grad-aurora);
+}
+.note > :first-child { margin-top: 0; }
+.note > :last-child { margin-bottom: 0; }
+
+/* ---------------------------------------------------------
+   10. Cartes de navigation (accueil, hub commissions)
+   Une image + un libellé. Toute la carte est cliquable.
+   --------------------------------------------------------- */
+.nav-cards {
+  display: grid; gap: clamp(1.5rem, 3.2vw, 2.75rem);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  list-style: none; margin: 0; padding: 0;
+}
+/* Le plafond est sur la carte, pas sur la colonne : en le mettant sur la
+   colonne, `auto-fit` compte les colonnes d'après ce maximum et les quatre
+   cartes du portfolio ne tenaient plus sur une rangée. Ici les colonnes
+   remplissent la largeur, et seule une carte isolée cesse de grandir. */
+.nav-card { margin: 0; max-width: 380px; width: 100%; justify-self: center; }
+/* Sur tablette il ne reste que deux colonnes : à trois cartes, la dernière
+   restait seule à gauche avec un trou à droite. Elle prend toute la rangée et
+   se centre — sa largeur maximale l'empêche de grossir. */
+@media (max-width: 900px) {
+  .nav-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nav-cards > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .nav-cards { grid-template-columns: 1fr; }
+}
+.nav-card a { display: block; text-decoration: none; color: inherit; }
+.nav-card__frame {
+  display: block; width: 100%; aspect-ratio: 3 / 4;
+  border-radius: var(--radius-card); overflow: hidden;
+  background: var(--grad-sunset);
+  box-shadow: var(--shadow-soft);
+  transition: transform .45s var(--ease-out), box-shadow .45s var(--ease-out);
+}
+.nav-card:nth-child(3n+2) .nav-card__frame { background: var(--grad-meadow); }
+.nav-card:nth-child(3n+3) .nav-card__frame { background: var(--grad-dusk); }
+.nav-card__frame img { width: 100%; height: 100%; object-fit: cover; display: block; margin: 0; transition: transform .6s var(--ease-out); }
+.nav-card a:hover .nav-card__frame { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
+.nav-card a:hover .nav-card__frame img { transform: scale(1.04); }
+.nav-card__label {
+  display: block; padding-top: 1.15rem;
+  font-family: var(--wp--preset--font-family--heading);
+  font-size: 1.3rem; font-weight: 500; line-height: 1.25;
+  transition: color .25s var(--ease-out);
+}
+.nav-card a:hover .nav-card__label { color: var(--wp--preset--color--blush); }
+.nav-card__note { display: block; margin-top: .2rem; font-size: .92rem; color: var(--wp--preset--color--ink-soft); }
+
+/* ---------------------------------------------------------
+   11. Portfolio — défilement horizontal
+   Style de bloc appliqué à une galerie : « Défilement horizontal ».
+   --------------------------------------------------------- */
+.wp-block-gallery.is-style-strip {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  /* `safe` : centré quand la série tient dans la largeur (la page Murales n'a
+     que deux images), aligné à gauche dès qu'elle déborde — sinon le début du
+     bandeau deviendrait inatteignable au défilement. */
+  justify-content: safe center;
+  gap: clamp(.85rem, 2vw, 1.5rem);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--wp--preset--color--line) transparent;
+}
+/* `has-nested-images` et `figure` ne sont pas décoratifs : la feuille de style
+   du bloc galerie pose `flex-grow:1` et une largeur en `calc(50% …)` avec la
+   même spécificité que nous, et elle est chargée après. Sans ce cran de plus,
+   deux images seules s'étiraient à 608 px au lieu de rester à 460. */
+.wp-block-gallery.is-style-strip.has-nested-images figure.wp-block-image {
+  flex: 0 0 min(78vw, 460px);
+  width: auto;
+  scroll-snap-align: center;
+  margin: 0;
+}
+.wp-block-gallery.is-style-strip .wp-block-image img {
+  width: 100%; height: auto;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  transition: transform .5s var(--ease-out), box-shadow .5s var(--ease-out);
+}
+.wp-block-gallery.is-style-strip .wp-block-image:hover img {
+  transform: translateY(-6px); box-shadow: var(--shadow-lift);
+}
+/* Desktop, séries courtes : un carrousel pour deux ou trois images n'apporte
+   rien sur 1240 px — il laisse surtout du vide de chaque côté. La série passe en
+   grille et occupe toute la largeur large. Les portfolios, qui ont beaucoup
+   d'images, gardent leur bandeau défilant : `:has()` compte une quatrième image.
+   Rien à changer côté JS — `sync()` désactive déjà les deux boutons quand la
+   série tient dans la largeur, et `[disabled]` les rend invisibles.
+   1100 px et non 1000 : en dessous, deux colonnes font moins que les 460 px du
+   bandeau défilant — la grille rapetisserait les images au lieu de les agrandir. */
+@media (min-width: 1100px) {
+  .wp-block-gallery.is-style-strip:has(> .wp-block-image:nth-of-type(2)):not(:has(> .wp-block-image:nth-of-type(3))) {
+    display: grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    overflow-x: visible;
+    padding-bottom: 0;
+    align-items: start;
+  }
+  /* `!important` à contrecœur, pour la même raison que le `display` ci-dessus :
+     la feuille du bloc galerie pose `width: calc(50% - gap/2)` et `margin: 0`
+     sous `figure.wp-block-image:not(#individual-image)` — un `:not()` d'identifiant,
+     donc une spécificité qu'aucune combinaison de classes ne rattrape. En flex,
+     la règle du thème s'en sortait par `flex-basis`, qui l'emporte sur `width` ;
+     en grille `flex-basis` est ignoré et le `width` de WordPress reprend la main,
+     résolu contre la colonne : chaque image retombait à 292 px. */
+  .wp-block-gallery.is-style-strip:has(> .wp-block-image:nth-of-type(2)):not(:has(> .wp-block-image:nth-of-type(3)))
+  > .wp-block-image {
+    width: 100% !important;
+  }
+  /* Décalage éditorial : une image sur deux descend, la paire cesse d'être un
+     bloc rectangulaire posé au milieu de la page. */
+  .wp-block-gallery.is-style-strip:has(> .wp-block-image:nth-of-type(2)):not(:has(> .wp-block-image:nth-of-type(3)))
+  > .wp-block-image:nth-child(even) {
+    margin-top: clamp(2rem, 5vw, 4.5rem) !important;
+  }
+}
+
+.wp-block-gallery.is-style-strip::-webkit-scrollbar { height: 6px; }
+.wp-block-gallery.is-style-strip::-webkit-scrollbar-thumb {
+  background: var(--wp--preset--color--line); border-radius: 3px;
+}
+
+/* Carrousel : l'enveloppe et les deux boutons sont posés par le JS. Sans JS on
+   garde le bandeau tel quel, barre de défilement comprise — d'où les règles qui
+   ne s'appliquent qu'à l'intérieur de `.carousel`. */
+.carousel { position: relative; }
+.carousel .wp-block-gallery.is-style-strip {
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.carousel .wp-block-gallery.is-style-strip::-webkit-scrollbar { display: none; }
+
+.carousel__btn {
+  position: absolute; top: 50%; z-index: 3;
+  width: 3rem; height: 3rem; border-radius: 50%; border: 0; padding: 0;
+  display: grid; place-items: center; cursor: pointer;
+  background: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-50%);
+  transition: opacity .25s var(--ease-out), background-color .25s var(--ease-out),
+              color .25s var(--ease-out), scale .25s var(--ease-out);
+}
+.carousel__btn:hover {
+  background: var(--wp--preset--color--blush); color: #FFF; scale: 1.08;
+}
+[data-theme="dark"] .carousel__btn:hover { color: #2A1418; }
+.carousel__btn--prev { left: clamp(-1.5rem, -1vw, -0.5rem); }
+.carousel__btn--next { right: clamp(-1.5rem, -1vw, -0.5rem); }
+.carousel__btn[disabled] { opacity: 0; pointer-events: none; }
+.carousel__btn svg {
+  width: 1.15rem; height: 1.15rem;
+  fill: none; stroke: currentColor; stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+/* Un seul chevron dans le JS, retourné ici pour le bouton suivant. */
+.carousel__btn--next svg { transform: rotate(180deg); }
+/* Sous 700 px, la marge de page ne fait plus que 20 px : les boutons, posés en
+   débord, mordraient sur le bord de l'écran. Le glissement au doigt suffit. */
+@media (max-width: 699px) { .carousel__btn { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .carousel .wp-block-gallery.is-style-strip { scroll-behavior: auto; }
+}
+
+/* ---------------------------------------------------------
+   12. WooCommerce — grille d'œuvres
+   --------------------------------------------------------- */
+.woocommerce ul.products {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1.5rem, 2.6vw, 2.25rem) clamp(1.25rem, 2.2vw, 1.75rem);
+  margin: 0 !important; padding: 0 !important; list-style: none !important;
+}
+.woocommerce ul.products::before,
+.woocommerce ul.products::after { content: none !important; }
+
+.woocommerce ul.products li.product {
+  width: auto !important; margin: 0 !important; float: none !important;
+  text-align: left; display: flex; flex-direction: column; align-items: flex-start;
+}
+.artwork__link { display: block; width: 100%; text-decoration: none; color: inherit; }
+
+/* Vignette : ratio fixe. Sans photo, la tuile colorée fait le visuel. */
+.artwork__frame {
+  position: relative; display: block; width: 100%; aspect-ratio: 4 / 5;
+  border-radius: var(--radius-card); overflow: hidden;
+  background: var(--wp--preset--color--cream);
+  box-shadow: var(--shadow-soft);
+  transition: transform .45s var(--ease-out), box-shadow .45s var(--ease-out);
+}
+.artwork__frame--empty { background: var(--tile, var(--grad-sunset)); }
+.artwork__frame img {
+  display: block; width: 100%; height: 100%; object-fit: cover; margin: 0;
+  transition: transform .6s var(--ease-out);
+}
+.artwork:hover .artwork__frame { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
+.artwork:hover .artwork__frame img { transform: scale(1.04); }
+
+/* Placeholders en attendant les photos — à retirer une fois les visuels en ligne. */
+.artwork:nth-child(6n+1) { --tile: linear-gradient(135deg,#DEB0A9,#E9C7A7); }
+.artwork:nth-child(6n+2) { --tile: linear-gradient(135deg,#B8AF6A,#D6C688); }
+.artwork:nth-child(6n+3) { --tile: linear-gradient(135deg,#C18076,#D6C688); }
+.artwork:nth-child(6n+4) { --tile: linear-gradient(135deg,#E9C7A7,#B8AF6A); }
+.artwork:nth-child(6n+5) { --tile: linear-gradient(135deg,#D6C688,#C18076); }
+.artwork:nth-child(6n+6) { --tile: linear-gradient(135deg,#DEB0A9,#C18076); }
+
+.artwork__badge {
+  position: absolute; top: .75rem; left: .75rem; z-index: 2;
+  padding: .3rem .7rem; border-radius: var(--radius-pill);
+  background: var(--wp--preset--color--ink); color: var(--wp--preset--color--paper);
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.artwork__badge--out { background: var(--wp--preset--color--ink-soft); }
+
+.artwork__body { display: block; padding-top: 1rem; }
+.artwork__title {
+  display: block;
+  font-family: var(--wp--preset--font-family--heading);
+  font-size: 1.15rem; font-weight: 500; line-height: 1.25;
+  color: var(--wp--preset--color--ink); text-wrap: balance;
+}
+.artwork__price {
+  display: block; margin-top: .3rem;
+  color: var(--wp--preset--color--ink-soft);
+  font-family: var(--wp--preset--font-family--body);
+  font-size: .95rem; font-weight: 500;
+}
+.artwork__price ins { text-decoration: none; }
+.artwork__price del { opacity: .55; margin-right: .4rem; font-weight: 400; }
+
+.woocommerce ul.products li.product .button,
+.woocommerce a.button.add_to_cart_button,
+.wp-block-woocommerce-product-template .wc-block-components-product-button__button {
+  align-self: start;
+  /* WooCommerce livre ce bouton en content-box : la hauteur minimale s'ajoutait
+     au texte au lieu de l'englober, et le texte restait collé en haut.
+     Flex + border-box : le libellé est centré, la pastille fait bien 44 px. */
+  display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box;
+  margin-top: .85rem !important;
+  background: transparent; color: var(--wp--preset--color--ink);
+  border: 1.5px solid var(--wp--preset--color--blush);
+  border-radius: var(--radius-pill);
+  padding: .55rem 1.15rem; font-size: .88rem; font-weight: 600;
+  min-height: 44px; line-height: 1.5;
+  transition: transform .25s var(--ease-out), background-color .25s var(--ease-out),
+              border-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.woocommerce ul.products li.product .button:hover,
+.woocommerce a.button.add_to_cart_button:hover,
+.wp-block-woocommerce-product-template .wc-block-components-product-button__button:hover {
+  background: var(--wp--preset--color--blush); color: var(--wp--preset--color--paper);
+  border-color: var(--wp--preset--color--blush); transform: translateY(-2px);
+}
+.woocommerce ul.products li.product .button.added { display: none; }
+
+/* --- En-tête d'archive du gabarit classique -------------------------------
+   Le titre, le compte de résultats et le tri sont posés par WooCommerce, pas
+   par un bloc : ils n'héritent d'aucun style du thème sans ces règles. */
+.woocommerce-products-header { margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
+.woocommerce-products-header__title.page-title {
+  max-width: 24rem; margin-inline: auto; text-align: center;
+}
+.woocommerce .woocommerce-result-count {
+  margin: 0 0 1.4rem; color: var(--wp--preset--color--ink-soft); font-size: .9rem;
+  line-height: 44px;
+}
+.woocommerce .woocommerce-ordering { position: relative; margin: 0 0 1.4rem; }
+/* Le chevron est posé par le formulaire, pas par le select : ainsi il suit
+   currentColor et donc le thème clair ou sombre. */
+.woocommerce .woocommerce-ordering::after {
+  content: ""; position: absolute; right: 1.1rem; top: 50%; z-index: 1;
+  width: 8px; height: 8px; margin-top: -6px; pointer-events: none;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+.woocommerce .woocommerce-ordering select.orderby {
+  appearance: none; -webkit-appearance: none;
+  min-height: 44px; padding: .5rem 2.6rem .5rem 1.1rem;
+  font: inherit; font-size: .9rem; color: var(--wp--preset--color--ink);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+  border: 1.5px solid var(--control-line); border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: border-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.woocommerce .woocommerce-ordering select.orderby:hover { border-color: var(--wp--preset--color--blush); }
+/* Sur téléphone, le flottant à droite laissait le tri à cheval entre le bord et
+   le centre, sous un compte de résultats calé à gauche. */
+@media (max-width: 719px) {
+  .woocommerce .woocommerce-ordering { float: none; }
+  .woocommerce .woocommerce-ordering select.orderby { width: 100%; }
+  .woocommerce .woocommerce-result-count { line-height: 1.5; margin-bottom: .8rem; }
+}
+
+/* Fil d'Ariane : discret, sur une seule ligne. */
+.woocommerce .woocommerce-breadcrumb {
+  margin: 0 0 1.2rem; color: var(--wp--preset--color--ink-soft); font-size: .87rem;
+}
+.woocommerce .woocommerce-breadcrumb a { color: var(--wp--preset--color--ink-soft); }
+.woocommerce .woocommerce-breadcrumb a:hover { color: var(--wp--preset--color--blush); }
+
+/* Pagination du catalogue. */
+.woocommerce nav.woocommerce-pagination { margin-top: clamp(2rem, 4vw, 3rem); text-align: center; }
+.woocommerce nav.woocommerce-pagination ul { display: inline-flex; gap: .4rem; border: 0; }
+.woocommerce nav.woocommerce-pagination ul li { border: 0; }
+.woocommerce nav.woocommerce-pagination ul li a,
+.woocommerce nav.woocommerce-pagination ul li span {
+  display: grid; place-items: center; min-width: 44px; min-height: 44px;
+  border-radius: var(--radius-pill); color: var(--wp--preset--color--ink);
+  font-weight: 600; text-decoration: none;
+}
+.woocommerce nav.woocommerce-pagination ul li span.current {
+  background: var(--wp--preset--color--blush); color: var(--wp--preset--color--paper);
+}
+.woocommerce ul.products li.product .added_to_cart {
+  display: inline-block; margin-top: .5rem; font-size: .85rem; font-weight: 600;
+  color: var(--wp--preset--color--blush);
+}
+
+@media (max-width: 1100px) { .woocommerce ul.products { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+@media (max-width: 820px)  { .woocommerce ul.products { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 480px)  { .woocommerce ul.products { grid-template-columns: 1fr; } }
+
+/* ---------------------------------------------------------
+   13. Formulaires (commissions, collaborations, murales)
+   --------------------------------------------------------- */
+.form { display: grid; gap: 1.4rem; margin-top: clamp(2rem, 4vw, 3rem); }
+
+/* Une seule colonne, à la mesure de la prose (44rem). À deux colonnes, le nombre
+   impair de champs courts laissait une case vide sur deux rangées : bord droit
+   en dents de scie, et des champs deux fois plus larges que d'autres. */
+.form-band .form-wrap { max-width: 44rem; margin-inline: auto; }
+.form-band .form-wrap > h2 { text-align: center; }
+.form__field { display: grid; gap: .4rem; }
+.form__label { font-size: .95rem; font-weight: 600; }
+.form__label .form__optional { font-weight: 400; color: var(--wp--preset--color--ink-soft); }
+.form__hint { font-size: .87rem; color: var(--wp--preset--color--ink-soft); }
+.form input[type="text"],
+.form input[type="email"],
+.form textarea {
+  width: 100%; padding: .85rem 1rem;
+  font-family: inherit; font-size: 1rem; color: var(--wp--preset--color--ink);
+  background: var(--wp--preset--color--cream);
+  border: 1.5px solid var(--control-line);
+  border-radius: 12px;
+  transition: border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+}
+.form input:focus, .form textarea:focus {
+  border-color: var(--wp--preset--color--blush);
+  box-shadow: 0 6px 20px rgba(148,70,84,.12);
+}
+.form textarea { min-height: 9rem; resize: vertical; line-height: 1.6; }
+.form__submit {
+  /* Centré comme le titre du formulaire et le reste de la page. */
+  justify-self: center;
+  padding: 1rem 2rem; border: 0; border-radius: var(--radius-pill);
+  background: var(--wp--preset--color--ink); color: var(--wp--preset--color--paper);
+  font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(67,32,38,.12);
+  transition: transform .25s var(--ease-out), background-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+}
+.form__submit:hover {
+  background: var(--wp--preset--color--blush); color: #FFF;
+  transform: translateY(-3px); box-shadow: var(--shadow-soft);
+}
+[data-theme="dark"] .form__submit:hover { color: #2A1418; }
+/* Piège à robots : invisible, mais pas retiré du DOM. */
+.form__pot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.form__message {
+  padding: 1rem 1.15rem; border-radius: 12px;
+  border: 1.5px solid var(--wp--preset--color--line);
+  background: var(--wp--preset--color--cream);
+  box-shadow: var(--shadow-soft);
+}
+.form__message--ok { border-color: var(--wp--preset--color--sage); }
+.form__message--error { border-color: var(--wp--preset--color--blush); }
+
+/* ---------------------------------------------------------
+   14. Pied de page
+   --------------------------------------------------------- */
+.site-footer { position: relative; overflow: clip; border-top: 1px solid var(--hairline); }
+.site-footer::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; opacity: .16;
+  background: var(--grad-aurora);
+}
+[data-theme="dark"] .site-footer::before { opacity: .12; }
+/* space-between aligne les bords, pas les centres : le courriel se retrouvait
+   décalé du centre de la page selon la largeur des deux autres blocs. */
+.site-footer__inner {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  gap: 1.5rem;
+}
+.site-footer__social { justify-self: start; }
+.site-footer__mail   { justify-self: center; }
+/* La colonne de droite empile les liens légaux et la mention : trois liens de
+   plus ne tiennent pas sur la rangée sans repousser le courriel hors du centre. */
+.site-footer__legal {
+  justify-self: end; margin: 0;
+  display: grid; gap: .35rem; justify-items: end; text-align: right;
+}
+.site-footer__links { display: flex; flex-wrap: wrap; gap: .4rem .9rem; justify-content: flex-end; }
+.site-footer__links a { color: var(--wp--preset--color--ink-soft); text-decoration: none; font-size: .9rem; }
+.site-footer__links a:hover { color: var(--wp--preset--color--blush); text-decoration: underline; }
+.site-footer__copy { margin: 0; }
+/* Les trois zones ne tiennent sur une ligne qu'à partir de 900 px : en dessous,
+   la mention légale se coupait en deux et se tassait contre le bord. */
+@media (max-width: 899px) {
+  .site-footer__inner { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .site-footer__social,
+  .site-footer__mail,
+  .site-footer__legal { justify-self: center; }
+  .site-footer__legal { justify-items: center; text-align: center; }
+  .site-footer__links { justify-content: center; }
+}
+.site-footer__social { display: flex; align-items: center; gap: .35rem; }
+.site-footer__social a {
+  display: inline-grid; place-items: center;
+  width: 42px; height: 42px; border-radius: var(--radius-pill);
+  color: var(--wp--preset--color--ink-soft); text-decoration: none;
+  transition: transform .25s var(--ease-out), color .25s var(--ease-out), background-color .25s var(--ease-out);
+}
+.site-footer__social a:hover {
+  transform: translateY(-3px);
+  color: var(--wp--preset--color--blush);
+  background: var(--wp--preset--color--cream);
+}
+.site-footer__mail {
+  color: var(--wp--preset--color--ink-soft); font-size: .95rem;
+  text-decoration: none; border-bottom: 1px solid var(--wp--preset--color--line);
+  transition: color .25s var(--ease-out), border-color .25s var(--ease-out);
+}
+.site-footer__mail:hover { color: var(--wp--preset--color--blush); border-color: var(--wp--preset--color--blush); }
+.site-footer__legal { font-size: .85rem; color: var(--wp--preset--color--ink-soft); margin: 0; }
+
+/* ---------------------------------------------------------
+   15. Navigation repliée — sous 1280 px
+   Les liens passent derrière le bouton et le panneau devient un menu
+   déroulant. Même bascule que celle du § 3 : c'est elle qui libère la place
+   du logo au milieu de la barre.
+   --------------------------------------------------------- */
+@media (max-width: 1279px) {
+  .menu__trigger {
+    display: inline-flex; align-items: center; gap: .55rem;
+    min-height: 44px; padding: 0 .95rem 0 .8rem;
+    border: 1px solid var(--control-line);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+    color: var(--wp--preset--color--ink);
+    font-family: var(--wp--preset--font-family--body);
+    font-size: .88rem; letter-spacing: .02em;
+    cursor: pointer;
+    transition: border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  }
+  .menu__trigger:hover { border-color: var(--wp--preset--color--blush); box-shadow: var(--shadow-soft); }
+
+  .menu__panel::before { display: none; }
+  .menu__panel {
+    position: absolute; top: calc(100% + .6rem); left: 0; z-index: 120;
+    display: block; min-width: min(84vw, 300px); padding: .9rem;
+    background: var(--surface-blur);
+    backdrop-filter: saturate(1.3) blur(16px);
+    -webkit-backdrop-filter: saturate(1.3) blur(16px);
+    border: 1px solid var(--wp--preset--color--line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-lift);
+  }
+  /* Replié seulement si JavaScript peut le déplier. */
+  .js .menu:not([data-open]) .menu__panel { display: none; }
+  .menu[data-open] .menu__panel { animation: menu-in .28s var(--ease-out) both; }
+  html:not(.js) .menu__panel {
+    position: static; padding: 0; border: 0; background: none;
+    box-shadow: none; backdrop-filter: none;
+  }
+
+  .menu__list { display: block; }
+  .menu__list a {
+    padding: .6rem .75rem; border-radius: 10px;
+    font-family: var(--wp--preset--font-family--heading);
+    font-size: 1.1rem; white-space: normal;
+  }
+  .menu__list a::after { left: .75rem; bottom: .4rem; }
+  .menu__list a:hover::after,
+  .menu__list a[aria-current="page"]::after { right: calc(100% - 2.2rem); }
+  .menu__aside {
+    margin-top: .6rem; padding: .7rem 0 0;
+    border-left: 0; border-top: 1px solid var(--wp--preset--color--line);
+  }
+  .menu__aside a { font-size: .95rem; }
+}
+
+/* ---------------------------------------------------------
+   15 bis. Téléphone
+   Sur 360 px il ne reste que 320 px de contenu : le libellé du bouton (54 px)
+   et la seconde pastille de langue (36 px) sont exactement ce qui empêchait le
+   logo de tenir au milieu. Ils partent, le reste se resserre.
+   --------------------------------------------------------- */
+@media (max-width: 720px) {
+  .site-header__bar { gap: .5rem; min-height: calc(var(--logo-h) + 1rem); }
+
+  /* Bouton réduit à ses trois barres. Le nom du menu reste dans `aria-label`,
+     donc toujours annoncé. */
+  .menu__trigger {
+    justify-content: center;
+    width: 40px; height: 40px; min-height: 0; padding: 0;
+  }
+  .menu__trigger-text { display: none; }
+
+  /* Les quatre commandes passent derrière un bouton à trois points : c'est la
+     seule façon de garder le logo au centre d'une barre d'une seule rangée. Le
+     hamburger tient déjà la gauche — d'où trois points et non trois barres, pour
+     que les deux boutons n'annoncent pas la même chose. */
+  .tools__trigger {
+    display: inline-grid; place-items: center; position: relative;
+    width: 38px; height: 38px; padding: 0;
+    border: 1px solid var(--control-line);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+    color: var(--wp--preset--color--ink);
+    cursor: pointer;
+    transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), color .25s var(--ease-out);
+  }
+  .tools__trigger:hover { border-color: var(--wp--preset--color--lilac); color: var(--wp--preset--color--lilac); }
+
+  /* Le compte d'articles remonte sur le déclencheur : panneau fermé, une cliente
+     qui a rempli son panier doit continuer de le voir. */
+  .tools__badge {
+    position: absolute; top: -5px; right: -5px;
+    min-width: 18px; height: 18px; padding: 0 4px;
+    display: grid; place-items: center;
+    border-radius: var(--radius-pill);
+    background: var(--grad-pill); color: #FFF;
+    font-family: var(--wp--preset--font-family--body);
+    font-size: .65rem; font-weight: 700; line-height: 1;
+  }
+
+  .tools__panel {
+    position: absolute; top: calc(100% + .6rem); right: 0;
+    gap: .35rem; padding: .4rem;
+    border: 1px solid var(--control-line);
+    border-radius: 18px;
+    background: var(--surface-blur);
+    backdrop-filter: saturate(1.3) blur(14px);
+    -webkit-backdrop-filter: saturate(1.3) blur(14px);
+    box-shadow: var(--shadow-soft);
+    opacity: 0; visibility: hidden; transform: translateY(-6px);
+    transition: opacity .2s var(--ease-out), transform .2s var(--ease-out), visibility .2s;
+    z-index: 40;
+  }
+  .site-header__tools[data-open] .tools__panel {
+    opacity: 1; visibility: visible; transform: none;
+  }
+
+  .lang-switch__trigger,
+  .account-link,
+  .theme-toggle,
+  .cart-link { width: 38px; height: 38px; }
+
+  /* La langue s'affiche à plat dans le panneau : un menu dans un menu se
+     déroulerait hors de l'écran, et ne se refermerait pas au bon moment. */
+  .tools__panel .lang-switch__trigger { display: none; }
+  .tools__panel .lang-switch__panel {
+    position: static; transform: none;
+    opacity: 1; visibility: visible;
+    display: flex; gap: 2px; padding: 0; min-width: 0;
+    border: 0; background: none; box-shadow: none;
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  .tools__panel .lang-switch__item {
+    min-width: 38px; min-height: 38px; display: grid; place-items: center; padding: 0 .35rem;
+    border: 1px solid var(--control-line);
+    background: color-mix(in srgb, var(--wp--preset--color--cream) 70%, transparent);
+  }
+  .tools__panel .lang-switch__item.is-active { border-color: transparent; }
+
+  .hero { min-height: 80vh !important; }
+  .steps li { grid-template-columns: 1.9rem 1fr; gap: .75rem; }
+  .steps li::before { width: 1.9rem; height: 1.9rem; }
+  .artwork__title { font-size: 1.05rem; }
+}
+
+/* ---------------------------------------------------------
+   15 ter. Très petits écrans
+   Sous 360 px il reste 280 px de contenu : les 40 px du bouton et les 118 px
+   des outils n'en laissent plus que 32 au logo — il chevauchait le panier.
+   Il reprend alors sa propre rangée, centré.
+   --------------------------------------------------------- */
+/* Dernier recours, sous 360 px : même avec les commandes repliées derrière leur
+   bouton, il ne reste plus de quoi centrer le logo entre deux boutons. */
+@media (max-width: 359px) {
+  .site-header { --logo-h: 52px; }
+  .site-header.is-scrolled { --logo-h: 40px; }
+  .site-header__bar { flex-wrap: wrap; row-gap: .35rem; min-height: 0; }
+  /* Retour dans le flux, sur une rangée à lui : `text-align: center` le centre
+     dedans, et la rangée fait toute la largeur de la barre. */
+  .site-header__brand {
+    position: static; transform: none;
+    order: 1; flex: 1 0 100%;
+  }
+}
+
+
+/* --- Champs de formulaire de WooCommerce -------------------------------------
+   WooCommerce livre ses contrôles habillés pour un fond clair : entrée blanche,
+   texte presque noir, liste déroulante au fond transparent. Sur le thème sombre,
+   la liste déroulante affichait du texte sombre sur du sombre — illisible. C'est
+   la page où l'on sort sa carte : elle ne peut pas être la seule à ne pas être
+   traitée.
+
+   On leur donne l'habillage des trois formulaires du thème, avec les mêmes
+   variables : elles basculent d'elles-mêmes entre clair et sombre, donc rien
+   n'est écrit deux fois.
+
+   La spécificité est délibérée. WooCommerce vise ses entrées avec
+   `.wc-block-components-form .wc-block-components-text-input input[type="email"]`
+   — trois classes et un attribut. Une règle plus courte perd en silence, et le
+   champ reste blanc. On ajoute l'enveloppe du bloc pour passer devant, plutôt
+   qu'un `!important` : celui-ci gagnerait aussi, mais empêcherait de reprendre
+   la main depuis l'éditeur de site.
+
+   Attention aussi au nom des classes : les entrées sont en `wc-block-…`, les
+   listes déroulantes en `wc-blocks-…`, avec un s. */
+
+/* Entrées de texte */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-form .wc-block-components-text-input input[type],
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-text-input input[type] {
+  background: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+  border: 1.5px solid var(--control-line);
+  border-radius: 12px;
+  transition: border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+}
+
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-text-input input[type]:focus {
+  border-color: var(--wp--preset--color--blush);
+  box-shadow: 0 6px 20px rgba(148,70,84,.12);
+  outline: none;
+}
+
+/* L'étiquette flottante vit à l'intérieur du champ : couleur de texte
+   secondaire, pas celle du fond de page. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-text-input label {
+  color: var(--wp--preset--color--ink-soft);
+}
+
+/* Listes déroulantes — pays, province. Le défaut le plus grave. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-blocks-components-select .wc-blocks-components-select__select {
+  background-color: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+  border: 1.5px solid var(--control-line);
+  border-radius: 12px;
+}
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-blocks-components-select .wc-blocks-components-select__label {
+  color: var(--wp--preset--color--ink-soft);
+}
+/* Les options sont dessinées par le système : sans couleur explicite, certains
+   navigateurs les rendent blanc sur blanc. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) select option {
+  background: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+}
+
+/* Cases à cocher et boutons radio : `accent-color` suffit, le navigateur
+   compose le reste — et il tient compte du thème tout seul. */
+.wp-block-woocommerce-cart,
+.wp-block-woocommerce-checkout {
+  accent-color: var(--wp--preset--color--blush);
+}
+
+/* Choix de livraison et de paiement : des cartes, comme le reste du site. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  :is(.wc-block-components-radio-control-accordion-option,
+      .wc-block-components-radio-control__option) {
+  background: var(--wp--preset--color--cream);
+  border: 1.5px solid var(--control-line);
+  border-radius: 12px;
+}
+
+/* Messages d'erreur : lisibles sur les deux fonds, sans le rouge cru par défaut. */
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  :is(.wc-block-components-validation-error, .wc-block-components-validation-error p) {
+  color: var(--wp--preset--color--blush);
+}
+
+:is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
+  .wc-block-components-notice-banner {
+  border-radius: 12px;
+}
+
+/* La page « Mon compte » n'utilise pas les blocs mais les anciens gabarits de
+   WooCommerce : d'autres classes, même problème — champs blancs sur fond
+   sombre. Le sélecteur porte `.woocommerce` en plus pour passer devant les
+   règles de l'extension. */
+.woocommerce-account .woocommerce input.input-text,
+.woocommerce-account .woocommerce input[type="text"],
+.woocommerce-account .woocommerce input[type="email"],
+.woocommerce-account .woocommerce input[type="password"],
+.woocommerce-account .woocommerce input[type="tel"],
+.woocommerce-account .woocommerce select,
+.woocommerce-account .woocommerce textarea {
+  width: 100%;
+  padding: .7rem .9rem;
+  font-family: inherit; font-size: 1rem;
+  background: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+  border: 1.5px solid var(--control-line);
+  border-radius: 12px;
+  transition: border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+}
+.woocommerce-account .woocommerce input:focus,
+.woocommerce-account .woocommerce select:focus,
+.woocommerce-account .woocommerce textarea:focus {
+  border-color: var(--wp--preset--color--blush);
+  box-shadow: 0 6px 20px rgba(148,70,84,.12);
+  outline: none;
+}
+.woocommerce-account .woocommerce label { color: var(--wp--preset--color--ink-soft); }
+.woocommerce-account .woocommerce .required { color: var(--wp--preset--color--blush); }
+/* Les deux colonnes Connexion / Inscription : des cartes, comme le reste. */
+.woocommerce-account .woocommerce form.login,
+.woocommerce-account .woocommerce form.register {
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 60%, transparent);
+  padding: clamp(1.2rem, 3vw, 1.8rem);
+}
+/* La navigation par onglets une fois connectée. */
+.woocommerce-account .woocommerce-MyAccount-navigation a {
+  color: var(--wp--preset--color--ink-soft); text-decoration: none;
+}
+.woocommerce-account .woocommerce-MyAccount-navigation a:hover,
+.woocommerce-account .woocommerce-MyAccount-navigation .is-active a {
+  color: var(--wp--preset--color--blush);
+}
+/* Deux colonnes qui respirent, et une mesure : le formulaire ne s'étire pas sur
+   1240 px. Même largeur de lecture que les pages de conditions. */
+.woocommerce-account .woocommerce .u-columns.col2-set {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  max-width: 58rem; margin-inline: auto;
+}
+/* Placement explicite : WooCommerce pose un `order` sur ses colonnes pour sa
+   propre mise en page flottante, et il inversait les deux cartes dans la grille.
+   On nomme la colonne de chacune plutôt que de deviner l'ordre. */
+.woocommerce-account .woocommerce .u-columns .col-1,
+.woocommerce-account .woocommerce .u-columns .col-2 {
+  width: auto; float: none; order: 0;
+}
+.woocommerce-account .woocommerce .u-columns .col-1 { grid-column: 1; }
+.woocommerce-account .woocommerce .u-columns .col-2 { grid-column: 2; }
+@media (max-width: 780px) {
+  .woocommerce-account .woocommerce .u-columns .col-1,
+  .woocommerce-account .woocommerce .u-columns .col-2 { grid-column: 1; }
+}
+@media (max-width: 780px) {
+  .woocommerce-account .woocommerce .u-columns.col2-set { grid-template-columns: 1fr; }
+}
+
+/* Les deux titres reprennent la police d'affichage et la taille des chapeaux de
+   section, pas celle d'un h2 de contenu. */
+.woocommerce-account .woocommerce .u-columns h2 {
+  font-family: var(--wp--preset--font-family--heading);
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  margin: 0 0 1rem;
+  text-align: left;
+}
+
+.woocommerce-account .woocommerce form.login,
+.woocommerce-account .woocommerce form.register {
+  display: grid; gap: .9rem;
+  margin: 0;
+  border: 1px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 60%, transparent);
+  box-shadow: var(--shadow-soft);
+  padding: clamp(1.4rem, 3vw, 2rem);
+}
+.woocommerce-account .woocommerce form p { margin: 0; }
+
+/* Les boutons prennent la pilule du thème, comme partout ailleurs. */
+.woocommerce-account .woocommerce button.button,
+.woocommerce-account .woocommerce a.button,
+.woocommerce-account .woocommerce input.button {
+  justify-self: start;
+  padding: .85rem 1.9rem;
+  border: 0; border-radius: var(--radius-pill);
+  background: var(--wp--preset--color--ink);
+  color: var(--wp--preset--color--paper);
+  font-family: var(--wp--preset--font-family--body);
+  font-size: 1rem; font-weight: 600; line-height: 1.2;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(67,32,38,.12);
+  transition: transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
+}
+.woocommerce-account .woocommerce button.button:hover,
+.woocommerce-account .woocommerce a.button:hover,
+.woocommerce-account .woocommerce input.button:hover {
+  transform: translateY(-2px); box-shadow: var(--shadow-soft);
+}
+
+/* « Se souvenir de moi » sur une ligne, et le lien de mot de passe oublié
+   détaché du bouton. */
+.woocommerce-account .woocommerce .woocommerce-form-login__rememberme {
+  display: inline-flex; align-items: center; gap: .5rem;
+  color: var(--wp--preset--color--ink-soft); font-size: .92rem;
+}
+.woocommerce-account .woocommerce .lost_password { margin-top: .2rem; font-size: .92rem; }
+.woocommerce-account .woocommerce .lost_password a { color: var(--wp--preset--color--ink-soft); }
+.woocommerce-account .woocommerce .lost_password a:hover { color: var(--wp--preset--color--blush); }
+.woocommerce-account .woocommerce .woocommerce-privacy-policy-text p {
+  font-size: .92rem; color: var(--wp--preset--color--ink-soft);
+}
+
+/* Une fois connectée : la colonne d'onglets devient une vraie navigation. */
+.woocommerce-account .woocommerce-MyAccount-navigation ul {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: .15rem;
+}
+.woocommerce-account .woocommerce-MyAccount-navigation li a {
+  display: block; padding: .6rem .9rem;
+  border-radius: 10px;
+  transition: background-color .2s var(--ease-out), color .2s var(--ease-out);
+}
+.woocommerce-account .woocommerce-MyAccount-navigation li.is-active a {
+  background: color-mix(in srgb, var(--wp--preset--color--cream) 60%, transparent);
+}
+.woocommerce-account .woocommerce-MyAccount-content { max-width: 46rem; }
+
+
+/* ---------------------------------------------------------
+   16. Motion réduite — dernier mot
+   --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero::before,
+  .atelier::before,
+  .color-band .marquee,
+  .menu__panel,
+  /* Le reflet ne descend plus : il resterait figé en haut du trait, ce qui ne
+     voudrait rien dire. On ne garde que le cheveu. */
+  .scroll-cue::after { animation: none !important; opacity: 0; }
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

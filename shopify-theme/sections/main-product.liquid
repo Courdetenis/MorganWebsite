@@ -1,0 +1,84 @@
+{%- comment -%} Fiche d'une œuvre. La galerie reprend le bandeau `is-style-strip` : app.js lui greffe ses deux flèches sans rien savoir de Shopify. {%- endcomment -%}
+<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+  <div class="mg-inner">
+    <div class="mg-product">
+
+      <div class="mg-product__media">
+        {%- if product.media.size > 1 -%}
+          <div class="wp-block-gallery is-style-strip has-nested-images alignwide">
+            {%- for media in product.media -%}
+              {%- assign alt = media.alt | default: product.title -%}
+              {%- if forloop.first -%}{%- assign loading = 'eager' -%}{%- else -%}{%- assign loading = 'lazy' -%}{%- endif -%}
+              <figure class="wp-block-image">
+                {{ media | image_url: width: 1200 | image_tag: loading: loading, alt: alt }}
+              </figure>
+            {%- endfor -%}
+          </div>
+        {%- elsif product.featured_image -%}
+          {%- assign alt = product.featured_image.alt | default: product.title -%}
+          <figure class="wp-block-image">
+            {{ product.featured_image | image_url: width: 1400 | image_tag: loading: 'eager', sizes: '(max-width: 900px) 100vw, 620px', alt: alt }}
+          </figure>
+        {%- else -%}
+          <span class="artwork__frame artwork__frame--empty" style="display:block;aspect-ratio:4/5"></span>
+        {%- endif -%}
+      </div>
+
+      <div class="mg-product__info">
+        <p class="eyebrow">{{ product.type | default: collection.title | default: shop.name }}</p>
+        <h1 class="wp-block-heading">{{ product.title }}</h1>
+
+        <p class="mg-product__price">
+          {{ product.price | money }}
+          {%- if product.compare_at_price > product.price -%}
+            <s class="mg-muted">{{ product.compare_at_price | money }}</s>
+          {%- endif -%}
+        </p>
+
+        {%- if product.available -%}
+          {%- form 'product', product -%}
+            {%- unless product.has_only_default_variant -%}
+              {%- for option in product.options_with_values -%}
+                <div class="mg-field">
+                  <label for="opt-{{ forloop.index }}">{{ option.name }}</label>
+                  <select id="opt-{{ forloop.index }}" name="options[{{ option.name | escape }}]">
+                    {%- for value in option.values -%}
+                      <option value="{{ value | escape }}"{% if option.selected_value == value %} selected{% endif %}>{{ value }}</option>
+                    {%- endfor -%}
+                  </select>
+                </div>
+              {%- endfor -%}
+            {%- endunless -%}
+
+            <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+
+            <div class="mg-field">
+              <label for="qty">{{ 'product.quantity' | t }}</label>
+              <input type="number" id="qty" name="quantity" value="1" min="1">
+            </div>
+
+            <div class="wp-block-buttons">
+              <div class="wp-block-button">
+                <button type="submit" class="wp-block-button__link wp-element-button">{{ 'product.add_to_cart' | t }}</button>
+              </div>
+            </div>
+          {%- endform -%}
+        {%- else -%}
+          <p class="mg-notice">{{ 'product.sold_out' | t }}</p>
+        {%- endif -%}
+
+        {%- if product.description != blank -%}
+          <div class="prose" style="margin-top:var(--wp--preset--spacing--40)">
+            {{ product.description }}
+          </div>
+        {%- endif -%}
+
+        <p class="note" style="margin-top:var(--wp--preset--spacing--30)">{{ 'product.shipping_note' | t }}</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% schema %}
+{ "name": "Fiche d'œuvre", "settings": [] }
+{% endschema %}

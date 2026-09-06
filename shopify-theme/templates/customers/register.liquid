@@ -1,0 +1,11 @@
+<section class="wp-block-group" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)"><div class="mg-inner mg-inner--narrow">
+  <h1 class="wp-block-heading page-title">{{ 'customer.register' | t }}</h1>
+  {%- form 'create_customer' -%}
+    {{ form.errors | default_errors }}
+    <div class="mg-field"><label for="cr-first">{{ 'customer.first_name' | t }}</label><input type="text" id="cr-first" name="customer[first_name]" autocomplete="given-name"></div>
+    <div class="mg-field"><label for="cr-last">{{ 'customer.last_name' | t }}</label><input type="text" id="cr-last" name="customer[last_name]" autocomplete="family-name"></div>
+    <div class="mg-field"><label for="cr-email">{{ 'customer.email' | t }}</label><input type="email" id="cr-email" name="customer[email]" autocomplete="email"></div>
+    <div class="mg-field"><label for="cr-pass">{{ 'customer.password' | t }}</label><input type="password" id="cr-pass" name="customer[password]" autocomplete="new-password"></div>
+    <div class="wp-block-buttons"><div class="wp-block-button"><button type="submit" class="wp-block-button__link wp-element-button">{{ 'customer.register' | t }}</button></div></div>
+  {%- endform -%}
+</div></section>

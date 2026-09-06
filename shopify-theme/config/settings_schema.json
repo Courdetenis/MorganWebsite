@@ -1,0 +1,30 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Morgane",
+    "theme_author": "Morgane Cachia – Art",
+    "theme_version": "0.6.0",
+    "theme_documentation_url": "https://morganecachia.art",
+    "theme_support_email": "morganecachia.art@gmail.com"
+  },
+  {
+    "name": "Direction artistique",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "La palette, les polices et les espacements viennent de theme.json (thème WordPress), traduits dans assets/base.css. Les modifier là plutôt qu'ici garde les deux thèmes alignés."
+      },
+      {
+        "type": "select",
+        "id": "default_theme",
+        "label": "Thème par défaut",
+        "options": [
+          { "value": "auto", "label": "Selon le réglage du visiteur" },
+          { "value": "light", "label": "Clair" },
+          { "value": "dark", "label": "Sombre" }
+        ],
+        "default": "auto"
+      }
+    ]
+  }
+]

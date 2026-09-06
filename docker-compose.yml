@@ -62,6 +62,8 @@ services:
       # Photos d'origine, lues une seule fois par media.php qui les convertit
       # en WebP dans la médiathèque. En lecture seule : rien n'y est réécrit.
       - ./pictures:/pictures:ro
+      # Sortie de l'export vers Shopify (scripts/export-shopify.php).
+      - ./dist:/dist
     entrypoint: ["/bin/sh", "/scripts/setup.sh"]
 
 volumes:

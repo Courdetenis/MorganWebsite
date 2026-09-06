@@ -1,0 +1,15 @@
+<section class="wp-block-group" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+  <div class="mg-inner mg-inner--narrow">
+    <p class="eyebrow">{{ article.published_at | date: '%-d %B %Y' }}</p>
+    <h1 class="wp-block-heading page-title">{{ article.title }}</h1>
+    {%- if article.image -%}
+      <figure class="wp-block-image" style="margin-bottom:var(--wp--preset--spacing--40)">
+        {{ article.image | image_url: width: 1400 | image_tag: alt: article.title }}
+      </figure>
+    {%- endif -%}
+    <div class="prose">{{ article.content }}</div>
+  </div>
+</section>
+{% schema %}
+{ "name": "Article", "settings": [] }
+{% endschema %}

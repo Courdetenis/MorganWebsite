@@ -1,0 +1,64 @@
+{%- comment -%}
+  Formulaire de contact. Reprend le balisage de theme/inc/forms.php — mêmes
+  classes, donc même habillage — mais le traitement est celui de Shopify : la
+  balise « form contact », qui envoie à l'adresse de la boutique. Elle n'est
+  pas écrite ici en toutes lettres : une balise Liquid citée dans un
+  commentaire est analysée quand même, et réclamerait sa fermeture.
+
+  Le contenu de la page s'affiche au-dessus : c'est là que vivent le bandeau
+  et le texte d'introduction, importés de WordPress.
+{%- endcomment -%}
+
+<section class="mg-page">
+  <div class="page-content">
+    {{ page.content }}
+  </div>
+
+  <div class="form-band" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+    <div class="form-wrap" id="formulaire">
+      {%- if section.settings.title != blank -%}
+        <h2 class="wp-block-heading">{{ section.settings.title }}</h2>
+      {%- endif -%}
+
+      {%- form 'contact', id: 'contact-form' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="form__message form__message--ok" role="status">{{ section.settings.success }}</p>
+        {%- elsif form.errors -%}
+          <p class="form__message form__message--error" role="alert">{{ form.errors | default_errors }}</p>
+        {%- endif -%}
+
+        <div class="form">
+          <p class="form__field">
+            <label class="form__label" for="contact-name">{{ section.settings.label_name }}</label>
+            <input type="text" id="contact-name" name="contact[name]" value="{{ form.name }}" autocomplete="name" required>
+          </p>
+          <p class="form__field">
+            <label class="form__label" for="contact-email">{{ section.settings.label_email }}</label>
+            <input type="email" id="contact-email" name="contact[email]" value="{{ form.email }}" autocomplete="email" required>
+          </p>
+          <p class="form__field form__field--wide">
+            <label class="form__label" for="contact-body">{{ section.settings.label_message }}</label>
+            <textarea id="contact-body" name="contact[body]" aria-describedby="contact-hint">{{ form.body }}</textarea>
+            <span class="form__hint" id="contact-hint">{{ section.settings.hint }}</span>
+          </p>
+          <button class="form__submit" type="submit">{{ section.settings.submit }}</button>
+        </div>
+      {%- endform -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Page avec formulaire",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Titre du formulaire", "default": "Écrire à Morgane" },
+    { "type": "text", "id": "label_name", "label": "Champ — nom", "default": "Votre nom" },
+    { "type": "text", "id": "label_email", "label": "Champ — courriel", "default": "Votre courriel" },
+    { "type": "text", "id": "label_message", "label": "Champ — message", "default": "Votre message" },
+    { "type": "text", "id": "hint", "label": "Aide sous le message", "default": "Dites-moi le format, le sujet et le délai souhaité." },
+    { "type": "text", "id": "submit", "label": "Bouton", "default": "Envoyer" },
+    { "type": "textarea", "id": "success", "label": "Message de confirmation", "default": "Merci, votre message est parti. Morgane vous répond sous quelques jours." }
+  ]
+}
+{% endschema %}

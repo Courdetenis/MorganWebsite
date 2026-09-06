@@ -1,0 +1,87 @@
+{
+  "general": {
+    "skip": "Aller au contenu",
+    "menu": "Menu",
+    "main_menu": "Menu principal",
+    "language": "Choix de la langue",
+    "theme_toggle": "Thème clair / sombre",
+    "account": "Mon compte",
+    "sign_in": "Se connecter",
+    "cart": "Panier",
+    "cart_count": "Panier, {{ count }} article(s)",
+    "tools": "Langue, thème, compte et panier",
+    "social": "Réseaux sociaux",
+    "legal": "Informations légales",
+    "prev": "Œuvres précédentes",
+    "next": "Œuvres suivantes",
+    "close": "Fermer",
+    "home": "Accueil"
+  },
+  "product": {
+    "add_to_cart": "Ajouter au panier",
+    "sold_out": "Vendu",
+    "sale": "Promo",
+    "unavailable": "Indisponible",
+    "view_all": "Voir toute la boutique",
+    "quantity": "Quantité",
+    "description": "À propos de l'œuvre",
+    "shipping_note": "Emballée avec soin, en livraison suivie et assurée.",
+    "empty": "Aucune œuvre en ligne pour l'instant."
+  },
+  "collection": {
+    "empty": "Aucune œuvre dans cette collection.",
+    "all": "Toutes les œuvres",
+    "count": "{{ count }} œuvre(s)"
+  },
+  "cart": {
+    "title": "Votre panier",
+    "empty": "Votre panier est vide.",
+    "continue": "Découvrir les œuvres",
+    "product": "Œuvre",
+    "price": "Prix",
+    "quantity": "Quantité",
+    "total": "Total",
+    "subtotal": "Sous-total",
+    "shipping_note": "Frais de port et taxes calculés au paiement.",
+    "checkout": "Passer au paiement",
+    "remove": "Retirer",
+    "update": "Mettre à jour"
+  },
+  "search": {
+    "title": "Recherche",
+    "placeholder": "Chercher une œuvre",
+    "submit": "Chercher",
+    "results": "{{ count }} résultat(s) pour « {{ terms }} »",
+    "no_results": "Rien trouvé pour « {{ terms }} »."
+  },
+  "blog": {
+    "read_more": "Lire la suite",
+    "empty": "Aucun article pour l'instant."
+  },
+  "not_found": {
+    "eyebrow": "Erreur 404",
+    "title": "Cette page s'est égarée",
+    "text": "L'adresse ne mène nulle part — elle a peut-être changé, ou comporte une coquille. Voici deux chemins qui, eux, mènent quelque part.",
+    "home": "Retour à l'accueil",
+    "shop": "Voir la boutique"
+  },
+  "customer": {
+    "login": "Se connecter",
+    "register": "Créer un compte",
+    "logout": "Se déconnecter",
+    "email": "Courriel",
+    "password": "Mot de passe",
+    "account": "Mon compte",
+    "orders": "Commandes",
+    "no_orders": "Aucune commande pour l'instant.",
+    "addresses": "Adresses",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "forgot": "Mot de passe oublié ?",
+    "reset": "Réinitialiser",
+    "order": "Commande",
+    "date": "Date",
+    "status": "Statut",
+    "total": "Total"
+  }
+}

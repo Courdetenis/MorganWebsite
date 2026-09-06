@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#FCF6E6">
+  <link rel="canonical" href="{{ canonical_url }}">
+  <link rel="icon" type="image/png" href="{{ 'favicon.png' | asset_url }}">
+
+  <title>{{ page_title }}{% if current_tags %} &ndash; {{ current_tags | join: ', ' }}{% endif %}{% unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless %}</title>
+  {% if page_description %}<meta name="description" content="{{ page_description | escape }}">{% endif %}
+
+  {%- comment -%}
+    Thème appliqué avant le premier rendu, sinon la page clignote en clair
+    puis bascule en sombre. Repris tel quel de morgane_theme_boot_script().
+  {%- endcomment -%}
+  <script>
+    (function(){
+      try {
+        var s = localStorage.getItem('morgane-theme');
+        var d = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', s || (d ? 'dark' : 'light'));
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+
+  {%- comment -%}
+    Polices auto-hébergées, sous-ensembles latin et latin-ext. Déclarées ici
+    et non dans un fichier : le dossier `assets` de Shopify est à plat, les
+    chemins relatifs de fonts.css n'y résolvent pas.
+  {%- endcomment -%}
+  <style>
+    @font-face { font-family:'Caveat'; font-style:normal; font-weight:500; font-display:swap;
+      src:url({{ 'caveat-latin.woff2' | asset_url }}) format('woff2');
+      unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+    @font-face { font-family:'Caveat'; font-style:normal; font-weight:500; font-display:swap;
+      src:url({{ 'caveat-latin-ext.woff2' | asset_url }}) format('woff2');
+      unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+    @font-face { font-family:'Caveat'; font-style:normal; font-weight:600; font-display:swap;
+      src:url({{ 'caveat-latin.woff2' | asset_url }}) format('woff2');
+      unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+    @font-face { font-family:'DM Sans'; font-style:normal; font-weight:400 700; font-display:swap;
+      src:url({{ 'dm-sans-latin.woff2' | asset_url }}) format('woff2');
+      unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+    @font-face { font-family:'DM Sans'; font-style:normal; font-weight:400 700; font-display:swap;
+      src:url({{ 'dm-sans-latin-ext.woff2' | asset_url }}) format('woff2');
+      unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+    @font-face { font-family:'Fraunces'; font-style:normal; font-weight:300 600; font-display:swap;
+      src:url({{ 'fraunces-latin.woff2' | asset_url }}) format('woff2');
+      unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+    @font-face { font-family:'Fraunces'; font-style:normal; font-weight:300 600; font-display:swap;
+      src:url({{ 'fraunces-latin-ext.woff2' | asset_url }}) format('woff2');
+      unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+  </style>
+
+  <link rel="stylesheet" href="{{ 'base.css' | asset_url }}">
+  <link rel="stylesheet" href="{{ 'app.css' | asset_url }}">
+
+  {%- comment -%} Le masque du logo : chemin à plat, celui d'app.css ne résout pas ici. {%- endcomment -%}
+  <style>
+    .site-header__brand a {
+      -webkit-mask: url({{ 'logo.webp' | asset_url }}) center / contain no-repeat;
+              mask: url({{ 'logo.webp' | asset_url }}) center / contain no-repeat;
+    }
+  </style>
+
+  {{ content_for_header }}
+</head>
+
+<body class="template-{{ template.name | handle }}">
+
+  <a class="skip-link" href="#contenu">{{ 'general.skip' | t }}</a>
+
+  {%- comment -%}
+    `wp-site-blocks` n'est pas un vestige : c'est le conteneur flex qui tient
+    le pied de page en bas des pages courtes (app.css § 1). On garde le nom
+    pour ne pas toucher au CSS.
+  {%- endcomment -%}
+  <div class="wp-site-blocks">
+
+    {% section 'header' %}
+
+    <main id="contenu">
+      {{ content_for_layout }}
+    </main>
+
+    {% section 'footer' %}
+
+  </div>
+
+  <script src="{{ 'gsap.min.js' | asset_url }}" defer></script>
+  <script src="{{ 'ScrollTrigger.min.js' | asset_url }}" defer></script>
+  <script src="{{ 'app.js' | asset_url }}" defer></script>
+</body>
+</html>

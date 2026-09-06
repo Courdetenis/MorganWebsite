@@ -1,0 +1,66 @@
+{%- comment -%}
+  Sélection d'œuvres. Équivalent du bloc morgane/artworks : une grille de
+  cartes, filtrée par collection plutôt que par catégorie WooCommerce.
+
+  Les classes `woocommerce` et `ul.products` ne sont pas un oubli : c'est sur
+  elles que reposent la grille, le survol et l'animation d'entrée d'app.js.
+  Les renommer aurait voulu dire retoucher app.css et app.js, et donc ne plus
+  comparer les deux thèmes à balisage égal.
+{%- endcomment -%}
+
+{%- assign collection = collections[section.settings.collection] -%}
+{%- if collection == blank or collection.products.size == 0 -%}
+  {%- assign collection = collections.all -%}
+{%- endif -%}
+
+<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+  <div class="mg-inner">
+    {%- if section.settings.eyebrow != blank or section.settings.title != blank -%}
+      <div class="wp-block-group section-head">
+        {%- if section.settings.eyebrow != blank -%}<p class="eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+        {%- if section.settings.title != blank -%}<h2 class="wp-block-heading">{{ section.settings.title }}</h2>{%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="woocommerce artworks-grid">
+      <ul class="products">
+        {%- if collection.products.size > 0 -%}
+          {%- for product in collection.products limit: section.settings.limit -%}
+            {%- render 'artwork-card', product: product -%}
+          {%- endfor -%}
+        {%- else -%}
+          {%- comment -%}
+            Boutique encore vide : huit tuiles de démonstration, pour que la
+            grille se voie avant le premier produit. Elles disparaissent d'elles-
+            mêmes dès qu'un produit existe.
+          {%- endcomment -%}
+          {%- assign demo_files = 'art-06.webp,art-07.webp,art-08.webp,art-09.webp,art-10.webp,art-11.webp,art-12.webp,art-16.webp' | split: ',' -%}
+          {%- for f in demo_files limit: section.settings.limit -%}
+            {%- render 'artwork-card', demo_image: f, demo_title: 'Œuvre de démonstration', demo_price: '—' -%}
+          {%- endfor -%}
+        {%- endif -%}
+      </ul>
+    </div>
+
+    {%- if section.settings.button_label != blank -%}
+      <div class="wp-block-buttons is-content-justification-center">
+        <div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ section.settings.button_url | default: routes.all_products_collection_url }}">{{ section.settings.button_label }}</a></div>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Sélection d'œuvres",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Accroche", "default": "À l'affiche" },
+    { "type": "text", "id": "title", "label": "Titre", "default": "Œuvres disponibles" },
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "range", "id": "limit", "label": "Nombre d'œuvres", "min": 2, "max": 16, "step": 1, "default": 8 },
+    { "type": "text", "id": "button_label", "label": "Bouton — libellé", "default": "Voir toute la boutique" },
+    { "type": "url", "id": "button_url", "label": "Bouton — lien" }
+  ],
+  "presets": [{ "name": "Sélection d'œuvres" }]
+}
+{% endschema %}

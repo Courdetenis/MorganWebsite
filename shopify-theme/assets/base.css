@@ -1,0 +1,288 @@
+/* =========================================================
+   Morgane Cachia – Art — socle
+   Traduction en CSS simple de theme.json (le design system du
+   thème WordPress). app.css n'a pas été touché : il attend ces
+   variables et ces classes, on les lui fournit ici.
+   ========================================================= */
+
+:root {
+  /* ---- Palette (theme.json > settings.color.palette) ---- */
+  --wp--preset--color--paper:    #FCF6E6;
+  --wp--preset--color--cream:    #FFFDF7;
+  --wp--preset--color--ink:      #432026;
+  --wp--preset--color--ink-soft: #7C4B45;
+  --wp--preset--color--blush:    #944654;
+  --wp--preset--color--rose:     #DEB0A9;
+  --wp--preset--color--sage:     #B8AF6A;
+  --wp--preset--color--lilac:    #C18076;
+  --wp--preset--color--line:     #EEDBD9;
+  --wp--preset--color--sand:     #F4DEA5;
+
+  /* ---- Familles ---- */
+  --wp--preset--font-family--heading: Fraunces, Georgia, 'Times New Roman', serif;
+  --wp--preset--font-family--body:    'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --wp--preset--font-family--accent:  Caveat, 'Segoe Script', cursive;
+
+  /* ---- Tailles fluides ---- */
+  --wp--preset--font-size--small:   0.9rem;
+  --wp--preset--font-size--medium:  clamp(1.05rem, 1.01rem + 0.19vw, 1.2rem);
+  --wp--preset--font-size--large:   clamp(1.3rem,  1.21rem + 0.44vw, 1.65rem);
+  --wp--preset--font-size--x-large: clamp(2rem,    1.68rem + 1.56vw, 3.25rem);
+  --wp--preset--font-size--display: clamp(2.75rem, 1.79rem + 4.69vw, 6.5rem);
+
+  /* ---- Espacements ---- */
+  --wp--preset--spacing--20: 0.75rem;
+  --wp--preset--spacing--30: 1.25rem;
+  --wp--preset--spacing--40: 2rem;
+  --wp--preset--spacing--50: clamp(3rem, 6vw, 5rem);
+  --wp--preset--spacing--60: clamp(5rem, 10vw, 8rem);
+  --wp--preset--spacing--70: clamp(7rem, 14vw, 12rem);
+
+  /* ---- Mise en page (settings.layout + styles.spacing.padding) ---- */
+  --mg-content: 760px;
+  --mg-wide: 1240px;
+  --mg-pad: clamp(1.25rem, 5vw, 4rem);
+  --mg-gap: 1.5rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background-color: var(--wp--preset--color--paper);
+  color: var(--wp--preset--color--ink);
+  font-family: var(--wp--preset--font-family--body);
+  font-size: var(--wp--preset--font-size--medium);
+  line-height: 1.7;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg, video { max-width: 100%; height: auto; }
+figure { margin: 0; }
+
+/* ---------------------------------------------------------
+   Titres, liens (theme.json > styles.elements)
+   --------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--wp--preset--font-family--heading);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--wp--preset--color--ink);
+  margin: 0 0 var(--mg-gap);
+}
+h1 { font-size: clamp(2.4rem, 5vw, 4rem); }
+h2 { font-size: var(--wp--preset--font-size--x-large); }
+h3 { font-size: var(--wp--preset--font-size--large); }
+
+a { color: var(--wp--preset--color--blush); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+p { margin: 0 0 var(--mg-gap); text-wrap: pretty; }
+p:last-child { margin-bottom: 0; }
+
+/* ---------------------------------------------------------
+   Mise en page contrainte
+   L'équivalent du moteur de mise en page de WordPress, réduit
+   aux trois largeurs dont le thème se sert.
+
+   Le retrait de page est posé sur les sections elles-mêmes et
+   non sur les enfants de `main` : entre les deux, Shopify glisse
+   une enveloppe `.shopify-section` que les sélecteurs doivent
+   traverser (voir « Raccords Shopify » en fin de fichier).
+   --------------------------------------------------------- */
+main > .shopify-section > * { padding-inline: var(--mg-pad); }
+/* Les sections qui vont d'un bord à l'autre reportent le retrait
+   sur leur contenu, sinon le texte colle au bord sur téléphone. */
+main > .shopify-section > .is-bleed { padding-inline: 0; }
+.is-bleed > .mg-inner { padding-inline: var(--mg-pad); }
+
+/* Un groupe contraint centre ses enfants dans la largeur de contenu.
+   `alignwide` élargit, `alignfull` déborde jusqu'aux bords. */
+.is-constrained > * { max-width: var(--mg-content); margin-inline: auto; }
+.is-constrained > .alignwide { max-width: var(--mg-wide); }
+.is-constrained > .alignfull {
+  max-width: none;
+  margin-inline: calc(var(--mg-pad) * -1);
+  width: auto;
+}
+.alignwide { max-width: var(--mg-wide); margin-inline: auto; }
+
+/* Une section pleine largeur dont le contenu reste contraint. */
+.mg-inner { max-width: var(--mg-wide); margin-inline: auto; width: 100%; }
+.mg-inner--narrow { max-width: var(--mg-content); }
+.mg-inner--hero { max-width: 880px; }
+.mg-inner--atelier { max-width: 720px; }
+
+.mg-stack > * + * { margin-top: var(--mg-gap); }
+
+/* ---------------------------------------------------------
+   Blocs repris de WordPress
+   app.css les habille déjà ; on ne pose ici que leur base.
+   --------------------------------------------------------- */
+.wp-block-group { }
+.wp-block-heading { }
+
+.has-text-align-center { text-align: center; }
+.has-text-align-left   { text-align: left; }
+.has-text-align-right  { text-align: right; }
+
+.has-small-font-size   { font-size: var(--wp--preset--font-size--small); }
+.has-medium-font-size  { font-size: var(--wp--preset--font-size--medium); }
+.has-large-font-size   { font-size: var(--wp--preset--font-size--large); }
+.has-x-large-font-size { font-size: var(--wp--preset--font-size--x-large); }
+.has-display-font-size { font-size: var(--wp--preset--font-size--display); }
+
+/* Boutons (theme.json > styles.elements.button) */
+.wp-block-buttons {
+  display: flex; flex-wrap: wrap; gap: var(--mg-gap);
+  margin: 0; padding: 0; list-style: none;
+}
+.wp-block-buttons.is-content-justification-center { justify-content: center; }
+.wp-block-button { margin: 0; }
+.wp-block-button__link {
+  display: inline-block;
+  background-color: var(--wp--preset--color--ink);
+  color: var(--wp--preset--color--cream);
+  border: 0;
+  border-radius: 999px;
+  padding: 1rem 2rem;
+  font-family: var(--wp--preset--font-family--body);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+.wp-block-button__link:hover {
+  background-color: var(--wp--preset--color--blush);
+  color: var(--wp--preset--color--cream);
+  text-decoration: none;
+}
+.wp-block-button.is-style-outline .wp-block-button__link {
+  background: transparent;
+  color: var(--wp--preset--color--ink);
+}
+
+/* Images et galeries */
+.wp-block-image { margin: 0; }
+.wp-block-image img { display: block; border-radius: var(--radius-card); }
+.wp-block-gallery { display: flex; flex-wrap: wrap; gap: var(--mg-gap); margin: 0; padding: 0; }
+
+/* ---------------------------------------------------------
+   Le logo est masqué par une image : sur Shopify les fichiers
+   d'`assets` sont à plat, le chemin `../img/` d'app.css ne
+   résout pas. On le repointe (voir aussi theme.liquid).
+   --------------------------------------------------------- */
+.site-header__brand a { font-size: 0; }
+
+/* ---------------------------------------------------------
+   Quelques pièces propres à Shopify, habillées dans l'esprit
+   du thème : messages, quantité, tableaux du panier.
+   --------------------------------------------------------- */
+.mg-notice {
+  border: 1.5px solid var(--wp--preset--color--line);
+  border-radius: var(--radius-card, 16px);
+  padding: 1rem 1.25rem;
+  background: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink-soft);
+}
+.mg-notice--error { border-color: var(--wp--preset--color--blush); color: var(--wp--preset--color--blush); }
+
+.mg-field { display: grid; gap: .4rem; margin-bottom: 1rem; }
+.mg-field label { font-size: .9rem; color: var(--wp--preset--color--ink-soft); }
+.mg-field input, .mg-field textarea, .mg-field select {
+  font: inherit; font-size: 1rem;
+  padding: .85rem 1rem;
+  border: 1.5px solid var(--control-line);
+  border-radius: 12px;
+  background: var(--wp--preset--color--cream);
+  color: var(--wp--preset--color--ink);
+  width: 100%;
+}
+
+.mg-table { width: 100%; border-collapse: collapse; }
+.mg-table th, .mg-table td { text-align: left; padding: 1rem 0; border-bottom: 1px solid var(--wp--preset--color--line); vertical-align: middle; }
+.mg-table th { font-size: .85rem; text-transform: uppercase; letter-spacing: .08em; color: var(--wp--preset--color--ink-soft); font-weight: 600; }
+
+.mg-muted { color: var(--wp--preset--color--ink-soft); }
+.mg-center { text-align: center; }
+
+/* ---------------------------------------------------------
+   Raccords Shopify
+   --------------------------------------------------------- */
+
+/* Shopify enveloppe chaque section dans un <div class="shopify-section">.
+   Cette enveloppe se glissait entre `.wp-site-blocks` et `.site-header` : elle
+   devenait l'élément flex, l'en-tête se retrouvait enfermé dans une boîte de sa
+   propre hauteur, et `position: sticky` n'avait plus aucune course. `display:
+   contents` la fait disparaître de la mise en page — l'en-tête et le pied
+   redeviennent enfants directs du conteneur, comme sous WordPress.
+
+   Elle s'efface aussi dans `main` : sans cela, c'est elle qui recevait le
+   retrait de page, et les sections pleine largeur s'arrêtaient à 64 px des
+   bords au lieu de les toucher. Attention : les sélecteurs CSS, eux, la
+   traversent toujours — `display: contents` change la mise en page, pas
+   l'arbre du document. */
+.shopify-section { display: contents; }
+
+.site-header { padding-inline: var(--mg-pad); }
+.site-header__bar { max-width: 1200px; margin-inline: auto; width: 100%; }
+.site-footer { padding-inline: var(--mg-pad); }
+.site-footer__inner { max-width: 1200px; margin-inline: auto; width: 100%; }
+
+/* Le sélecteur de langue passe par un formulaire (Shopify change de langue en
+   POST, pas par une URL) : ses entrées sont des boutons et non des liens. */
+button.lang-switch__item {
+  font: inherit; background: none; border: 0; cursor: pointer;
+  width: 100%; text-align: center;
+}
+
+/* Fiche d'œuvre */
+.mg-product {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+@media (max-width: 900px) { .mg-product { grid-template-columns: 1fr; } }
+.mg-product__media img { width: 100%; border-radius: var(--radius-card); box-shadow: var(--shadow-soft); }
+.mg-product__price {
+  font-family: var(--wp--preset--font-family--heading);
+  font-size: var(--wp--preset--font-size--large);
+  display: flex; gap: .75rem; align-items: baseline;
+}
+.mg-product__info .wp-block-buttons { margin-top: var(--wp--preset--spacing--30); }
+
+/* Panier */
+.mg-cart-line { display: flex; gap: 1rem; align-items: center; }
+.mg-cart-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; }
+
+/* ---------------------------------------------------------
+   Contenu de page importé de WordPress
+   Les pages exportées gardent leur balisage de blocs. WordPress
+   fabriquait à la volée le CSS de mise en page (largeur de
+   contenu, `alignwide`, `alignfull`) — il n'existe pas ici, on
+   le réécrit. Les largeurs intérieures, elles, sont déjà dans
+   app.css (`.prose`, `.band__body`, `.legal`, `.form-wrap`…).
+   --------------------------------------------------------- */
+.page-content > * { max-width: var(--mg-content); margin-inline: auto; }
+.page-content > .alignwide { max-width: var(--mg-wide); }
+.page-content > .alignfull {
+  max-width: none;
+  margin-inline: calc(var(--mg-pad) * -1);
+  width: auto;
+}
+.page-content > * + * { margin-top: var(--mg-gap); }
+
+/* Les deux sections à mise en page contrainte du thème. Leur largeur
+   de contenu venait des attributs de bloc, perdus à l'export. */
+.hero__inner { width: 100%; max-width: 880px; margin-inline: auto; }
+.hero-split   { width: 100%; max-width: var(--mg-wide); margin-inline: auto; }
+.atelier > :not(.blob):not(.art-float) { max-width: 720px; margin-inline: auto; }
+
+/* Les blocs décoratifs sont hors flux : la contrainte de largeur ne
+   doit pas les rattraper. */
+.page-content .blob,
+.page-content .art-float { max-width: none; margin-inline: 0; }

@@ -1,0 +1,102 @@
+{%- comment -%}
+  En-tête. Reprend trait pour trait le balisage de morgane_render_menu() et
+  morgane_render_tools() : navigation à gauche, logo au centre (hors flux),
+  commandes à droite. app.css l'habille sans une ligne de changement.
+{%- endcomment -%}
+
+{%- assign menu = linklists[section.settings.menu] -%}
+
+<div class="wp-block-group site-header">
+  <div class="wp-block-group alignwide site-header__bar">
+
+    <nav class="menu" aria-label="{{ 'general.main_menu' | t }}">
+      <button class="menu__trigger" type="button" aria-expanded="false" aria-controls="menu-panel" aria-label="{{ 'general.main_menu' | t }}">
+        <span class="menu__bars" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="menu__trigger-text">{{ 'general.menu' | t }}</span>
+      </button>
+      <div class="menu__panel" id="menu-panel">
+        <ul class="menu__list">
+          {%- for link in menu.links -%}
+            <li><a href="{{ link.url }}"{% if link.active %} aria-current="page"{% endif %}>{{ link.title }}</a></li>
+          {%- endfor -%}
+        </ul>
+        {%- if section.settings.aside_url != blank -%}
+          <div class="menu__aside">
+            <ul class="menu__list">
+              <li><a href="{{ section.settings.aside_url }}">{{ section.settings.aside_label }}</a></li>
+            </ul>
+          </div>
+        {%- endif -%}
+      </div>
+    </nav>
+
+    <p class="site-header__brand">
+      <a href="{{ routes.root_url }}">{{ shop.name }}</a>
+    </p>
+
+    {%- comment -%}
+      Les quatre commandes. Sur grand écran elles sont à plat ; en dessous de
+      720 px elles passent derrière le bouton à trois points — le logo garde
+      ainsi le centre de la barre, sur une seule rangée.
+    {%- endcomment -%}
+    <div class="site-header__tools" data-tools>
+      <button class="tools__trigger" type="button" aria-expanded="false" aria-controls="tools-panel"
+              aria-label="{{ 'general.tools' | t }}" title="{{ 'general.tools' | t }}">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
+        {%- if cart.item_count > 0 -%}<span class="tools__badge" aria-hidden="true">{{ cart.item_count }}</span>{%- endif -%}
+      </button>
+
+      <div class="tools__panel" id="tools-panel">
+
+        {%- comment -%} Langue : rendu seulement si la boutique en publie plusieurs. {%- endcomment -%}
+        {%- if localization.available_languages.size > 1 -%}
+          <div class="lang-switch" data-lang-switch>
+            <button class="lang-switch__trigger" type="button" aria-expanded="false" aria-controls="lang-panel"
+                    aria-label="{{ 'general.language' | t }}" title="{{ 'general.language' | t }}">{{ localization.language.iso_code | upcase }}</button>
+            <div class="lang-switch__panel" id="lang-panel">
+              {%- form 'localization', id: 'lang-form' -%}
+                <input type="hidden" name="return_to" value="{{ request.path }}">
+                {%- for language in localization.available_languages -%}
+                  <button type="submit" name="language_code" value="{{ language.iso_code }}"
+                          class="lang-switch__item{% if language.iso_code == localization.language.iso_code %} is-active{% endif %}"
+                          lang="{{ language.iso_code }}"{% if language.iso_code == localization.language.iso_code %} aria-current="true"{% endif %}>{{ language.iso_code | upcase }}</button>
+                {%- endfor -%}
+              {%- endform -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="{{ 'general.theme_toggle' | t }}" title="{{ 'general.theme_toggle' | t }}">
+          <svg class="theme-toggle__sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.3 6.3 4.8 4.8M19.2 19.2l-1.5-1.5M17.7 6.3l1.5-1.5M4.8 19.2l1.5-1.5"/></svg>
+          <svg class="theme-toggle__moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13.4A8.2 8.2 0 0 1 10.6 4a8.4 8.4 0 1 0 9.4 9.4Z"/></svg>
+        </button>
+
+        {%- assign account_label = 'general.sign_in' | t -%}
+        {%- if customer -%}{%- assign account_label = 'general.account' | t -%}{%- endif -%}
+        <a class="account-link{% if customer %} is-connected{% endif %}" href="{{ routes.account_url }}"
+           aria-label="{{ account_label }}" title="{{ account_label }}">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>
+        </a>
+
+        <a class="cart-link" href="{{ routes.cart_url }}"
+           aria-label="{% if cart.item_count > 0 %}{{ 'general.cart_count' | t: count: cart.item_count }}{% else %}{{ 'general.cart' | t }}{% endif %}">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8h13l-1.1 11.1a1.6 1.6 0 0 1-1.6 1.4H8.2a1.6 1.6 0 0 1-1.6-1.4Z"/><path d="M9 8V6.4a3 3 0 0 1 6 0V8"/></svg>
+          {%- if cart.item_count > 0 -%}<span class="cart-link__badge">{{ cart.item_count }}</span>{%- endif -%}
+        </a>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "En-tête",
+  "settings": [
+    { "type": "link_list", "id": "menu", "label": "Menu principal", "default": "main-menu" },
+    { "type": "text", "id": "aside_label", "label": "Entrée secondaire — libellé", "default": "Commissions et collaborations" },
+    { "type": "url", "id": "aside_url", "label": "Entrée secondaire — lien" }
+  ]
+}
+{% endschema %}
