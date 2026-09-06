@@ -113,15 +113,37 @@ function morgane_render_lang_switcher() {
 
 	$items = '';
 	foreach ( $slugs as $slug ) {
-		// Lien vers la traduction de la page courante si elle existe,
-		// sinon vers l'accueil de la langue.
 		$url = '';
+
+		// Une page, un article, une œuvre : sa traduction, quand elle existe.
 		if ( is_singular() && function_exists( 'pll_get_post' ) ) {
 			$translated = pll_get_post( get_queried_object_id(), $slug );
 			if ( $translated ) {
 				$url = get_permalink( $translated );
 			}
 		}
+
+		/*
+		 * Les pages de WooCommerce — boutique, panier, commande, compte — n'ont
+		 * aucune traduction à trouver : Polylang gratuit ne les traduit pas.
+		 * La boutique, en plus, n'est même pas une page « singulière » mais une
+		 * archive de produits. Sans ce cas, changer de langue depuis l'une
+		 * d'elles renvoyait à l'accueil, et l'on perdait au passage sa boutique,
+		 * son panier ou son compte.
+		 *
+		 * Depuis une catégorie de produits on retombe sur la racine de la
+		 * boutique : la catégorie traduite demanderait de traduire les termes,
+		 * ce que Polylang gratuit ne fait pas pour WooCommerce. Mieux vaut la
+		 * boutique dans la bonne langue que l'accueil.
+		 */
+		if ( ! $url ) {
+			$wc = morgane_wc_page_courante();
+			if ( $wc ) {
+				$url = morgane_wc_page_url( $wc, $slug );
+			}
+		}
+
+		// Ailleurs — recherche, 404, archives — l'accueil de la langue.
 		if ( ! $url ) {
 			$url = pll_home_url( $slug );
 		}

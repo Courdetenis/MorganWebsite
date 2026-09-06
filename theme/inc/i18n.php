@@ -132,9 +132,12 @@ function morgane_lang_root( $lang ) {
  * sous /en/, et le filtre de langue sur les produits fait le reste — on
  * préfixe donc l'URL avec la racine de la langue active.
  *
- * @param string $page 'shop', 'cart', 'checkout'…
+ * @param string      $page 'shop', 'cart', 'checkout'…
+ * @param string|null $lang Langue visée. Par défaut, la langue active. Le
+ *                          sélecteur de langue s'en sert pour construire
+ *                          l'adresse de la boutique dans l'*autre* langue.
  */
-function morgane_wc_page_url( $page ) {
+function morgane_wc_page_url( $page, $lang = null ) {
 	if ( ! function_exists( 'wc_get_page_id' ) ) {
 		return morgane_url( 'boutique' );
 	}
@@ -144,7 +147,9 @@ function morgane_wc_page_url( $page ) {
 		return morgane_url( 'boutique' );
 	}
 
-	$lang = morgane_lang();
+	if ( ! $lang ) {
+		$lang = morgane_lang();
+	}
 
 	if ( function_exists( 'pll_get_post' ) ) {
 		$translated = pll_get_post( $id, $lang );
@@ -156,8 +161,27 @@ function morgane_wc_page_url( $page ) {
 	$url = (string) get_permalink( $id );
 
 	if ( function_exists( 'pll_home_url' ) ) {
-		$path = wp_make_link_relative( $url );          // /boutique/
-		$url  = untrailingslashit( morgane_lang_root( $lang ) ) . $path;
+		$path = wp_make_link_relative( $url );          // « /boutique/ », ou « /en/boutique/ »
+
+		/*
+		 * Le permalien porte le préfixe de la langue à laquelle la page est
+		 * rattachée — pas celui de la langue visée. Une page boutique rattachée
+		 * à l'anglais donnait « /en/boutique/ », et le menu français y collait
+		 * la racine française : le bouton « Boutique » d'un site en français
+		 * renvoyait à la boutique anglaise. On retire le préfixe d'origine
+		 * avant de poser le bon.
+		 */
+		if ( function_exists( 'pll_get_post_language' ) ) {
+			$source = pll_get_post_language( $id );
+			if ( $source ) {
+				$racine = wp_make_link_relative( morgane_lang_root( $source ) );
+				if ( '/' !== $racine && 0 === strpos( $path, $racine ) ) {
+					$path = '/' . substr( $path, strlen( $racine ) );
+				}
+			}
+		}
+
+		$url = untrailingslashit( morgane_lang_root( $lang ) ) . $path;
 	}
 
 	return $url;
@@ -168,6 +192,35 @@ function morgane_wc_page_url( $page ) {
  */
 function morgane_shop_url() {
 	return morgane_wc_page_url( 'shop' );
+}
+
+/**
+ * La page WooCommerce actuellement affichée, s'il y en a une.
+ *
+ * Sert au sélecteur de langue : ces pages n'ont pas de traduction à trouver
+ * (Polylang gratuit ne les traduit pas), et la boutique n'est même pas une page
+ * « singulière » mais une archive de produits. Sans ce repérage, changer de
+ * langue depuis le panier ou le compte renvoyait à l'accueil.
+ *
+ * @return string 'shop', 'cart', 'checkout', 'myaccount' — ou '' ailleurs.
+ */
+function morgane_wc_page_courante() {
+	if ( ! function_exists( 'is_shop' ) ) {
+		return '';
+	}
+	if ( is_shop() || is_product_taxonomy() ) {
+		return 'shop';
+	}
+	if ( is_cart() ) {
+		return 'cart';
+	}
+	if ( is_checkout() ) {
+		return 'checkout';
+	}
+	if ( is_account_page() ) {
+		return 'myaccount';
+	}
+	return '';
 }
 
 /**
