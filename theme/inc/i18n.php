@@ -18,6 +18,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Langue active. Retombe sur 'fr' (langue par défaut du site, Loi 96).
  */
 function morgane_lang() {
+	/*
+	 * Point d'entrée du banc d'essai : en ligne de commande il n'y a pas de
+	 * langue de page, et rien ne permettrait sinon de vérifier le rendu
+	 * anglais. Aucun appelant du thème n'accroche ce filtre.
+	 */
+	$forcee = apply_filters( 'morgane_langue_forcee', '' );
+	if ( $forcee ) {
+		return (string) $forcee;
+	}
+
 	if ( function_exists( 'pll_current_language' ) ) {
 		$lang = pll_current_language();
 		if ( $lang ) {

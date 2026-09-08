@@ -65,4 +65,34 @@ if ( function_exists( 'morgane_texte_en' ) && $echantillon ) {
 	delete_post_meta( $echantillon, MORGANE_META_NOM_EN );
 }
 
+// --- 3. Le nom bascule selon la langue ------------------------------------
+mg_verif( 'morgane_produit_en_actif() existe', function_exists( 'morgane_produit_en_actif' ) );
+
+if ( $echantillon && function_exists( 'morgane_produit_en_actif' ) ) {
+	$fr_nom = get_post_field( 'post_title', $echantillon );
+	update_post_meta( $echantillon, MORGANE_META_NOM_EN, 'Test EN name' );
+
+	// En ligne de commande la langue vaut 'fr' : le nom français doit sortir.
+	$produit = wc_get_product( $echantillon );
+	mg_verif(
+		'En français, le nom reste le nom saisi',
+		$fr_nom === $produit->get_name(),
+		$produit->get_name()
+	);
+
+	// On force l'anglais par le filtre prévu pour ça.
+	$forcer_en = function () { return 'en'; };
+	add_filter( 'morgane_langue_forcee', $forcer_en );
+	wp_cache_flush();
+	$produit = wc_get_product( $echantillon );
+	mg_verif(
+		'En anglais, le nom anglais prend la place',
+		'Test EN name' === $produit->get_name(),
+		$produit->get_name()
+	);
+	remove_filter( 'morgane_langue_forcee', $forcer_en );
+
+	delete_post_meta( $echantillon, MORGANE_META_NOM_EN );
+}
+
 mg_verif_bilan();
