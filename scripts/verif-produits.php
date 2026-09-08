@@ -44,4 +44,25 @@ mg_verif(
 	count( $en ) . ' trouvé(s) : ' . implode( ',', $en )
 );
 
+// --- 2. Les trois métas anglaises se lisent et s'écrivent ------------------
+$echantillon = $produits ? (int) $produits[0] : 0;
+
+mg_verif(
+	'morgane_texte_en() existe',
+	function_exists( 'morgane_texte_en' )
+);
+
+if ( function_exists( 'morgane_texte_en' ) && $echantillon ) {
+	update_post_meta( $echantillon, MORGANE_META_NOM_EN, 'Northern Lights — print' );
+	mg_verif(
+		'Le nom anglais se relit',
+		'Northern Lights — print' === morgane_texte_en( $echantillon, MORGANE_META_NOM_EN )
+	);
+	mg_verif(
+		'Une méta absente rend une chaîne vide',
+		'' === morgane_texte_en( $echantillon, MORGANE_META_RESUME_EN )
+	);
+	delete_post_meta( $echantillon, MORGANE_META_NOM_EN );
+}
+
 mg_verif_bilan();
