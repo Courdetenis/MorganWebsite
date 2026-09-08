@@ -49,6 +49,7 @@ function morgane_install_steps() {
 
 	$steps[] = array( 'id' => 'pages',    'file' => 'pages.php', 'label' => 'Créer les pages et leurs textes (FR et EN)' );
 	$steps[] = array( 'id' => 'shop',     'file' => 'shop.php',  'label' => 'Monter la boutique (catégories, tailles)' );
+	$steps[] = array( 'id' => 'seo',      'file' => 'seo.php',   'label' => 'Poser les titres et descriptions pour Google' );
 	$steps[] = array( 'id' => 'langues',  'file' => '',          'label' => 'Télécharger les traductions françaises' );
 	$steps[] = array( 'id' => 'menage',   'file' => '',          'label' => 'Ranger : doublons, confidentialité, icône' );
 
@@ -504,6 +505,22 @@ function morgane_install_page() {
 			<?php endif; ?>
 		</p>
 
+		<h2>Réécrire les textes</h2>
+		<p style="max-width:42em">
+			L’installation ne touche jamais à une page déjà remplie : c’est ce qui
+			protège ce que vous avez écrit depuis l’éditeur. Après une mise à jour
+			du thème qui change les textes, ce bouton-ci force la réécriture des
+			pages dans les deux langues.
+			<strong>Les modifications faites à la main dans l’éditeur seront
+			perdues.</strong> Les produits, les commandes et les réglages de la
+			boutique ne sont pas concernés.
+		</p>
+		<p>
+			<button type="button" class="button button-secondary" id="morgane-pages">
+				Réécrire les textes des pages
+			</button>
+		</p>
+
 		<h2>Traductions</h2>
 		<p style="max-width:42em">
 			Si la boutique ou la page « Mon compte » s’affichent en anglais, c’est
@@ -548,7 +565,7 @@ function morgane_install_page() {
 			journal.scrollTop = journal.scrollHeight;
 		}
 
-		async function lancer(liste, boutonCliqué) {
+		async function lancer(liste, boutonCliqué, extra) {
 			boutonCliqué.disabled = true;
 			zone.style.display = 'block';
 			journal.textContent = '';
@@ -562,6 +579,9 @@ function morgane_install_page() {
 				corps.append('action', 'morgane_install_step');
 				corps.append('step', e.id);
 				corps.append('_wpnonce', nonce);
+				if (extra) {
+					Object.keys(extra).forEach(function (k) { corps.append(k, extra[k]); });
+				}
 
 				var reponse, data;
 				try {
@@ -591,6 +611,18 @@ function morgane_install_page() {
 		}
 
 		bouton.addEventListener('click', function () { lancer(etapes, bouton); });
+
+		var boutonPages = document.getElementById('morgane-pages');
+		if (boutonPages) {
+			boutonPages.addEventListener('click', function () {
+				// Une confirmation : l'étape est la seule du lot qui détruise
+				// quelque chose, et rien ne la rattrape ensuite.
+				if (!window.confirm('Réécrire les textes des pages ?\n\nCe qui a été modifié à la main dans l’éditeur sera perdu.')) {
+					return;
+				}
+				lancer(etapes.filter(function (e) { return e.id === 'pages'; }), boutonPages, { force: '1' });
+			});
+		}
 
 		var boutonLangues = document.getElementById('morgane-langues');
 		if (boutonLangues) {
@@ -630,6 +662,16 @@ add_action( 'admin_post_morgane_install_step', function () {
 	}
 	if ( ! $etape ) {
 		wp_send_json_error( array( 'message' => 'Étape inconnue : ' . $demande ) );
+	}
+
+	/*
+	 * `pages.php` refuse par défaut d'écraser une page qui a déjà du contenu :
+	 * c'est ce qui protège le travail fait dans l'éditeur. Seul le bouton dédié
+	 * lève cette garde — jamais le bouton d'installation, qui reste rejouable
+	 * sans rien détruire.
+	 */
+	if ( 'pages' === $etape['id'] && ! empty( $_POST['force'] ) ) {
+		$GLOBALS['morgane_force'] = '1';
 	}
 
 	require_once get_theme_file_path( 'install/wp-cli-shim.php' );

@@ -138,6 +138,40 @@
   }
 
   /* -------------------------------------------------------
+     2 ter. Rayons de la boutique
+     Même partage que ci-dessus : le survol est affaire de CSS, on ne traite
+     ici que le clic — indispensable là où survoler ne veut rien dire. Le lien
+     « Boutique » n'est pas touché : il mène toujours à la vitrine, et c'est le
+     chevron à côté qui déroule. Sous 1280 px le chevron est masqué et la liste
+     est dépliée d'office : ce code n'a alors rien à faire.
+     ------------------------------------------------------- */
+  document.querySelectorAll('[data-submenu]').forEach(function (parent) {
+    var trigger = parent.querySelector('.menu__sub-trigger');
+    if (!trigger) return;
+
+    var setSubOpen = function (open) {
+      if (open) { parent.setAttribute('data-open', ''); }
+      else { parent.removeAttribute('data-open'); }
+      trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setSubOpen(!parent.hasAttribute('data-open'));
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !parent.hasAttribute('data-open')) return;
+      setSubOpen(false);
+      trigger.focus();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!parent.contains(e.target)) setSubOpen(false);
+    });
+  });
+
+  /* -------------------------------------------------------
      3. En-tête : fond givré au défilement
      ------------------------------------------------------- */
   var header = document.querySelector('.site-header');
@@ -316,6 +350,65 @@
     // seul ce rafraîchissement lèverait une erreur.
     if (window.ScrollTrigger) ScrollTrigger.refresh();
   };
+
+  /* -------------------------------------------------------
+     6. Quantité : deux boutons plutôt que les flèches du navigateur
+
+     Délégué sur le document plutôt que posé sur chaque bouton : WooCommerce
+     redessine ce bloc après un ajout au panier, et des écouteurs attachés aux
+     éléments d'origine ne survivraient pas au remplacement.
+     ------------------------------------------------------- */
+  var qtyBornes = function (champ) {
+    return {
+      pas: parseFloat(champ.step) || 1,
+      min: champ.min === '' ? 0 : parseFloat(champ.min),
+      max: champ.max === '' ? Infinity : parseFloat(champ.max)
+    };
+  };
+
+  var qtyMajEtat = function (champ) {
+    var b = qtyBornes(champ);
+    var val = parseFloat(champ.value);
+    var wrap = champ.parentNode;
+    var moins = wrap.querySelector('[data-qty-step="down"]');
+    var plus = wrap.querySelector('[data-qty-step="up"]');
+    if (moins) moins.disabled = !isNaN(val) && val <= b.min;
+    if (plus) plus.disabled = !isNaN(val) && val >= b.max;
+  };
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('[data-qty-step]') : null;
+    if (!btn) return;
+
+    var champ = btn.parentNode.querySelector('input.qty');
+    if (!champ) return;
+
+    var b = qtyBornes(champ);
+    var val = parseFloat(champ.value);
+    if (isNaN(val)) val = b.min;
+
+    val += (btn.getAttribute('data-qty-step') === 'up' ? b.pas : -b.pas);
+    champ.value = Math.min(b.max, Math.max(b.min, val));
+
+    /* WooCommerce et l'extension d'options écoutent « change » pour recalculer
+       les totaux affichés : sans cet événement, le prix ne suivrait pas. */
+    champ.dispatchEvent(new Event('input', { bubbles: true }));
+    champ.dispatchEvent(new Event('change', { bubbles: true }));
+    qtyMajEtat(champ);
+  });
+
+  document.addEventListener('input', function (e) {
+    if (e.target.matches && e.target.matches('.quantity input.qty')) qtyMajEtat(e.target);
+  });
+
+  var qtyInit = function () {
+    document.querySelectorAll('.quantity input.qty').forEach(function (c) { qtyMajEtat(c); });
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', qtyInit);
+  } else {
+    qtyInit();
+  }
 
   if (document.readyState === 'complete') { start(); }
   else { window.addEventListener('load', start); }

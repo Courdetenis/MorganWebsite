@@ -27,7 +27,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 function morgane_render_menu() {
 	$items = array(
 		array( 'url' => morgane_home_url(),    'label' => array( 'fr' => 'Accueil',   'en' => 'Home' ) ),
-		array( 'url' => morgane_shop_url(),    'label' => array( 'fr' => 'Boutique',  'en' => 'Shop' ) ),
+		array(
+			'url'    => morgane_shop_url(),
+			'label'  => array( 'fr' => 'Boutique', 'en' => 'Shop' ),
+			'rayons' => function_exists( 'morgane_rayons_boutique' ) ? morgane_rayons_boutique() : array(),
+		),
 		array( 'url' => morgane_url( 'murales' ),   'label' => array( 'fr' => 'Murales',   'en' => 'Murals' ) ),
 		array( 'url' => morgane_url( 'portfolio' ), 'label' => array( 'fr' => 'Portfolio', 'en' => 'Portfolio' ) ),
 		array( 'url' => morgane_url( 'a-propos' ),  'label' => array( 'fr' => 'À propos', 'en' => 'About' ) ),
@@ -43,11 +47,45 @@ function morgane_render_menu() {
 
 	$render = function ( $item ) use ( $current ) {
 		$is_current = $current && untrailingslashit( $item['url'] ) === untrailingslashit( $current );
-		return sprintf(
-			'<li><a href="%s"%s>%s</a></li>',
+
+		$lien = sprintf(
+			'<a href="%s"%s>%s</a>',
 			esc_url( $item['url'] ),
 			$is_current ? ' aria-current="page"' : '',
 			esc_html( morgane_t( $item['label'] ) )
+		);
+
+		if ( empty( $item['rayons'] ) ) {
+			return '<li>' . $lien . '</li>';
+		}
+
+		/*
+		 * Le lien garde sa destination : « Boutique » mène à la vitrine, qui
+		 * présente les deux rayons. C'est le chevron à côté qui déroule le
+		 * raccourci vers l'un ou l'autre — deux commandes distinctes plutôt
+		 * qu'un lien qui ferait deux choses, ce qui sur tactile ne se devine
+		 * pas. Sous 1280 px le chevron disparaît et la liste reste dépliée :
+		 * dans un panneau qu'on a déjà ouvert, un second pli n'apporte rien.
+		 */
+		$sous = '';
+		foreach ( $item['rayons'] as $rayon ) {
+			$sous .= sprintf(
+				'<li><a href="%s">%s</a></li>',
+				esc_url( $rayon['url'] ),
+				esc_html( morgane_t( $rayon['label'] ) )
+			);
+		}
+
+		return sprintf(
+			'<li class="menu__item--sub" data-submenu>%1$s'
+			. '<button class="menu__sub-trigger" type="button" aria-expanded="false" aria-controls="menu-rayons" aria-label="%2$s">'
+			. '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5 12 15.5 18 9.5"/></svg>'
+			. '</button>'
+			. '<ul class="menu__sub" id="menu-rayons">%3$s</ul>'
+			. '</li>',
+			$lien,
+			esc_attr( morgane_t( array( 'fr' => 'Afficher les rayons', 'en' => 'Show the categories' ) ) ),
+			$sous
 		);
 	};
 
@@ -113,40 +151,7 @@ function morgane_render_lang_switcher() {
 
 	$items = '';
 	foreach ( $slugs as $slug ) {
-		$url = '';
-
-		// Une page, un article, une œuvre : sa traduction, quand elle existe.
-		if ( is_singular() && function_exists( 'pll_get_post' ) ) {
-			$translated = pll_get_post( get_queried_object_id(), $slug );
-			if ( $translated ) {
-				$url = get_permalink( $translated );
-			}
-		}
-
-		/*
-		 * Les pages de WooCommerce — boutique, panier, commande, compte — n'ont
-		 * aucune traduction à trouver : Polylang gratuit ne les traduit pas.
-		 * La boutique, en plus, n'est même pas une page « singulière » mais une
-		 * archive de produits. Sans ce cas, changer de langue depuis l'une
-		 * d'elles renvoyait à l'accueil, et l'on perdait au passage sa boutique,
-		 * son panier ou son compte.
-		 *
-		 * Depuis une catégorie de produits on retombe sur la racine de la
-		 * boutique : la catégorie traduite demanderait de traduire les termes,
-		 * ce que Polylang gratuit ne fait pas pour WooCommerce. Mieux vaut la
-		 * boutique dans la bonne langue que l'accueil.
-		 */
-		if ( ! $url ) {
-			$wc = morgane_wc_page_courante();
-			if ( $wc ) {
-				$url = morgane_wc_page_url( $wc, $slug );
-			}
-		}
-
-		// Ailleurs — recherche, 404, archives — l'accueil de la langue.
-		if ( ! $url ) {
-			$url = pll_home_url( $slug );
-		}
+		$url = morgane_url_courante_dans( $slug );
 
 		$is_current = ( $slug === $current );
 

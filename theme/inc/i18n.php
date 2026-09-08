@@ -195,6 +195,72 @@ function morgane_shop_url() {
 }
 
 /**
+ * URL d'une catégorie de produits, dans la langue active.
+ *
+ * Contrairement aux pages de WooCommerce, les catégories *sont* traduites par
+ * Polylang, même en version gratuite : « prints » a son jumeau « prints-en »,
+ * « originaux » le sien. On part donc toujours du slug français — celui qui est
+ * écrit en dur dans le thème — et on demande à Polylang son équivalent.
+ *
+ * @param string $slug_fr Slug français, ex. 'originaux'.
+ * @return WP_Term|null Terme dans la langue active, ou null.
+ */
+function morgane_categorie_terme( $slug_fr ) {
+	if ( ! taxonomy_exists( 'product_cat' ) ) {
+		return null;
+	}
+
+	/*
+	 * `get_term_by()` passe par le filtre de langue de Polylang : sous /en/ il
+	 * cherche « prints » parmi les catégories anglaises, dont le slug est
+	 * « prints-en », et ne trouve rien — les deux rayons disparaissaient donc
+	 * de tout le site anglais. On interroge sans filtre (`lang => ''`) pour
+	 * retrouver le terme français, dont on demande ensuite la traduction.
+	 */
+	$termes = get_terms( array(
+		'taxonomy'   => 'product_cat',
+		'slug'       => $slug_fr,
+		'hide_empty' => false,
+		'lang'       => '',
+	) );
+
+	if ( is_wp_error( $termes ) || empty( $termes ) ) {
+		return null;
+	}
+
+	$terme = $termes[0];
+
+	if ( function_exists( 'pll_get_term' ) ) {
+		$traduit = pll_get_term( $terme->term_id, morgane_lang() );
+		if ( $traduit ) {
+			$autre = get_term( $traduit );
+			if ( $autre && ! is_wp_error( $autre ) ) {
+				$terme = $autre;
+			}
+		}
+	}
+
+	return ( $terme instanceof WP_Term ) ? $terme : null;
+}
+
+/**
+ * URL d'une catégorie de produits, dans la langue active.
+ *
+ * @param string $slug_fr Slug français, ex. 'originaux'.
+ * @return string URL, ou '' si la catégorie n'existe pas (ou pas encore).
+ */
+function morgane_categorie_url( $slug_fr ) {
+	$terme = morgane_categorie_terme( $slug_fr );
+	if ( ! $terme ) {
+		return '';
+	}
+
+	$url = get_term_link( $terme );
+
+	return is_wp_error( $url ) ? '' : (string) $url;
+}
+
+/**
  * La page WooCommerce actuellement affichée, s'il y en a une.
  *
  * Sert au sélecteur de langue : ces pages n'ont pas de traduction à trouver
@@ -222,6 +288,82 @@ function morgane_wc_page_courante() {
 	}
 	return '';
 }
+
+/**
+ * L'adresse de la page courante dans une autre langue.
+ *
+ * Trois cas, dans cet ordre : la traduction de la page si elle existe ; l'une des
+ * pages de WooCommerce, que Polylang gratuit ne traduit pas et dont l'adresse se
+ * reconstruit ; l'accueil de la langue en dernier recours.
+ *
+ * Sert au sélecteur de langue et à la balise x-default, qui doivent répondre la
+ * même chose — les faire diverger reviendrait à annoncer à Google une adresse
+ * que le bouton ne donne pas.
+ *
+ * @param string $langue Code de langue visé.
+ */
+function morgane_url_courante_dans( $langue ) {
+	if ( is_singular() && function_exists( 'pll_get_post' ) ) {
+		$traduite = pll_get_post( get_queried_object_id(), $langue );
+		if ( $traduite ) {
+			return (string) get_permalink( $traduite );
+		}
+	}
+
+	$wc = morgane_wc_page_courante();
+	if ( $wc ) {
+		return morgane_wc_page_url( $wc, $langue );
+	}
+
+	return function_exists( 'pll_home_url' ) ? (string) pll_home_url( $langue ) : home_url( '/' );
+}
+
+/**
+ * hreflang="x-default" : la version à servir quand la langue du visiteur ne
+ * correspond à aucune des nôtres.
+ *
+ * Polylang déclare bien « fr » et « en », mais ni lui ni SEOPress ne posent
+ * celle-ci. Sans elle, Google choisit seul ce qu'il montre à un visiteur
+ * hispanophone ou allemand. Le français étant la langue par défaut du site, et
+ * celle qu'impose la Loi 96, c'est lui qui doit porter l'étiquette.
+ */
+add_action( 'wp_head', function () {
+	if ( ! function_exists( 'pll_default_language' ) ) {
+		return;
+	}
+
+	$defaut = pll_default_language();
+	if ( ! $defaut ) {
+		return;
+	}
+
+	printf(
+		'<link rel="alternate" href="%s" hreflang="x-default" />' . "\n",
+		esc_url( morgane_url_courante_dans( $defaut ) )
+	);
+}, 10 );
+
+/**
+ * Canonique de l'accueil : la bonne langue.
+ *
+ * Sur « /en/ », SEOPress annonçait « <link rel="canonical" href="/"> » — la page
+ * française. Une canonique déclare la version de référence : celle-ci disait à
+ * Google « n'indexe pas cette page, indexe l'autre », et faisait sortir tout
+ * l'accueil anglais des résultats. Les autres pages anglaises, elles, sont
+ * correctes : le défaut ne touche que la page d'accueil, dont l'adresse se
+ * calcule à partir du site et non de la page affichée.
+ *
+ * On reconstruit l'adresse depuis la racine de la langue active.
+ * `get_permalink()` ne conviendrait pas : sur la traduction de l'accueil il
+ * renvoie « /en/home/ » et non « /en/ ».
+ */
+add_filter( 'seopress_titles_canonical', function ( $balise ) {
+	if ( ! is_front_page() ) {
+		return $balise;
+	}
+
+	return '<link rel="canonical" href="' . esc_url( morgane_lang_root( morgane_lang() ) ) . '">';
+} );
 
 /**
  * Slogan du site, dans la langue de la page.

@@ -24,7 +24,22 @@ $has_image = has_post_thumbnail( $product->get_id() );
 			// Sans photo, la tuile colorée du CSS tient lieu de visuel :
 			// on n'affiche pas le placeholder gris de WooCommerce.
 			if ( $has_image ) {
-				echo $product->get_image( 'woocommerce_thumbnail' );
+				/*
+				 * Pas `woocommerce_thumbnail` : c'est une coupe carrée de 300 px,
+				 * seule taille à ce rapport, donc seule candidate de son srcset.
+				 * Le navigateur n'avait rien d'autre à prendre et l'étirait — sur
+				 * mobile le cadre fait 322 px de côté, soit 643 px réels sur un
+				 * écran à deux points par pixel, plus du double de la source.
+				 * D'où le grain, sur la boutique seulement.
+				 *
+				 * `woocommerce_single` garde le rapport de l'original : le srcset
+				 * y court de 300 à 2000 px. Le cadre étant en 4/5 avec
+				 * `object-fit: cover`, la forme de la source n'entre pas en jeu.
+				 */
+				echo $product->get_image(
+					'woocommerce_single',
+					array( 'sizes' => '(max-width: 480px) 90vw, (max-width: 820px) 45vw, 300px' )
+				);
 			}
 			?>
 			<?php if ( $product->is_on_sale() ) : ?>
