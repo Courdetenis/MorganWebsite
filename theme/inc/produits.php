@@ -30,6 +30,38 @@ const MORGANE_META_DESC_EN   = '_morgane_description_en';
 // valeur, sinon le garde-fou anti-récursion casse et provoque une boucle infinie.
 const MORGANE_PRIORITE_META_WAPF = 10;
 
+/* -------------------------------------------------------------------------
+   Sécurité structurelle : la sortie de Polylang décidée par le thème, pas
+   par un réglage.
+   ------------------------------------------------------------------------- */
+
+/**
+ * Retire `product`, `product_cat` et `product_tag` de ce que Polylang traduit
+ * — depuis le thème, pas seulement depuis l'option enregistrée en base.
+ *
+ * `install/pll-cpt.php` retire déjà ces trois entrées de l'option `polylang`
+ * au moment de la migration (une œuvre = un article = un stock, voir plus
+ * haut). Mais une option se recoche en deux clics, dans Langues > Réglages >
+ * Types de contenus : rien, sinon ce filtre, n'empêcherait alors de recréer
+ * l'incident du double stock — une œuvre traduisible redonnerait une fiche
+ * française et une fiche anglaise, chacune avec son compteur.
+ *
+ * En le posant ici, l'invariant ne dépend plus de l'état d'une case à cocher :
+ * même si `product` était recoché dans Polylang, l'extension ne le traiterait
+ * plus comme traduit, parce que le thème le lui interdit à chaque lecture de
+ * la liste. Vérifié : passer le produit #13 en langue `en` (test manuel de la
+ * revue) n'a été rendu possible qu'en désactivant ces filtres.
+ */
+add_filter( 'pll_get_post_types', function ( $post_types ) {
+	unset( $post_types['product'] );
+	return $post_types;
+} );
+
+add_filter( 'pll_get_taxonomies', function ( $taxonomies ) {
+	unset( $taxonomies['product_cat'], $taxonomies['product_tag'] );
+	return $taxonomies;
+} );
+
 /**
  * Le texte anglais d'une fiche, ou '' s'il n'a pas été saisi.
  *
@@ -126,6 +158,26 @@ add_action( 'save_post_product', function ( $post_id ) {
 } );
 
 /**
+ * Exclut les trois métas anglaises d'une duplication de produit.
+ *
+ * Le mode d'emploi de Morgane est de dupliquer le produit modèle pour chaque
+ * nouvelle œuvre. `WC_Admin_Duplicate_Product` recopie par défaut toutes les
+ * métas `_…` du produit copié : sans ce filtre, la nouvelle fiche hériterait
+ * du nom, du résumé et de la description anglais de l'œuvre dupliquée.
+ *
+ * L'erreur ne se verrait pas dans l'éditeur : un champ anglais oublié retombe
+ * silencieusement sur le français (voir `morgane_texte_en()`), mais un champ
+ * anglais hérité par erreur, lui, s'affiche activement — le mauvais titre,
+ * au premier chargement de la page anglaise de la nouvelle fiche.
+ */
+add_filter( 'woocommerce_duplicate_product_exclude_meta', function ( $exclure ) {
+	$exclure[] = MORGANE_META_NOM_EN;
+	$exclure[] = MORGANE_META_RESUME_EN;
+	$exclure[] = MORGANE_META_DESC_EN;
+	return $exclure;
+} );
+
+/**
  * Faut-il servir l'anglais ?
  *
  * Jamais dans l'administration ni en REST : Morgane doit lire et modifier ce
@@ -145,7 +197,16 @@ function morgane_produit_en_actif() {
  *
  * `woocommerce_product_get_name` couvre presque tout WooCommerce — grilles,
  * panier, courriels de commande. `the_title` rattrape ce que WordPress rend
- * lui-même : le titre de la fiche, le fil d'Ariane, la balise <title>.
+ * lui-même à partir du nom de l'article : le <h1> de la fiche, le fil
+ * d'Ariane.
+ *
+ * La balise <title> n'en fait PAS partie, contrairement à ce qu'affirmait une
+ * version antérieure de ce commentaire. SEOPress la compose lui-même à partir
+ * de `get_post_field( 'post_title', … )` — la valeur brute en base, jamais
+ * celle que rend `the_title` ou `get_the_title()` (vérifié dans
+ * `seopress_get_dynamic_variables()`, du plugin). Elle a son propre filtre,
+ * plus bas (`seopress_titles_title`), symétrique de `seopress_titles_canonical`
+ * déjà posé dans `inc/i18n.php` pour l'accueil.
  */
 add_filter( 'woocommerce_product_get_name', function ( $nom, $produit ) {
 	if ( ! morgane_produit_en_actif() ) {
@@ -166,6 +227,107 @@ add_filter( 'the_title', function ( $titre, $id = 0 ) {
 
 	return '' !== $en ? $en : $titre;
 }, 10, 2 );
+
+/**
+ * La balise <title>, dans l'onglet du navigateur, les résultats de recherche
+ * et les aperçus de partage.
+ *
+ * Ni `woocommerce_product_get_name` ni `the_title` ne l'atteignent (voir le
+ * commentaire au-dessus du premier des deux) : SEOPress la compose à partir
+ * du nom brut en base. `seopress_titles_title` est le filtre que l'extension
+ * applique sur le texte déjà assemblé (gabarit résolu, séparateur et nom du
+ * site compris), juste avant de le renvoyer — on y remplace le nom français
+ * qu'il contient par l'anglais.
+ */
+add_filter( 'seopress_titles_title', function ( $titre ) {
+	if ( ! morgane_produit_en_actif() || ! is_singular( 'product' ) ) {
+		return $titre;
+	}
+
+	$id = get_queried_object_id();
+	$fr = get_post_field( 'post_title', $id );
+	$en = morgane_texte_en( $id, MORGANE_META_NOM_EN );
+
+	if ( '' === $en || '' === $fr ) {
+		return $titre;
+	}
+
+	return str_replace( $fr, $en, $titre );
+} );
+
+/**
+ * Le permalien d'une œuvre, dans la langue active.
+ *
+ * `product` n'étant plus traduit par Polylang (voir plus haut), l'extension
+ * n'ajoute plus le préfixe de langue aux permaliens de produit :
+ * `get_permalink()` rendait toujours l'adresse française, y compris sur le
+ * site anglais. La grille de la boutique, le fil d'Ariane et la canonique de
+ * SEOPress (qui repose sur `get_permalink()` pour une fiche isolée, voir
+ * `seopress_titles_canonical_hook()` du plugin) en héritaient tous : les liens
+ * des œuvres ne portaient jamais « /en/ », et menaient à une fiche servie en
+ * français.
+ *
+ * Même remède que `morgane_categorie_url()` pour les catégories
+ * (`inc/i18n.php`) : on préfixe par la racine de la langue active.
+ *
+ * Ce filtre s'exécute partout, y compris dans l'administration — d'où le même
+ * garde-fou que le reste du bilinguisme produit : jamais dans l'administration
+ * (Morgane doit y voir et pouvoir copier le vrai permalien), ni en REST.
+ */
+add_filter( 'post_type_link', function ( $lien, $produit ) {
+	if ( 'product' !== $produit->post_type || ! morgane_produit_en_actif() ) {
+		return $lien;
+	}
+
+	$chemin = wp_make_link_relative( $lien ); // « /product/aurore-boreale-tirage/ »
+
+	return untrailingslashit( morgane_lang_root( morgane_lang() ) ) . $chemin;
+}, 10, 2 );
+
+/**
+ * Le permalien d'une œuvre, dans la langue **demandée** — pas forcément la
+ * langue active.
+ *
+ * Sert au sélecteur de langue (`morgane_url_courante_dans()`, `inc/i18n.php`) :
+ * depuis une fiche produit, il doit pouvoir demander l'adresse de la même
+ * fiche dans l'*autre* langue. Le filtre `post_type_link` ci-dessus ne sait
+ * construire que l'adresse de la langue active — `get_permalink()` n'a pas de
+ * paramètre de langue à lui passer.
+ *
+ * @param int         $id   Identifiant du produit.
+ * @param string|null $lang Langue visée. Par défaut, la langue active.
+ * @return string URL, ou '' si le produit n'existe pas.
+ */
+function morgane_produit_url( $id, $lang = null ) {
+	$url = get_permalink( $id );
+	if ( ! $url ) {
+		return '';
+	}
+
+	if ( ! $lang ) {
+		$lang = morgane_lang();
+	}
+
+	if ( function_exists( 'pll_home_url' ) ) {
+		$chemin = wp_make_link_relative( $url );
+
+		/*
+		 * `get_permalink()` vient d'appliquer le préfixe de la langue *active*
+		 * (le filtre `post_type_link` ci-dessus) — pas nécessairement celle
+		 * qu'on vise ici. On le retire s'il y est, pour repartir du chemin nu
+		 * avant de poser le bon préfixe. Même méthode que `morgane_wc_page_url()`
+		 * et `morgane_categorie_url()` (`inc/i18n.php`).
+		 */
+		$racine_active = wp_make_link_relative( morgane_lang_root( morgane_lang() ) );
+		if ( '/' !== $racine_active && 0 === strpos( $chemin, $racine_active ) ) {
+			$chemin = '/' . substr( $chemin, strlen( $racine_active ) );
+		}
+
+		$url = untrailingslashit( morgane_lang_root( $lang ) ) . $chemin;
+	}
+
+	return $url;
+}
 
 /**
  * Le résumé court, affiché sous le prix sur la fiche.

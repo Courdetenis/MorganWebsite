@@ -266,7 +266,7 @@ function morgane_render_cart() {
  * Grille d'œuvres.
  * Remplace le shortcode [products] : celui-ci passe par wpautop, qui insère
  * des <br>/<p> dans le markup des cartes et casse la mise en page.
- * Filtre aussi par langue courante (Polylang) et, si demandé, par catégorie.
+ * Filtre aussi par catégorie, si demandé.
  */
 function morgane_render_artworks( $attrs ) {
 	if ( ! function_exists( 'wc_get_template_part' ) ) {
@@ -295,12 +295,15 @@ function morgane_render_artworks( $attrs ) {
 		);
 	}
 
-	if ( function_exists( 'pll_current_language' ) ) {
-		$lang = pll_current_language();
-		if ( $lang ) {
-			$args['lang'] = $lang;
-		}
-	}
+	/*
+	 * Un filtre forçait ici `$args['lang']` à la langue active. Retiré pour la
+	 * même raison que dans `functions.php` (`woocommerce_shortcode_products_query`) :
+	 * `product` n'est plus traduit par Polylang (install/pll-cpt.php, et le
+	 * verrou structurel d'inc/produits.php), toute œuvre vit en français, et
+	 * le garder aurait vidé cette grille sur le site anglais si la case
+	 * Polylang était un jour recochée — aucune œuvre n'étant jamais rattachée
+	 * à l'anglais.
+	 */
 
 	$query = new WP_Query( $args );
 	if ( ! $query->have_posts() ) {

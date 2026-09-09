@@ -31,7 +31,10 @@ function morgane_install_steps() {
 	$steps = array(
 		array( 'id' => 'site',        'file' => '',                'label' => 'Nommer le site et poser les permaliens' ),
 		array( 'id' => 'pll-setup',   'file' => 'pll-setup.php',   'label' => 'Créer les langues (français, anglais)' ),
-		array( 'id' => 'pll-cpt',     'file' => 'pll-cpt.php',     'label' => 'Rendre les produits traduisibles' ),
+		// pll-cpt.php fait l'inverse de ce que son ancien libellé annonçait :
+		// il sort les produits de Polylang, pour qu'une œuvre n'ait qu'une
+		// fiche et qu'un seul compteur de stock (voir inc/produits.php).
+		array( 'id' => 'pll-cpt',     'file' => 'pll-cpt.php',     'label' => 'Sortir les produits de Polylang (un seul stock par œuvre)' ),
 		array( 'id' => 'pll-assign',  'file' => 'pll-assign.php',  'label' => 'Assigner le français aux contenus existants' ),
 		array( 'id' => 'pll-content', 'file' => 'pll-content.php', 'label' => 'Vérifier que Polylang est actif' ),
 	);

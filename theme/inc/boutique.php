@@ -348,6 +348,28 @@ function morgane_boutique_vitrine_demandee( $query = null ) {
  * veut : une vitrine n'a rien à trier.
  */
 add_action( 'woocommerce_product_query', function ( $query ) {
+	/*
+	 * Polylang continue de filtrer par langue la requête principale d'une
+	 * archive de taxonomie produit, même après le retrait de `product` et
+	 * `product_cat` de ses types traduits (voir install/pll-cpt.php et le
+	 * verrou posé dans inc/produits.php) : `PLL_Query::filter_query()` décide
+	 * s'il faut filtrer en regardant le nom de la taxonomie interrogée, pas si
+	 * elle est encore gérée par Polylang. Résultat vérifié : `/en/product-
+	 * category/prints/` ne trouvait aucune œuvre, alors qu'aucune n'est jamais
+	 * rattachée à l'anglais — toutes vivent en français, texte anglais compris
+	 * dans leurs métas (inc/produits.php).
+	 *
+	 * Même remède que celui déjà posé « par prudence » dans
+	 * `morgane_categorie_terme()` (inc/i18n.php) pour `get_terms()`. L'archive
+	 * française, elle, était déjà filtrée par Polylang sur `lang => 'fr'` —
+	 * mais restait juste, puisque les cinq produits sont tous en français : le
+	 * filtre ne retirait donc rien. Vider `lang` ici ne change rien pour elle,
+	 * seulement pour l'anglais, où il retirait tout.
+	 */
+	if ( is_product_taxonomy() ) {
+		$query->set( 'lang', '' );
+	}
+
 	if ( morgane_boutique_vitrine_demandee( $query ) ) {
 		$query->set( 'post__in', array( 0 ) );
 	}

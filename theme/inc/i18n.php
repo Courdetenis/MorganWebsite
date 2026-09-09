@@ -242,20 +242,24 @@ function morgane_categorie_terme( $slug_fr ) {
 }
 
 /**
- * URL d'une catégorie de produits, dans la langue active.
+ * URL d'une catégorie de produits, dans une langue donnée.
  *
  * `product_cat` n'étant plus une taxonomie traduite par Polylang (voir
  * install/pll-cpt.php), `get_term_link()` rend une adresse sans préfixe de
  * langue — le lien du menu déroulant renvoyait donc toujours vers le site
  * français, y compris depuis une page anglaise. Même remède que pour les
  * pages WooCommerce dans `morgane_wc_page_url()`, repris ici à l'identique :
- * on préfixe par la racine de la langue active, après avoir retiré un
+ * on préfixe par la racine de la langue visée, après avoir retiré un
  * éventuel préfixe d'origine pour ne jamais en empiler deux.
  *
- * @param string $slug_fr Slug français, ex. 'originaux'.
+ * @param string      $slug_fr Slug français, ex. 'originaux'.
+ * @param string|null $lang    Langue visée. Par défaut, la langue active. Le
+ *                             sélecteur de langue s'en sert pour construire
+ *                             l'adresse de la même archive dans l'*autre*
+ *                             langue (voir `morgane_url_courante_dans()`).
  * @return string URL, ou '' si la catégorie n'existe pas (ou pas encore).
  */
-function morgane_categorie_url( $slug_fr ) {
+function morgane_categorie_url( $slug_fr, $lang = null ) {
 	$terme = morgane_categorie_terme( $slug_fr );
 	if ( ! $terme ) {
 		return '';
@@ -268,7 +272,9 @@ function morgane_categorie_url( $slug_fr ) {
 	$url = (string) $url;
 
 	if ( function_exists( 'pll_home_url' ) ) {
-		$lang = morgane_lang();
+		if ( ! $lang ) {
+			$lang = morgane_lang();
+		}
 		$path = wp_make_link_relative( $url );          // « /product-category/originaux/ »
 
 		/*
@@ -326,9 +332,18 @@ function morgane_wc_page_courante() {
 /**
  * L'adresse de la page courante dans une autre langue.
  *
- * Trois cas, dans cet ordre : la traduction de la page si elle existe ; l'une des
- * pages de WooCommerce, que Polylang gratuit ne traduit pas et dont l'adresse se
+ * Dans cet ordre : la fiche produit courante ; l'archive de catégorie
+ * courante ; la traduction de la page si elle existe ; l'une des pages de
+ * WooCommerce, que Polylang gratuit ne traduit pas et dont l'adresse se
  * reconstruit ; l'accueil de la langue en dernier recours.
+ *
+ * Les deux premiers cas existent parce que `product` et `product_cat` ne sont
+ * plus traduits par Polylang (voir install/pll-cpt.php) : `pll_get_post()` ne
+ * rend rien pour une fiche produit, et `morgane_wc_page_courante()` ne connaît
+ * ni les fiches produit ni les archives de catégorie — sans eux, le sélecteur
+ * de langue retombait sur l'accueil de la langue depuis n'importe quelle
+ * œuvre. Vérifié : depuis `/product/aurore-boreale-tirage/`, « EN » menait à
+ * `/en/` plutôt qu'à `/en/product/aurore-boreale-tirage/`.
  *
  * Sert au sélecteur de langue et à la balise x-default, qui doivent répondre la
  * même chose — les faire diverger reviendrait à annoncer à Google une adresse
@@ -337,6 +352,23 @@ function morgane_wc_page_courante() {
  * @param string $langue Code de langue visé.
  */
 function morgane_url_courante_dans( $langue ) {
+	if ( function_exists( 'is_product' ) && is_product() ) {
+		$url = morgane_produit_url( get_queried_object_id(), $langue );
+		if ( $url ) {
+			return $url;
+		}
+	}
+
+	if ( function_exists( 'is_product_taxonomy' ) && is_product_taxonomy() ) {
+		$terme = get_queried_object();
+		if ( $terme instanceof WP_Term ) {
+			$url = morgane_categorie_url( $terme->slug, $langue );
+			if ( $url ) {
+				return $url;
+			}
+		}
+	}
+
 	if ( is_singular() && function_exists( 'pll_get_post' ) ) {
 		$traduite = pll_get_post( get_queried_object_id(), $langue );
 		if ( $traduite ) {

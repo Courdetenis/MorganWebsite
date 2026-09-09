@@ -50,18 +50,19 @@ add_filter( 'hooked_block_types', function ( $hooked_blocks, $position, $anchor_
 	return $hooked_blocks;
 }, 20, 3 );
 
-/**
- * Polylang ne filtre pas les requêtes produits de WooCommerce (l'extension
- * officielle qui le fait est payante). On force la langue courante ici :
- * sans ça, la boutique anglaise liste aussi les produits français.
+/*
+ * Un filtre forçait ici `$args['lang']` à la langue active, pour que le
+ * shortcode [products] ne liste pas aussi les œuvres de l'autre langue.
+ *
+ * Il n'a plus lieu d'être : `product` n'est plus traduit par Polylang (voir
+ * install/pll-cpt.php et le verrou structurel posé dans inc/produits.php), et
+ * toute œuvre vit désormais en français, texte anglais compris dans ses
+ * métas. Le garder aurait été pire qu'inerte : si la case Polylang était
+ * recochée, il aurait demandé les produits « en » sur le site anglais — et
+ * comme aucune œuvre n'est jamais rattachée à cette langue, la boutique
+ * anglaise se serait vidée plutôt que d'afficher les œuvres françaises non
+ * traduites.
  */
-add_filter( 'woocommerce_shortcode_products_query', function ( $args ) {
-	$lang = morgane_lang();
-	if ( $lang && function_exists( 'pll_current_language' ) ) {
-		$args['lang'] = $lang;
-	}
-	return $args;
-} );
 
 add_action( 'wp_enqueue_scripts', function () {
 	$ver = wp_get_theme()->get( 'Version' );

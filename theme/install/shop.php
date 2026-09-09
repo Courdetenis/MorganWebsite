@@ -24,63 +24,59 @@ if ( ! function_exists( 'pll_set_term_language' ) ) {
    1. Catégories produits
    ------------------------------------------------------------------------- */
 
+/*
+ * Une seule catégorie par rayon, en français. `product_cat` n'est plus une
+ * taxonomie traduite par Polylang (voir install/pll-cpt.php et le verrou posé
+ * dans inc/produits.php) : elle n'a donc plus de langue à porter, et il n'y a
+ * plus qu'un terme à créer par rayon.
+ *
+ * Une version antérieure de ce script créait ici un second terme anglais
+ * (« prints-en », « originals ») et le liait au terme français comme
+ * traduction Polylang. Deux termes fantômes en résultaient — jamais rattachés
+ * à la moindre œuvre, invisibles de la boutique, mais bien réels dans
+ * l'éditeur produit : Morgane y voyait quatre rayons à cocher au lieu de deux,
+ * et une œuvre rangée par erreur dans l'un des fantômes n'apparaîtrait dans
+ * aucun rayon de la vitrine. L'anglais du rayon se lit déjà ailleurs :
+ * `morgane_categorie_url()` (inc/i18n.php) donne l'adresse anglaise du même
+ * terme français, et `morgane_rayons_boutique()` (inc/boutique.php) son
+ * libellé anglais.
+ */
 $categories = array(
 	'prints'    => array(
-		'fr' => array(
-			'name'        => 'Prints',
-			'slug'        => 'prints',
-			'description' => 'Tirages d’art imprimés sur papier beaux-arts sans acide, 250 g/m², à l’encre pigmentaire — un rendu mat, des couleurs stables dans le temps. Chaque tirage existe en plusieurs formats.',
-		),
-		'en' => array(
-			'name'        => 'Prints',
-			'slug'        => 'prints-en',
-			'description' => 'Fine art prints on acid-free 250 gsm paper, printed with pigment inks — a matte finish and colours that hold over time. Each print comes in several sizes.',
-		),
+		'name'        => 'Prints',
+		'slug'        => 'prints',
+		'description' => 'Tirages d’art imprimés sur papier beaux-arts sans acide, 250 g/m², à l’encre pigmentaire — un rendu mat, des couleurs stables dans le temps. Chaque tirage existe en plusieurs formats.',
 	),
 	'originaux' => array(
-		'fr' => array(
-			'name'        => 'Originaux',
-			'slug'        => 'originaux',
-			'description' => 'Œuvres originales, pièces uniques. Gouache, aquarelle ou encre sur papier beaux-arts. Chaque œuvre part emballée avec soin, en livraison suivie et assurée, accompagnée de son certificat d’authenticité.',
-		),
-		'en' => array(
-			'name'        => 'Originals',
-			'slug'        => 'originals',
-			'description' => 'Original artworks, one of a kind. Gouache, watercolour or ink on fine art paper. Every piece ships carefully packaged, with tracked and insured delivery, together with its certificate of authenticity.',
-		),
+		'name'        => 'Originaux',
+		'slug'        => 'originaux',
+		'description' => 'Œuvres originales, pièces uniques. Gouache, aquarelle ou encre sur papier beaux-arts. Chaque œuvre part emballée avec soin, en livraison suivie et assurée, accompagnée de son certificat d’authenticité.',
 	),
 );
 
 $cat_ids = array();
 
-foreach ( $categories as $key => $langs ) {
-	foreach ( $langs as $lang => $def ) {
-		$existing = get_term_by( 'slug', $def['slug'], 'product_cat' );
+foreach ( $categories as $key => $def ) {
+	$existing = get_term_by( 'slug', $def['slug'], 'product_cat' );
 
-		if ( $existing ) {
-			$term_id = (int) $existing->term_id;
-			wp_update_term( $term_id, 'product_cat', array( 'description' => $def['description'] ) );
-		} else {
-			$res = wp_insert_term(
-				$def['name'],
-				'product_cat',
-				array( 'slug' => $def['slug'], 'description' => $def['description'] )
-			);
-			if ( is_wp_error( $res ) ) {
-				WP_CLI::warning( $def['slug'] . ' : ' . $res->get_error_message() );
-				continue;
-			}
-			$term_id = (int) $res['term_id'];
-			WP_CLI::log( 'Catégorie créée : ' . $def['slug'] );
+	if ( $existing ) {
+		$term_id = (int) $existing->term_id;
+		wp_update_term( $term_id, 'product_cat', array( 'description' => $def['description'] ) );
+	} else {
+		$res = wp_insert_term(
+			$def['name'],
+			'product_cat',
+			array( 'slug' => $def['slug'], 'description' => $def['description'] )
+		);
+		if ( is_wp_error( $res ) ) {
+			WP_CLI::warning( $def['slug'] . ' : ' . $res->get_error_message() );
+			continue;
 		}
-
-		pll_set_term_language( $term_id, $lang );
-		$cat_ids[ $key ][ $lang ] = $term_id;
+		$term_id = (int) $res['term_id'];
+		WP_CLI::log( 'Catégorie créée : ' . $def['slug'] );
 	}
 
-	if ( ! empty( $cat_ids[ $key ]['fr'] ) && ! empty( $cat_ids[ $key ]['en'] ) ) {
-		pll_save_term_translations( $cat_ids[ $key ] );
-	}
+	$cat_ids[ $key ]['fr'] = $term_id;
 }
 
 /* -------------------------------------------------------------------------
