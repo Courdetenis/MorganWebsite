@@ -452,3 +452,80 @@ function morgane_traduire_groupe_champs( $valeur, $post_id, $cle, $unique ) {
  * temps de relire la méta, ce qu'une fermeture anonyme ne sait pas faire.
  */
 add_filter( 'get_post_metadata', 'morgane_traduire_groupe_champs', MORGANE_PRIORITE_META_WAPF, 4 );
+
+/* -------------------------------------------------------------------------
+   La description des catégories, dans les deux langues.
+   ------------------------------------------------------------------------- */
+
+const MORGANE_META_CAT_DESC_EN = '_morgane_cat_description_en';
+
+/**
+ * Les catégories ne sont plus traduites par Polylang : il n'existe qu'un terme
+ * « Prints », donc qu'une description, écrite en français. Sur le site anglais,
+ * le titre du rayon se traduisait mais son texte d'introduction restait
+ * français, juste en dessous.
+ *
+ * Même principe que pour les produits : l'anglais vit dans une métadonnée du
+ * terme, saisie sur le même écran, et remplace le français à l'affichage. Laissé
+ * vide, le français reste — l'anglais est facultatif rayon par rayon.
+ */
+function morgane_champ_categorie_en( $terme = null ) {
+	$valeur = ( $terme instanceof WP_Term )
+		? get_term_meta( $terme->term_id, MORGANE_META_CAT_DESC_EN, true )
+		: '';
+	?>
+	<tr class="form-field">
+		<th scope="row"><label for="<?php echo esc_attr( MORGANE_META_CAT_DESC_EN ); ?>">Description (EN)</label></th>
+		<td>
+			<textarea id="<?php echo esc_attr( MORGANE_META_CAT_DESC_EN ); ?>"
+				name="<?php echo esc_attr( MORGANE_META_CAT_DESC_EN ); ?>"
+				rows="5" cols="40"><?php echo esc_textarea( (string) $valeur ); ?></textarea>
+			<p class="description">Laissée vide, la description française est affichée aussi sur le site anglais.</p>
+		</td>
+	</tr>
+	<?php
+}
+
+add_action( 'product_cat_edit_form_fields', 'morgane_champ_categorie_en' );
+
+/*
+ * Le formulaire d'ajout n'est pas un tableau : le même balisage y produirait une
+ * ligne de tableau orpheline. On ne l'y met donc pas — une catégorie se décrit
+ * en anglais après sa création, sur l'écran de modification.
+ */
+
+add_action( 'edited_product_cat', function ( $terme_id ) {
+	if ( ! isset( $_POST[ MORGANE_META_CAT_DESC_EN ] ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_product_terms' ) ) {
+		return;
+	}
+	// Le formulaire de terme porte déjà son propre nonce, vérifié par WordPress
+	// avant d'arriver ici.
+	$valeur = wp_kses_post( wp_unslash( $_POST[ MORGANE_META_CAT_DESC_EN ] ) );
+
+	if ( '' === trim( $valeur ) ) {
+		delete_term_meta( $terme_id, MORGANE_META_CAT_DESC_EN );
+	} else {
+		update_term_meta( $terme_id, MORGANE_META_CAT_DESC_EN, $valeur );
+	}
+} );
+
+/**
+ * La description servie au visiteur.
+ *
+ * `term_description` couvre le rendu de WooCommerce comme celui des blocs :
+ * les deux finissent par l'appeler. Le garde-fou d'administration vient de
+ * `morgane_produit_en_actif()` — Morgane doit lire ce qu'elle a saisi.
+ */
+add_filter( 'term_description', function ( $texte, $terme_id = 0, $taxonomie = '' ) {
+	if ( 'product_cat' !== $taxonomie || ! $terme_id || ! morgane_produit_en_actif() ) {
+		return $texte;
+	}
+
+	$en = get_term_meta( (int) $terme_id, MORGANE_META_CAT_DESC_EN, true );
+	$en = is_string( $en ) ? trim( $en ) : '';
+
+	return '' !== $en ? wpautop( $en ) : $texte;
+}, 10, 3 );

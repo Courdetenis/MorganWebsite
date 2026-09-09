@@ -46,15 +46,35 @@ $categories = array(
 		'name'        => 'Prints',
 		'slug'        => 'prints',
 		'description' => 'Tirages d’art imprimés sur papier beaux-arts sans acide, 250 g/m², à l’encre pigmentaire — un rendu mat, des couleurs stables dans le temps. Chaque tirage existe en plusieurs formats.',
+		'description_en' => 'Fine art prints on acid-free 250 gsm paper, pigment ink — a matte finish and colours that hold over time. Each print comes in several sizes.',
 	),
 	'originaux' => array(
 		'name'        => 'Originaux',
 		'slug'        => 'originaux',
 		'description' => 'Œuvres originales, pièces uniques. Gouache, aquarelle ou encre sur papier beaux-arts. Chaque œuvre part emballée avec soin, en livraison suivie et assurée, accompagnée de son certificat d’authenticité.',
+		'description_en' => 'Original works, one of a kind. Gouache, watercolour or ink on fine art paper. Each piece ships carefully packed, tracked and insured, with its certificate of authenticity.',
 	),
 );
 
 $cat_ids = array();
+
+/**
+ * L'anglais du rayon vit dans une métadonnée du terme, comme celui des produits
+ * vit dans une métadonnée de la fiche. Sans elle, le site anglais affichait le
+ * titre traduit — « Prints » — au-dessus d'un texte resté français.
+ *
+ * On ne l'écrase jamais : ce que Morgane a écrit dans l'écran de la catégorie
+ * a toujours raison sur le texte livré ici.
+ */
+function morgane_poser_description_en( $terme_id, $texte ) {
+	if ( ! $texte || ! defined( 'MORGANE_META_CAT_DESC_EN' ) ) {
+		return;
+	}
+	$deja = get_term_meta( $terme_id, MORGANE_META_CAT_DESC_EN, true );
+	if ( '' === trim( (string) $deja ) ) {
+		update_term_meta( $terme_id, MORGANE_META_CAT_DESC_EN, $texte );
+	}
+}
 
 foreach ( $categories as $key => $def ) {
 	$existing = get_term_by( 'slug', $def['slug'], 'product_cat' );
@@ -75,6 +95,8 @@ foreach ( $categories as $key => $def ) {
 		$term_id = (int) $res['term_id'];
 		WP_CLI::log( 'Catégorie créée : ' . $def['slug'] );
 	}
+
+	morgane_poser_description_en( $term_id, isset( $def['description_en'] ) ? $def['description_en'] : '' );
 
 	$cat_ids[ $key ]['fr'] = $term_id;
 }
