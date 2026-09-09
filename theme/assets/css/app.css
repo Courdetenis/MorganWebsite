@@ -1300,6 +1300,23 @@ hr.wp-block-separator.rule:not(.alignwide),
 
 .woocommerce ul.products li.product .button.added { display: none; }
 
+/* Le bouton du bloc « produits associés » (et des ventes croisées), qui n'est
+   pas celui de la grille du thème.
+
+   WooCommerce lui pose `border-style: none` avec trois classes —
+   `.wp-block-button.wc-block-components-product-button .wc-block-components-product-button__button`
+   — là où la règle ci-dessus n'en a que deux. La sienne l'emportait donc : la
+   couleur et la largeur du filet s'appliquaient, mais sans style de trait le
+   navigateur ramène la largeur à zéro. Le bouton n'était plus qu'un texte
+   flottant, sans contour ni fond.
+
+   On reprend exactement sa spécificité, et comme `app.css` est chargée après sa
+   feuille en ligne, c'est la nôtre qui gagne. Une seule propriété est reprise :
+   tout le reste du gabarit vient déjà de la règle ci-dessus. */
+.wp-block-button.wc-block-components-product-button .wc-block-components-product-button__button {
+  border-style: solid;
+}
+
 /* --- En-tête d'archive du gabarit classique -------------------------------
    Le titre, le compte de résultats et le tri sont posés par WooCommerce, pas
    par un bloc : ils n'héritent d'aucun style du thème sans ces règles. */
