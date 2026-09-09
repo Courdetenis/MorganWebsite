@@ -515,6 +515,37 @@ add_action( 'edited_product_cat', function ( $terme_id ) {
 /**
  * La description servie au visiteur.
  *
+ * On filtre l'objet terme lui-même, et non `term_description` : WooCommerce lit
+ * `$term->description` directement dans `woocommerce_taxonomy_archive_description()`,
+ * sans jamais appeler `term_description()`. Un filtre posé là ne servait donc
+ * que la balise meta du module SEO — ce qui avait suffi à tromper ma première
+ * vérification, le texte anglais étant bien dans la page, mais dans le `<head>`.
+ *
+ * `get_term` s'exécute partout, administration comprise : le garde-fou de
+ * `morgane_produit_en_actif()` est ici indispensable, sinon l'écran de la
+ * catégorie afficherait l'anglais dans le champ français et l'enregistrement
+ * l'y recopierait.
+ */
+add_filter( 'get_term', function ( $terme, $taxonomie ) {
+	if ( 'product_cat' !== $taxonomie || ! ( $terme instanceof WP_Term ) || ! morgane_produit_en_actif() ) {
+		return $terme;
+	}
+
+	$en = get_term_meta( $terme->term_id, MORGANE_META_CAT_DESC_EN, true );
+	$en = is_string( $en ) ? trim( $en ) : '';
+
+	if ( '' !== $en ) {
+		$terme->description = $en;
+	}
+
+	return $terme;
+}, 10, 2 );
+
+/**
+ * Et le même texte partout où WordPress, lui, passe bien par ses filtres :
+ * le bloc « description du terme », la balise meta du module SEO, les flux.
+
+ *
  * `term_description` couvre le rendu de WooCommerce comme celui des blocs :
  * les deux finissent par l'appeler. Le garde-fou d'administration vient de
  * `morgane_produit_en_actif()` — Morgane doit lire ce qu'elle a saisi.
