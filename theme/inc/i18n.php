@@ -28,6 +28,28 @@ function morgane_lang() {
 		return (string) $forcee;
 	}
 
+	/*
+	 * Le préfixe de l'adresse fait foi, avant même Polylang.
+	 *
+	 * Boutique, Panier, Commande et Mon compte sont des pages uniques rattachées
+	 * au français : sur `/en/boutique/`, Polylang répond « fr », la langue de la
+	 * page, et tout le thème se traduisait en français sur une adresse anglaise.
+	 * Il en va de même des produits et de leurs catégories depuis qu'ils sont
+	 * sortis de Polylang.
+	 *
+	 * Sur ce site, l'adresse *est* la langue : c'est elle qu'on lit. Le cas ne
+	 * se pose que pour les langues préfixées — le français vit à la racine et
+	 * reste servi par la logique de Polylang.
+	 */
+	if ( ! is_admin() && function_exists( 'morgane_langues_prefixees' ) ) {
+		$chemin = ltrim( (string) wp_parse_url( add_query_arg( array() ), PHP_URL_PATH ), '/' );
+		foreach ( morgane_langues_prefixees() as $prefixe ) {
+			if ( $chemin === $prefixe || 0 === strpos( $chemin, $prefixe . '/' ) ) {
+				return $prefixe;
+			}
+		}
+	}
+
 	if ( function_exists( 'pll_current_language' ) ) {
 		$lang = pll_current_language();
 		if ( $lang ) {

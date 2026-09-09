@@ -80,6 +80,13 @@ if ( is_array( $options ) ) {
 	 * propre — et deux URL pour la même page, c'est du contenu dupliqué.
 	 */
 	$options['redirect_lang'] = true;
+	/*
+	 * Détection de la langue du navigateur : coupée. Laissée active — c'est le
+	 * défaut de l'assistant de Polylang — un visiteur au navigateur anglais
+	 * était redirigé vers /en/ dès l'accueil, alors que le site est français
+	 * par défaut (Loi 96). Il reste libre de basculer par le sélecteur.
+	 */
+	$options['browser'] = 0;
 
 	update_option( 'polylang', $options );
 
@@ -99,6 +106,13 @@ if ( is_array( $options ) ) {
 	$options['force_lang']    = 1;
 	$options['hide_default']  = 1;
 	$options['redirect_lang'] = true;
+	/*
+	 * Détection de la langue du navigateur : coupée. Laissée active — c'est le
+	 * défaut de l'assistant de Polylang — un visiteur au navigateur anglais
+	 * était redirigé vers /en/ dès l'accueil, alors que le site est français
+	 * par défaut (Loi 96). Il reste libre de basculer par le sélecteur.
+	 */
+	$options['browser'] = 0;
 
 	update_option( 'polylang', $options );
 
