@@ -104,4 +104,15 @@ mg_verif( 'product n\'est plus traduisible', ! in_array( 'product', $pt, true ) 
 mg_verif( 'product_cat n\'est plus traduisible', ! in_array( 'product_cat', $tx, true ) );
 mg_verif( 'product_tag n\'est plus traduisible', ! in_array( 'product_tag', $tx, true ) );
 
+// --- 5. Libellés d'options traduits ---------------------------------------
+mg_verif( 'morgane_libelles_options() existe', function_exists( 'morgane_libelles_options' ) );
+
+if ( function_exists( 'morgane_libelles_options' ) ) {
+	$table = morgane_libelles_options();
+	mg_verif(
+		'« Taille » a son équivalent anglais',
+		isset( $table['Taille']['en'] ) && 'Size' === $table['Taille']['en']
+	);
+}
+
 mg_verif_bilan();

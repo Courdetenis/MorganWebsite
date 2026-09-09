@@ -191,3 +191,79 @@ add_filter( 'the_content', function ( $contenu ) {
 
 	return '' !== $en ? wpautop( $en ) : $contenu;
 } );
+
+/**
+ * Les libellés des champs d'option, indexés par leur texte français.
+ *
+ * Une table dans le thème plutôt qu'un écran d'administration : les options
+ * sont des formats de papier, elles changent une fois par an. Si le catalogue
+ * d'options venait à grossir, c'est ici qu'il faudrait passer à des métas
+ * saisies sur le groupe de champs.
+ *
+ * Les formats (A5, A4…) ne figurent pas : ils s'écrivent pareil dans les deux
+ * langues.
+ */
+function morgane_libelles_options() {
+	return array(
+		'Taille'      => array( 'fr' => 'Taille',      'en' => 'Size' ),
+		'Format'      => array( 'fr' => 'Format',      'en' => 'Format' ),
+		'Finition'    => array( 'fr' => 'Finition',    'en' => 'Finish' ),
+		'Encadrement' => array( 'fr' => 'Encadrement', 'en' => 'Framing' ),
+	);
+}
+
+/**
+ * Traduit un libellé d'option, ou le rend tel quel s'il est inconnu.
+ */
+function morgane_libelle_option( $texte ) {
+	$table = morgane_libelles_options();
+
+	return isset( $table[ $texte ] ) ? morgane_t( $table[ $texte ] ) : $texte;
+}
+
+/**
+ * L'extension de champs produit ne propose aucun filtre sur le libellé d'un
+ * champ — seulement sur ses options. On intercepte donc la lecture de la méta
+ * où elle range tout le groupe : un seul point de passage pour le libellé, la
+ * description et les options.
+ *
+ * Le garde-fou `morgane_produit_en_actif()` tient l'administration à l'écart :
+ * l'écran d'édition du groupe doit montrer ce qui est enregistré, sans quoi
+ * enregistrer réécrirait l'anglais par-dessus le français.
+ */
+function morgane_traduire_groupe_champs( $valeur, $post_id, $cle, $unique ) {
+	if ( '_wapf_fieldgroup' !== $cle || ! $unique || ! morgane_produit_en_actif() ) {
+		return $valeur;
+	}
+
+	// On relit sans le filtre, sinon l'appel se rappellerait lui-même.
+	remove_filter( 'get_post_metadata', 'morgane_traduire_groupe_champs', 10 );
+	$groupe = get_post_meta( $post_id, $cle, true );
+	add_filter( 'get_post_metadata', 'morgane_traduire_groupe_champs', 10, 4 );
+
+	if ( ! is_array( $groupe ) || empty( $groupe['fields'] ) || ! is_array( $groupe['fields'] ) ) {
+		return $valeur;
+	}
+
+	foreach ( $groupe['fields'] as $i => $champ ) {
+		if ( isset( $champ['label'] ) ) {
+			$groupe['fields'][ $i ]['label'] = morgane_libelle_option( $champ['label'] );
+		}
+		if ( ! empty( $champ['options'] ) && is_array( $champ['options'] ) ) {
+			foreach ( $champ['options'] as $j => $option ) {
+				if ( isset( $option['label'] ) ) {
+					$groupe['fields'][ $i ]['options'][ $j ]['label'] = morgane_libelle_option( $option['label'] );
+				}
+			}
+		}
+	}
+
+	// `get_post_metadata` attend la valeur emballée dans un tableau.
+	return array( $groupe );
+}
+
+/*
+ * Fonction nommée et non fermeture : le filtre doit se retirer lui-même le
+ * temps de relire la méta, ce qu'une fermeture anonyme ne sait pas faire.
+ */
+add_filter( 'get_post_metadata', 'morgane_traduire_groupe_champs', 10, 4 );
