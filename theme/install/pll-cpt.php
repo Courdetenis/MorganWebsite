@@ -1,8 +1,15 @@
 <?php
 /**
- * Déclare les produits WooCommerce (et leurs taxonomies) traduisibles par Polylang.
- * Sans ça, Polylang n'assigne ni ne filtre les produits par langue :
- * la boutique anglaise afficherait aussi les produits français.
+ * Retire les produits WooCommerce (et leurs taxonomies) des types traduisibles
+ * par Polylang.
+ *
+ * Une œuvre ne doit avoir qu'un seul article, donc un seul stock : la laisser
+ * traduisible ferait exister une fiche française et une fiche anglaise pour la
+ * même pièce, avec chacune son compteur — un original pourrait alors se vendre
+ * deux fois. Les catégories suivent pour la même raison : un produit rattaché
+ * au terme français n'apparaîtrait pas dans l'archive anglaise si elle restait
+ * un terme distinct.
+ *
  * Idempotent.
  */
 
@@ -11,24 +18,28 @@ if ( ! is_array( $opts ) ) {
 	WP_CLI::error( 'Options Polylang inattendues (' . gettype( $opts ) . ').' );
 }
 
-$post_types = isset( $opts['post_types'] ) && is_array( $opts['post_types'] ) ? $opts['post_types'] : array();
-$taxonomies = isset( $opts['taxonomies'] ) && is_array( $opts['taxonomies'] ) ? $opts['taxonomies'] : array();
+/*
+ * Les produits sortent de Polylang : une œuvre = un article = un stock.
+ * Y laisser `product` recréerait deux fiches, donc deux compteurs — et un
+ * original vendu deux fois. Les catégories suivent : un produit rattaché au
+ * terme français n'apparaîtrait pas dans l'archive anglaise.
+ *
+ * Idempotent : on retire ce qui s'y trouve, on ne suppose pas l'état de départ.
+ */
+$retirer_pt = array( 'product' );
+$retirer_tx = array( 'product_cat', 'product_tag' );
 
-foreach ( array( 'product' ) as $pt ) {
-	if ( ! in_array( $pt, $post_types, true ) ) {
-		$post_types[] = $pt;
-	}
-}
-foreach ( array( 'product_cat', 'product_tag' ) as $tax ) {
-	if ( ! in_array( $tax, $taxonomies, true ) ) {
-		$taxonomies[] = $tax;
-	}
-}
+$opts['post_types'] = array_values( array_diff(
+	isset( $opts['post_types'] ) && is_array( $opts['post_types'] ) ? $opts['post_types'] : array(),
+	$retirer_pt
+) );
+$opts['taxonomies'] = array_values( array_diff(
+	isset( $opts['taxonomies'] ) && is_array( $opts['taxonomies'] ) ? $opts['taxonomies'] : array(),
+	$retirer_tx
+) );
 
-$opts['post_types'] = array_values( $post_types );
-$opts['taxonomies'] = array_values( $taxonomies );
 update_option( 'polylang', $opts );
 
-WP_CLI::log( 'post_types : ' . implode( ', ', $opts['post_types'] ) );
-WP_CLI::log( 'taxonomies : ' . implode( ', ', $opts['taxonomies'] ) );
-WP_CLI::success( 'Produits déclarés traduisibles.' );
+WP_CLI::log( 'post_types : ' . ( implode( ', ', $opts['post_types'] ) ?: '(aucun)' ) );
+WP_CLI::log( 'taxonomies : ' . ( implode( ', ', $opts['taxonomies'] ) ?: '(aucune)' ) );
+WP_CLI::success( 'Produits et taxonomies produit retirés de Polylang.' );

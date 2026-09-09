@@ -95,4 +95,13 @@ if ( $echantillon && function_exists( 'morgane_produit_en_actif' ) ) {
 	delete_post_meta( $echantillon, MORGANE_META_NOM_EN );
 }
 
+// --- 4. Produits et taxonomies hors de Polylang ----------------------------
+$opts = get_option( 'polylang' );
+$pt   = isset( $opts['post_types'] ) ? (array) $opts['post_types'] : array();
+$tx   = isset( $opts['taxonomies'] ) ? (array) $opts['taxonomies'] : array();
+
+mg_verif( 'product n\'est plus traduisible', ! in_array( 'product', $pt, true ) );
+mg_verif( 'product_cat n\'est plus traduisible', ! in_array( 'product_cat', $tx, true ) );
+mg_verif( 'product_tag n\'est plus traduisible', ! in_array( 'product_tag', $tx, true ) );
+
 mg_verif_bilan();

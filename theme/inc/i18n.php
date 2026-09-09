@@ -205,15 +205,15 @@ function morgane_shop_url() {
 }
 
 /**
- * URL d'une catégorie de produits, dans la langue active.
+ * Le terme d'un rayon, à partir de son slug français.
  *
- * Contrairement aux pages de WooCommerce, les catégories *sont* traduites par
- * Polylang, même en version gratuite : « prints » a son jumeau « prints-en »,
- * « originaux » le sien. On part donc toujours du slug français — celui qui est
- * écrit en dur dans le thème — et on demande à Polylang son équivalent.
+ * Les catégories ne sont plus traduites par Polylang (voir install/pll-cpt.php) :
+ * il n'existe qu'un terme « prints » et un terme « originaux », partagés par les
+ * deux langues. On part donc toujours du slug français — celui qui est écrit en
+ * dur dans le thème — puisque c'est le seul qui existe.
  *
  * @param string $slug_fr Slug français, ex. 'originaux'.
- * @return WP_Term|null Terme dans la langue active, ou null.
+ * @return WP_Term|null Le terme, ou null s'il n'existe pas.
  */
 function morgane_categorie_terme( $slug_fr ) {
 	if ( ! taxonomy_exists( 'product_cat' ) ) {
@@ -221,11 +221,9 @@ function morgane_categorie_terme( $slug_fr ) {
 	}
 
 	/*
-	 * `get_term_by()` passe par le filtre de langue de Polylang : sous /en/ il
-	 * cherche « prints » parmi les catégories anglaises, dont le slug est
-	 * « prints-en », et ne trouve rien — les deux rayons disparaissaient donc
-	 * de tout le site anglais. On interroge sans filtre (`lang => ''`) pour
-	 * retrouver le terme français, dont on demande ensuite la traduction.
+	 * `lang => ''` reste par prudence : les catégories ne sont plus traduites
+	 * (voir install/pll-cpt.php), mais réactiver la case dans Polylang
+	 * remettrait le filtre de langue et ferait disparaître les deux rayons.
 	 */
 	$termes = get_terms( array(
 		'taxonomy'   => 'product_cat',
@@ -239,16 +237,6 @@ function morgane_categorie_terme( $slug_fr ) {
 	}
 
 	$terme = $termes[0];
-
-	if ( function_exists( 'pll_get_term' ) ) {
-		$traduit = pll_get_term( $terme->term_id, morgane_lang() );
-		if ( $traduit ) {
-			$autre = get_term( $traduit );
-			if ( $autre && ! is_wp_error( $autre ) ) {
-				$terme = $autre;
-			}
-		}
-	}
 
 	return ( $terme instanceof WP_Term ) ? $terme : null;
 }

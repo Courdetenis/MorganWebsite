@@ -442,3 +442,45 @@ function morgane_boutique_vitrine() {
 		esc_html( morgane_t( array( 'fr' => 'Voir tout le catalogue', 'en' => 'Browse everything' ) ) )
 	);
 }
+
+/**
+ * Le nom d'un rayon dans la langue active.
+ *
+ * Les catégories ne sont plus traduites par Polylang : il n'existe qu'un terme
+ * « Originaux », dont le nom doit se lire « Originals » sur le site anglais.
+ * Les libellés viennent de `morgane_rayons_boutique()`, déjà seule source de
+ * vérité pour le menu et la vitrine.
+ */
+function morgane_nom_categorie( $terme ) {
+	if ( ! ( $terme instanceof WP_Term ) ) {
+		return '';
+	}
+
+	foreach ( morgane_rayons_boutique() as $rayon ) {
+		if ( $rayon['slug'] === $terme->slug ) {
+			return morgane_t( $rayon['label'] );
+		}
+	}
+
+	return $terme->name;
+}
+
+/*
+ * `product_cat` est une taxonomie personnalisée, pas la taxonomie native
+ * « category » : `get_the_archive_title()` (titre de l'archive) et le fil
+ * d'Ariane de WooCommerce (`class-wc-breadcrumb.php`) passent donc tous deux
+ * par `single_term_title()`, qui applique le filtre `single_term_title` — pas
+ * `single_cat_title`, réservé à la taxonomie « category ». Un seul filtre
+ * couvre donc les deux affichages. On ne touche pas à `get_term` lui-même : il
+ * s'exécute dans l'administration comme ailleurs, et Morgane doit y lire le nom
+ * qu'elle a saisi.
+ */
+add_filter( 'single_term_title', function ( $titre ) {
+	if ( is_admin() || ! is_tax( 'product_cat' ) ) {
+		return $titre;
+	}
+
+	$terme = get_queried_object();
+
+	return ( $terme instanceof WP_Term ) ? morgane_nom_categorie( $terme ) : $titre;
+} );
