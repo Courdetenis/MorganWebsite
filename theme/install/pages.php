@@ -252,15 +252,23 @@ foreach ( array( 'fr', 'en' ) as $lang ) {
 		$urls[ $lang ][ '{{' . $key . '}}' ] = $pair[ $lang ] ? get_permalink( $pair[ $lang ] ) : home_url( '/' );
 	}
 
-	// Boutique WooCommerce : Polylang gratuit ne la traduit pas, on retombe
-	// sur la page boutique unique si la traduction n'existe pas.
-	$shop = function_exists( 'wc_get_page_id' ) ? wc_get_page_id( 'shop' ) : 0;
-	if ( $shop > 0 ) {
-		$translated = pll_get_post( $shop, $lang );
-		$shop       = $translated ? $translated : $shop;
-		$urls[ $lang ]['{{shop}}'] = get_permalink( $shop );
+	/*
+	 * Boutique WooCommerce : page unique, que Polylang gratuit ne traduit pas.
+	 *
+	 * Surtout, on ne passe pas par `get_permalink()` : il rend l'adresse dans la
+	 * langue à laquelle la page est *rattachée*, pas dans celle qu'on vise. Une
+	 * page Boutique rattachée à l'anglais donnait donc « /en/boutique/ » aux
+	 * deux langues — et l'accueil français renvoyait ses visiteurs sur le site
+	 * anglais. Constaté en production.
+	 *
+	 * `morgane_wc_page_url()` retire le préfixe d'origine avant de poser celui
+	 * de la langue visée : c'est précisément ce qu'elle sait faire.
+	 */
+	if ( function_exists( 'morgane_wc_page_url' ) ) {
+		$urls[ $lang ]['{{shop}}'] = morgane_wc_page_url( 'shop', $lang );
 	} else {
-		$urls[ $lang ]['{{shop}}'] = home_url( '/' );
+		$shop = function_exists( 'wc_get_page_id' ) ? wc_get_page_id( 'shop' ) : 0;
+		$urls[ $lang ]['{{shop}}'] = $shop > 0 ? get_permalink( $shop ) : home_url( '/' );
 	}
 }
 
