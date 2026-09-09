@@ -330,8 +330,26 @@ function morgane_produit_url( $id, $lang = null ) {
 }
 
 /**
- * Le résumé court, affiché sous le prix sur la fiche.
+ * Le résumé court, partout où il est lu.
+ *
+ * Deux filtres et non un, parce que deux chemins mènent à ce texte et qu'un
+ * seul passe par WooCommerce. Le gabarit de fiche du thème est en blocs : c'est
+ * `core/post-excerpt` qui affiche le résumé, et il lit `get_the_excerpt()`,
+ * jamais `$produit->get_short_description()`. Sans le second filtre, le
+ * visiteur anglais voyait le résumé français sous le prix — vérifié.
  */
+add_filter( 'get_the_excerpt', function ( $texte, $post = null ) {
+	$id = ( $post instanceof WP_Post ) ? $post->ID : 0;
+
+	if ( ! $id || 'product' !== get_post_type( $id ) || ! morgane_produit_en_actif() ) {
+		return $texte;
+	}
+
+	$en = morgane_texte_en( $id, MORGANE_META_RESUME_EN );
+
+	return '' !== $en ? $en : $texte;
+}, 10, 2 );
+
 add_filter( 'woocommerce_product_get_short_description', function ( $texte, $produit ) {
 	if ( ! morgane_produit_en_actif() ) {
 		return $texte;
