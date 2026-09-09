@@ -33,7 +33,7 @@ function morgane_install_steps() {
 		array( 'id' => 'pll-setup',   'file' => 'pll-setup.php',   'label' => 'Créer les langues (français, anglais)' ),
 		array( 'id' => 'pll-cpt',     'file' => 'pll-cpt.php',     'label' => 'Rendre les produits traduisibles' ),
 		array( 'id' => 'pll-assign',  'file' => 'pll-assign.php',  'label' => 'Assigner le français aux contenus existants' ),
-		array( 'id' => 'pll-content', 'file' => 'pll-content.php', 'label' => 'Traduire les produits existants' ),
+		array( 'id' => 'pll-content', 'file' => 'pll-content.php', 'label' => 'Vérifier que Polylang est actif' ),
 	);
 
 	$i = 0;

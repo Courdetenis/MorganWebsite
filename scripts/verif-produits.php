@@ -25,6 +25,32 @@ function mg_verif_bilan() {
 	return $echecs;
 }
 
+/**
+ * Joue $rappel avec la méta $cle du post $post_id mise à $valeur, puis remet
+ * exactement ce qui existait avant.
+ *
+ * Depuis la migration, ce banc tourne sur de vrais produits (il n'y a plus de
+ * fiches de démonstration) : il ne doit jamais laisser une méta dans un état
+ * différent de celui où il l'a trouvée, même rejoué plusieurs fois de suite.
+ * On distingue « absente » de « vide » avec metadata_exists() — une simple
+ * comparaison à '' confondrait les deux et écrirait une chaîne vide là où il
+ * n'y avait rien.
+ */
+function mg_avec_meta_temporaire( $post_id, $cle, $valeur, $rappel ) {
+	$existait = metadata_exists( 'post', $post_id, $cle );
+	$avant    = $existait ? get_post_meta( $post_id, $cle, true ) : null;
+
+	update_post_meta( $post_id, $cle, $valeur );
+
+	$rappel();
+
+	if ( $existait ) {
+		update_post_meta( $post_id, $cle, $avant );
+	} else {
+		delete_post_meta( $post_id, $cle );
+	}
+}
+
 // --- 1. Un seul article par œuvre -----------------------------------------
 $produits = get_posts( array(
 	'post_type'   => 'product',
@@ -53,16 +79,16 @@ mg_verif(
 );
 
 if ( function_exists( 'morgane_texte_en' ) && $echantillon ) {
-	update_post_meta( $echantillon, MORGANE_META_NOM_EN, 'Northern Lights — print' );
-	mg_verif(
-		'Le nom anglais se relit',
-		'Northern Lights — print' === morgane_texte_en( $echantillon, MORGANE_META_NOM_EN )
-	);
-	mg_verif(
-		'Une méta absente rend une chaîne vide',
-		'' === morgane_texte_en( $echantillon, MORGANE_META_RESUME_EN )
-	);
-	delete_post_meta( $echantillon, MORGANE_META_NOM_EN );
+	mg_avec_meta_temporaire( $echantillon, MORGANE_META_NOM_EN, 'Northern Lights — print', function () use ( $echantillon ) {
+		mg_verif(
+			'Le nom anglais se relit',
+			'Northern Lights — print' === morgane_texte_en( $echantillon, MORGANE_META_NOM_EN )
+		);
+		mg_verif(
+			'Une méta absente rend une chaîne vide',
+			'' === morgane_texte_en( $echantillon, MORGANE_META_RESUME_EN )
+		);
+	} );
 }
 
 // --- 3. Le nom bascule selon la langue ------------------------------------
@@ -70,29 +96,28 @@ mg_verif( 'morgane_produit_en_actif() existe', function_exists( 'morgane_produit
 
 if ( $echantillon && function_exists( 'morgane_produit_en_actif' ) ) {
 	$fr_nom = get_post_field( 'post_title', $echantillon );
-	update_post_meta( $echantillon, MORGANE_META_NOM_EN, 'Test EN name' );
 
-	// En ligne de commande la langue vaut 'fr' : le nom français doit sortir.
-	$produit = wc_get_product( $echantillon );
-	mg_verif(
-		'En français, le nom reste le nom saisi',
-		$fr_nom === $produit->get_name(),
-		$produit->get_name()
-	);
+	mg_avec_meta_temporaire( $echantillon, MORGANE_META_NOM_EN, 'Test EN name', function () use ( $echantillon, $fr_nom ) {
+		// En ligne de commande la langue vaut 'fr' : le nom français doit sortir.
+		$produit = wc_get_product( $echantillon );
+		mg_verif(
+			'En français, le nom reste le nom saisi',
+			$fr_nom === $produit->get_name(),
+			$produit->get_name()
+		);
 
-	// On force l'anglais par le filtre prévu pour ça.
-	$forcer_en = function () { return 'en'; };
-	add_filter( 'morgane_langue_forcee', $forcer_en );
-	wp_cache_flush();
-	$produit = wc_get_product( $echantillon );
-	mg_verif(
-		'En anglais, le nom anglais prend la place',
-		'Test EN name' === $produit->get_name(),
-		$produit->get_name()
-	);
-	remove_filter( 'morgane_langue_forcee', $forcer_en );
-
-	delete_post_meta( $echantillon, MORGANE_META_NOM_EN );
+		// On force l'anglais par le filtre prévu pour ça.
+		$forcer_en = function () { return 'en'; };
+		add_filter( 'morgane_langue_forcee', $forcer_en );
+		wp_cache_flush();
+		$produit = wc_get_product( $echantillon );
+		mg_verif(
+			'En anglais, le nom anglais prend la place',
+			'Test EN name' === $produit->get_name(),
+			$produit->get_name()
+		);
+		remove_filter( 'morgane_langue_forcee', $forcer_en );
+	} );
 }
 
 // --- 4. Produits et taxonomies hors de Polylang ----------------------------

@@ -7,9 +7,12 @@
  * Polylang. Rejouable sans dommage : une fois les fiches anglaises parties,
  * il n'y a plus rien à replier.
  *
- * Aucune commande n'existe sur ces fiches (vérifié le 2026-09-08) : la
- * suppression est sans conséquence sur l'historique. Le script s'arrête
- * néanmoins si une commande en référence une, plutôt que d'effacer en silence.
+ * Aucune commande ne portait sur ces fiches au moment de la migration
+ * (constat de Morgane, 2026-09-08) : la suppression n'a donc touché aucun
+ * historique de commande. Ce script ne le vérifie pas lui-même — il n'y a
+ * aucun contrôle de commande dans le code ci-dessous. Qui le rejoue ailleurs,
+ * sur un jeu de données différent, doit s'assurer au préalable qu'aucune
+ * commande ne référence les fiches anglaises visées.
  */
 
 if ( ! function_exists( 'pll_get_post_language' ) ) {
