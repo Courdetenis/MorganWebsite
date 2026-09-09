@@ -467,13 +467,18 @@ function morgane_nom_categorie( $terme ) {
 
 /*
  * `product_cat` est une taxonomie personnalisée, pas la taxonomie native
- * « category » : `get_the_archive_title()` (titre de l'archive) et le fil
- * d'Ariane de WooCommerce (`class-wc-breadcrumb.php`) passent donc tous deux
- * par `single_term_title()`, qui applique le filtre `single_term_title` — pas
- * `single_cat_title`, réservé à la taxonomie « category ». Un seul filtre
- * couvre donc les deux affichages. On ne touche pas à `get_term` lui-même : il
- * s'exécute dans l'administration comme ailleurs, et Morgane doit y lire le nom
- * qu'elle a saisi.
+ * « category » : `get_the_archive_title()` (titre de l'archive) passe par
+ * `single_term_title()`, qui applique le filtre `single_term_title` — pas
+ * `single_cat_title`, réservé à la taxonomie « category ». On ne touche pas à
+ * `get_term` lui-même : il s'exécute dans l'administration comme ailleurs, et
+ * Morgane doit y lire le nom qu'elle a saisi.
+ *
+ * Le fil d'Ariane de WooCommerce, lui, NE passe PAS par `single_term_title()` :
+ * `WC_Breadcrumb::add_crumbs_product_category()` (`class-wc-breadcrumb.php`)
+ * lit `$current_term->name` directement. Une phrase antérieure de ce
+ * commentaire affirmait le contraire — c'était faux, vérifié dans le source de
+ * l'extension. Le fil réclame donc son propre filtre, posé plus bas sur
+ * `woocommerce_get_breadcrumb`.
  */
 add_filter( 'single_term_title', function ( $titre ) {
 	if ( is_admin() || ! is_tax( 'product_cat' ) ) {
@@ -483,4 +488,43 @@ add_filter( 'single_term_title', function ( $titre ) {
 	$terme = get_queried_object();
 
 	return ( $terme instanceof WP_Term ) ? morgane_nom_categorie( $terme ) : $titre;
+} );
+
+/**
+ * Le nom de la catégorie dans le fil d'Ariane.
+ *
+ * Un second filtre sur `woocommerce_get_breadcrumb`, plutôt qu'une extension
+ * de celui qui traduit la miette de la page Boutique plus haut : les deux
+ * repèrent leur miette par un critère différent (une page WooCommerce unique,
+ * par son adresse ou son libellé brut ; ici, un terme de taxonomie, par la
+ * page couramment affichée) et n'ont rien d'autre en commun. Les mélanger
+ * ferait porter à une même fonction deux responsabilités sans rapport. Les
+ * deux filtres reçoivent et renvoient le même tableau l'un après l'autre :
+ * ils cohabitent sans se défaire.
+ *
+ * On reconnaît la miette par son libellé brut (le nom du terme, tel que
+ * `WC_Breadcrumb` l'a posé) plutôt que par son adresse : sur l'archive de la
+ * catégorie, cette miette désigne la page courante et porte pourtant un lien
+ * (contrairement à celle de la boutique) — comparer les libellés est donc à
+ * la fois suffisant et plus simple ici.
+ */
+add_filter( 'woocommerce_get_breadcrumb', function ( $miettes ) {
+	if ( ! is_tax( 'product_cat' ) ) {
+		return $miettes;
+	}
+
+	$terme = get_queried_object();
+	if ( ! ( $terme instanceof WP_Term ) ) {
+		return $miettes;
+	}
+
+	$brut = $terme->name;
+
+	foreach ( $miettes as $i => $miette ) {
+		if ( isset( $miette[0] ) && $miette[0] === $brut ) {
+			$miettes[ $i ][0] = morgane_nom_categorie( $terme );
+		}
+	}
+
+	return $miettes;
 } );

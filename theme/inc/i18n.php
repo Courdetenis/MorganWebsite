@@ -244,6 +244,14 @@ function morgane_categorie_terme( $slug_fr ) {
 /**
  * URL d'une catégorie de produits, dans la langue active.
  *
+ * `product_cat` n'étant plus une taxonomie traduite par Polylang (voir
+ * install/pll-cpt.php), `get_term_link()` rend une adresse sans préfixe de
+ * langue — le lien du menu déroulant renvoyait donc toujours vers le site
+ * français, y compris depuis une page anglaise. Même remède que pour les
+ * pages WooCommerce dans `morgane_wc_page_url()`, repris ici à l'identique :
+ * on préfixe par la racine de la langue active, après avoir retiré un
+ * éventuel préfixe d'origine pour ne jamais en empiler deux.
+ *
  * @param string $slug_fr Slug français, ex. 'originaux'.
  * @return string URL, ou '' si la catégorie n'existe pas (ou pas encore).
  */
@@ -254,8 +262,36 @@ function morgane_categorie_url( $slug_fr ) {
 	}
 
 	$url = get_term_link( $terme );
+	if ( is_wp_error( $url ) ) {
+		return '';
+	}
+	$url = (string) $url;
 
-	return is_wp_error( $url ) ? '' : (string) $url;
+	if ( function_exists( 'pll_home_url' ) ) {
+		$lang = morgane_lang();
+		$path = wp_make_link_relative( $url );          // « /product-category/originaux/ »
+
+		/*
+		 * `product_cat` n'étant plus géré par Polylang, le terme n'a a priori
+		 * aucune langue source et `pll_get_term_language()` ne renverrait
+		 * rien à retirer. On garde tout de même le retrait, par symétrie avec
+		 * `morgane_wc_page_url()` et par prudence si Polylang venait à
+		 * reposer un préfixe malgré tout.
+		 */
+		if ( function_exists( 'pll_get_term_language' ) ) {
+			$source = pll_get_term_language( $terme->term_id );
+			if ( $source ) {
+				$racine = wp_make_link_relative( morgane_lang_root( $source ) );
+				if ( '/' !== $racine && 0 === strpos( $path, $racine ) ) {
+					$path = '/' . substr( $path, strlen( $racine ) );
+				}
+			}
+		}
+
+		$url = untrailingslashit( morgane_lang_root( $lang ) ) . $path;
+	}
+
+	return $url;
 }
 
 /**
