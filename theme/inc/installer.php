@@ -521,6 +521,20 @@ function morgane_install_page() {
 			</button>
 		</p>
 
+		<h2>Fiches produit anglaises</h2>
+		<p style="max-width:42em">
+			Avant la version 0.11, chaque œuvre existait en deux fiches — une par
+			langue — avec deux stocks séparés. Ce bouton replie le texte anglais
+			dans la fiche française, puis supprime les doublons.
+			<strong>À jouer une seule fois.</strong> Les commandes déjà passées
+			ne sont pas touchées.
+		</p>
+		<p>
+			<button type="button" class="button button-secondary" id="morgane-migrer">
+				Replier les fiches anglaises
+			</button>
+		</p>
+
 		<h2>Traductions</h2>
 		<p style="max-width:42em">
 			Si la boutique ou la page « Mon compte » s’affichent en anglais, c’est
@@ -630,6 +644,16 @@ function morgane_install_page() {
 				lancer(etapes.filter(function (e) { return e.id === 'langues'; }), boutonLangues);
 			});
 		}
+
+		var boutonMigrer = document.getElementById('morgane-migrer');
+		if (boutonMigrer) {
+			boutonMigrer.addEventListener('click', function () {
+				if (!window.confirm('Replier les fiches anglaises dans les françaises, puis les supprimer ?\n\nÀ ne faire qu\'une fois.')) {
+					return;
+				}
+				lancer([{ id: 'migrer', label: 'Replier les fiches anglaises' }], boutonMigrer);
+			});
+		}
 	})();
 	</script>
 	<?php
@@ -660,6 +684,14 @@ add_action( 'admin_post_morgane_install_step', function () {
 			break;
 		}
 	}
+
+	// La migration ne figure pas dans `morgane_install_steps()` : elle ne doit
+	// jamais partir avec le bouton d'installation, qui est rejouable et sans
+	// effet destructeur.
+	if ( ! $etape && 'migrer' === $demande ) {
+		$etape = array( 'id' => 'migrer', 'file' => 'migrer-produits.php', 'label' => 'Replier les fiches anglaises' );
+	}
+
 	if ( ! $etape ) {
 		wp_send_json_error( array( 'message' => 'Étape inconnue : ' . $demande ) );
 	}
