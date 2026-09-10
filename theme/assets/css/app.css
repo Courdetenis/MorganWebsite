@@ -419,7 +419,6 @@ input, textarea, select { box-sizing: border-box; }
     border: 0; border-radius: 0; background: none; box-shadow: none;
     backdrop-filter: none; -webkit-backdrop-filter: none;
   }
-  .menu__sub a { padding-left: 1.7rem; font-size: .92em; opacity: .85; }
 }
 
 /* Vitrine de la boutique : les deux rayons, puis le catalogue entier en retrait
@@ -1716,6 +1715,30 @@ hr.wp-block-separator.rule:not(.alignwide),
     font-size: 1.1rem; white-space: normal;
   }
   .menu__list a::after { left: .75rem; bottom: .4rem; }
+
+  /* Les rayons de la boutique, en retrait sous « Boutique ».
+
+     Ce style vit ici et non avec le reste du déroulant, plus haut : la règle
+     `.menu__list a` de ce bloc pose un `padding` complet, à spécificité égale
+     et plus loin dans le fichier. Elle écrasait le retrait, et les rayons
+     s'alignaient sur les entrées principales — rien ne disait plus qu'ils
+     appartenaient à la Boutique.
+
+     Un filet vertical en plus du retrait : à lui seul, le décalage se lit mal
+     sur un menu déjà aéré. */
+  .menu__sub {
+    margin-left: .75rem;
+    padding-left: .9rem;
+    border-left: 1px solid var(--wp--preset--color--line);
+  }
+  .menu__sub a {
+    padding-left: .5rem;
+    font-size: .95rem;
+    opacity: .8;
+  }
+  .menu__sub a:hover,
+  .menu__sub a[aria-current="page"] { opacity: 1; }
+
   .menu__list a:hover::after,
   .menu__list a[aria-current="page"]::after { right: calc(100% - 2.2rem); }
   .menu__aside {
