@@ -578,6 +578,28 @@ input, textarea, select { box-sizing: border-box; }
    8. Hero — mise en scène « aurore »
    --------------------------------------------------------- */
 .hero { position: relative; overflow: clip; isolation: isolate; display: grid; align-content: center; }
+
+/* Le bandeau d'accueil, un cran moins haut.
+
+   Sa hauteur est posée en style en ligne dans le contenu de la page (84vh) :
+   seul `!important` peut la reprendre, et c'est ce qui évite de régénérer les
+   pages pour un réglage d'affichage.
+
+   Ciblé sur l'accueil, et pas sur `.hero` en général : les pages Contact,
+   Retours et Confidentialité ont un bandeau court (44vh) qu'une règle commune
+   allongerait au lieu de le réduire. */
+body.home .hero { min-height: 66vh !important; }
+@media (max-width: 1279px) { body.home .hero { min-height: 62vh !important; } }
+@media (max-width: 720px) {
+  /* Sur téléphone la hauteur minimale ne commande plus : le contenu — titre sur
+     trois lignes, accroche, deux boutons empilés — dépasse déjà 58vh. Le seul
+     levier restant est le rembourrage, posé lui aussi en style en ligne. */
+  body.home .hero {
+    min-height: 58vh !important;
+    padding-top: 3rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+}
 /* « L'atelier » reprend exactement la mise en scène du hero. Les sélecteurs sont
    mutualisés plutôt que recopiés : une seule définition, donc les deux sections
    ne peuvent pas diverger au prochain réglage. La section garde en revanche sa
@@ -619,7 +641,9 @@ input, textarea, select { box-sizing: border-box; }
    elle occuperait cinq lignes et pousserait tout le reste hors de l'écran. */
 .hero h1 {
   margin: 0; text-wrap: balance; max-width: 20ch;
-  font-size: clamp(2.1rem, 4.4vw, 3.5rem);
+  /* Échelle resserrée : à 3,5 rem l'accroche d'accueil occupait deux lignes
+     pleine largeur et poussait tout le reste sous la ligne de flottaison. */
+  font-size: clamp(1.85rem, 3.8vw, 2.9rem);
 }
 .hero__lede { margin: 0; max-width: 46ch; text-wrap: pretty; color: var(--wp--preset--color--ink-soft); }
 .hero .wp-block-buttons { margin-top: .5rem; }
