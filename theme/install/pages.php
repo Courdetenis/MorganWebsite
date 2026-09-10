@@ -600,7 +600,13 @@ function mg_section( $eyebrow, $title, $inner ) {
  * déjà dans la page, il ne s'agit que de les mettre en mouvement.
  */
 function mg_marquee( array $words ) {
-	$span = '<span>' . implode( '</span><span>', array_merge( $words, $words ) ) . '</span>';
+	/*
+	 * Une seule série. Les mots étaient doublés du temps où le bandeau
+	 * défilait : la boucle CSS avait besoin de deux séries pour se recoudre
+	 * sans saut. Le bandeau est immobile depuis, et sur un écran large les
+	 * deux séries tenaient en entier — on lisait la même liste deux fois.
+	 */
+	$span = '<span>' . implode( '</span><span>', $words ) . '</span>';
 	return '<!-- wp:html -->' . "\n"
 		. '<div class="color-band alignfull" aria-hidden="true"><div class="marquee">' . $span . '</div></div>' . "\n"
 		. '<!-- /wp:html -->';
@@ -761,7 +767,7 @@ function mg_content( $key, $lang ) {
 			$words = $fr
 				? array( 'Illustration', 'Peinture', 'Murales', 'Montréal', 'Gouache', 'Sur mesure' )
 				: array( 'Illustration', 'Painting', 'Murals', 'Montreal', 'Gouache', 'Custom work' );
-			$marquee = '<span>' . implode( '</span><span>', array_merge( $words, $words ) ) . '</span>';
+			$marquee = '<span>' . implode( '</span><span>', $words ) . '</span>';  // une seule série, voir mg_marquee()
 
 			return implode( "\n\n", array(
 

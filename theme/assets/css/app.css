@@ -814,24 +814,33 @@ body.home .hero { min-height: 66vh !important; }
 .section-head h2 { margin: 0; }
 
 /* Bandeau couleur défilant */
-/* Banderole défilante — masquée le temps de juger la page sans elle.
-   Elle est posée sur trois pages : l'accueil, Portfolio et À propos. Le
-   balisage reste dans le contenu : retirer cette seule ligne la fait revenir,
-   sans toucher aux pages ni les régénérer. */
-.color-band { display: none; }
+/* Bandeau de mots-clés. Immobile, et teinté depuis la palette du site.
 
-.color-band { background: var(--grad-aurora); overflow: hidden; }
+   Il défilait sur un dégradé à cinq teintes qui ne ressemblait à rien d'autre
+   dans la page. Le fond se compose maintenant à partir des jetons du thème :
+   une pointe de blush dans le papier. Comme `blush`, `paper` et `ink`
+   s'inversent déjà entre le mode clair et le mode sombre, le bandeau suit sans
+   qu'on ait à écrire deux palettes — discret sur crème, discret sur prune.
+
+   Les mots restent doublés dans le contenu, héritage de la boucle défilante.
+   Sans animation ils forment un ruban centré que le bandeau rogne de part et
+   d'autre : la répétition ne se voit pas, et le ruban paraît courir au-delà de
+   l'écran plutôt que s'arrêter net. */
+.color-band {
+  background: color-mix(in srgb, var(--wp--preset--color--blush) 12%, var(--wp--preset--color--paper));
+  border-block: 1px solid var(--hairline);
+  overflow: hidden;
+}
 .color-band .marquee {
-  display: flex; align-items: center; gap: 2.5rem;
-  white-space: nowrap; width: max-content;
-  animation: marquee 30s linear infinite;
+  display: flex; align-items: center; justify-content: center; gap: 2.5rem;
+  white-space: nowrap; width: 100%;
   font-family: var(--wp--preset--font-family--heading);
-  color: #432026; font-size: clamp(1.15rem, 2.6vw, 1.9rem); font-weight: 500;
-  padding: .95rem 0;
+  color: var(--wp--preset--color--ink);
+  font-size: clamp(1rem, 2vw, 1.45rem); font-weight: 500;
+  padding: .8rem 0;
 }
 .color-band .marquee span { display: inline-flex; align-items: center; gap: 2.5rem; }
-.color-band .marquee span::after { content: "✦"; opacity: .55; font-size: .7em; }
-@keyframes marquee { to { transform: translateX(-50%); } }
+.color-band .marquee span::after { content: "✦"; opacity: .4; font-size: .7em; }
 
 /* Repère visuel léger entre deux blocs de texte long.
    `:not(.alignwide)` et le nom de balise ne sont pas décoratifs : la feuille du
@@ -2128,7 +2137,8 @@ hr.wp-block-separator.rule:not(.alignwide),
   html { scroll-behavior: auto; }
   .hero::before,
   .atelier::before,
-  .color-band .marquee,
+  /* Le bandeau de mots-clés ne figure plus ici : il n'a plus d'animation, et
+     cette règle l'aurait vidé de son texte pour qui réduit les animations. */
   .menu__panel,
   /* Le reflet ne descend plus : il resterait figé en haut du trait, ce qui ne
      voudrait rien dire. On ne garde que le cheveu. */

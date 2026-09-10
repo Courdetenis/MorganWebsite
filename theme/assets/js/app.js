@@ -172,6 +172,26 @@
   });
 
   /* -------------------------------------------------------
+     2 quater. Bandeau de mots-clés : retirer la série en double
+     Les pages créées avant que le bandeau cesse de défiler portent leurs mots
+     deux fois — la boucle CSS avait besoin de deux séries pour se recoudre.
+     Immobile, la liste se lit désormais en entier sur un écran large, et la
+     répétition se voit. `install/pages.php` n'en écrit plus qu'une ; ceci
+     rattrape les pages déjà en base, sans exiger de les régénérer, et ne fait
+     rien une fois qu'elles le sont.
+     ------------------------------------------------------- */
+  document.querySelectorAll('.color-band .marquee').forEach(function (ruban) {
+    var mots = Array.prototype.slice.call(ruban.children);
+    var moitie = mots.length / 2;
+    if (mots.length < 2 || mots.length % 2 !== 0) return;
+
+    for (var i = 0; i < moitie; i++) {
+      if (mots[i].textContent !== mots[i + moitie].textContent) return;
+    }
+    for (var j = moitie; j < mots.length; j++) mots[j].remove();
+  });
+
+  /* -------------------------------------------------------
      3. En-tête : fond givré au défilement
      ------------------------------------------------------- */
   var header = document.querySelector('.site-header');
