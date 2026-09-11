@@ -305,7 +305,39 @@ function morgane_render_artworks( $attrs ) {
 	 * à l'anglais.
 	 */
 
-	$query = new WP_Query( $args );
+	/*
+	 * Les œuvres mises en avant d'abord.
+	 *
+	 * Morgane choisit ce que l'accueil montre en cochant l'étoile « Mis en
+	 * avant » d'un produit — le drapeau que WooCommerce prévoit exactement pour
+	 * ça. Pas de catégorie « Accueil » supplémentaire : elle s'afficherait sur
+	 * la fiche de l'œuvre, dans son fil d'Ariane et dans la liste des rayons de
+	 * l'éditeur, pour un choix qui ne regarde que la page d'accueil.
+	 *
+	 * S'il y a des œuvres mises en avant, la grille ne montre que celles-là.
+	 * S'il n'y en a aucune, elle retombe sur les dernières publiées : l'accueil
+	 * ne se vide jamais parce qu'on a oublié de cocher une étoile.
+	 */
+	$query = null;
+	if ( function_exists( 'wc_get_product_visibility_term_ids' ) ) {
+		$termes = wc_get_product_visibility_term_ids();
+		if ( ! empty( $termes['featured'] ) ) {
+			$en_avant = $args;
+			$en_avant['tax_query'][] = array(
+				'taxonomy' => 'product_visibility',
+				'field'    => 'term_taxonomy_id',
+				'terms'    => (int) $termes['featured'],
+			);
+			$query = new WP_Query( $en_avant );
+			if ( ! $query->have_posts() ) {
+				$query = null;
+			}
+		}
+	}
+	if ( null === $query ) {
+		$query = new WP_Query( $args );
+	}
+
 	if ( ! $query->have_posts() ) {
 		wp_reset_postdata();
 		return '';
