@@ -476,7 +476,7 @@ function mg_hero( $eyebrow, $title, array $lede, array $buttons, array $photo = 
 	// tout ce qui est dans le hero, qui a sa propre ouverture.
 	foreach ( $floats as $i => $float ) {
 		$html .= '<figure class="art-float art-float--' . ( 0 === $i ? 'left' : 'right' ) . '">'
-			. mg_photo( $float[0], $float[1], 'medium_large', true, '210px' )
+			. mg_photo( $float[0], $float[1], 'medium_large', true, '(max-width: 1099px) 32vw, 19vw' )
 			. '</figure>' . "\n";
 	}
 	$html .= '<!-- /wp:html -->' . "\n";
@@ -791,7 +791,7 @@ function mg_content( $key, $lang ) {
 							: 'Gouache illustration: an antique mirror at the top of a stone staircase, in an enchanted forest',
 						'medium_large',
 						true,
-						'210px'
+						'(max-width: 1099px) 32vw, 19vw'
 					)
 					. '</figure>' . "\n"
 					. '<figure class="art-float art-float--right">'
@@ -802,7 +802,7 @@ function mg_content( $key, $lang ) {
 							: 'Children’s illustration: a bear cub climbing a ladder to light a streetlamp in a snowy town',
 						'medium_large',
 						true,
-						'210px'
+						'(max-width: 1099px) 32vw, 19vw'
 					)
 					. '</figure>' . "\n"
 					. '<!-- /wp:html -->' . "\n"

@@ -335,12 +335,47 @@
     // explicitement tout ce qui est dans le hero, et une apparition au
     // défilement n'aurait de toute façon aucun sens au-dessus de la ligne de
     // flottaison — le déclencheur serait déjà passé au chargement.
-    var heroRest  = gsap.utils.toArray('.hero .art-float, .hero .hero__media, .hero__eyebrow, .hero__lede, .hero p, .hero .wp-block-buttons, .hero .scroll-cue');
+    var heroRest  = gsap.utils.toArray('.hero .hero__media, .hero__eyebrow, .hero__lede, .hero p, .hero .wp-block-buttons, .hero .scroll-cue');
+    var flotGauche = document.querySelector('.hero .art-float--left');
+    var flotDroite = document.querySelector('.hero .art-float--right');
 
-    if (heroWords.length || heroRest.length) {
+    if (heroWords.length || heroRest.length || flotGauche || flotDroite) {
       var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
       if (heroWords.length) tl.from(heroWords, { yPercent: 60, opacity: 0, duration: 0.7, stagger: 0.06 });
       if (heroRest.length)  tl.from(heroRest, { opacity: 0, y: 26, duration: 0.6, stagger: 0.12 }, '-=0.35');
+
+      /* Les deux œuvres entrent par leur côté, avec un léger dépassement
+         (`back.out`) qui les fait se poser plutôt qu'apparaître. `x`, `y` et
+         `scale` seulement : la rotation reste à la propriété CSS `rotate`,
+         indépendante de `transform`, que GSAP ne touche donc pas. */
+      if (flotGauche) tl.from(flotGauche, { xPercent: -70, yPercent: 18, scale: .82, opacity: 0, duration: 1.15, ease: 'back.out(1.5)' }, '-=0.9');
+      if (flotDroite) tl.from(flotDroite, { xPercent: 70, yPercent: -18, scale: .82, opacity: 0, duration: 1.15, ease: 'back.out(1.5)' }, '<0.18');
+
+      /* Une fois posées, elles respirent : un lent va-et-vient vertical, les
+         deux à des rythmes différents pour ne jamais se synchroniser. */
+      tl.add(function () {
+        if (flotGauche) gsap.to(flotGauche, { y: '+=14', duration: 3.4, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+        if (flotDroite) gsap.to(flotDroite, { y: '-=12', duration: 4.1, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+      });
+    }
+
+    /* Parallaxe à la souris, sur le seul axe horizontal — le vertical est déjà
+       occupé par la respiration ci-dessus. Réservé aux appareils qui ont un
+       curseur : sur tactile, il n'y aurait rien à suivre. */
+    var hero = document.querySelector('.hero');
+    if (hero && (flotGauche || flotDroite) && window.matchMedia('(hover: hover)').matches) {
+      var versG = flotGauche ? gsap.quickTo(flotGauche, 'x', { duration: .9, ease: 'power3' }) : null;
+      var versD = flotDroite ? gsap.quickTo(flotDroite, 'x', { duration: .9, ease: 'power3' }) : null;
+      hero.addEventListener('mousemove', function (e) {
+        var r = hero.getBoundingClientRect();
+        var dx = (e.clientX - r.left) / r.width - 0.5;   // -0.5 à gauche, +0.5 à droite
+        if (versG) versG(dx * -28);
+        if (versD) versD(dx * -28);
+      });
+      hero.addEventListener('mouseleave', function () {
+        if (versG) versG(0);
+        if (versD) versD(0);
+      });
     }
 
     gsap.utils.toArray(REVEAL).forEach(function (el) {

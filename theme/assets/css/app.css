@@ -732,9 +732,50 @@ body.home .hero { min-height: 66vh !important; }
    indépendantes, elles se composent sans se marcher dessus. */
 .art-float--left  { left: clamp(1rem, 5vw, 5rem); top: 15%; rotate: -5deg; }
 .art-float--right { right: clamp(1rem, 5vw, 5rem); bottom: 15%; rotate: 4deg; }
-/* Sous 1100 px, les 720 px de texte ne laissent plus assez de marge : les deux
-   œuvres viendraient mordre sur les mots. */
-@media (max-width: 1099px) { .art-float { display: none; } }
+
+/* Dans le bandeau d'ouverture, les deux œuvres prennent de l'ampleur : c'est
+   la première chose qu'on voit en arrivant, elles doivent s'imposer. Un reflet
+   diagonal les fait vivre comme des tirages sous verre. La colonne de texte
+   passe devant : à cette taille, un coin d'œuvre peut passer sous un mot. */
+.hero .art-float {
+  width: clamp(190px, 19vw, 310px);
+  box-shadow: var(--shadow-lift);
+  z-index: 0;
+  transition: box-shadow .5s var(--ease-out);
+}
+.hero .art-float::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(115deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,0) 38%, rgba(255,255,255,0) 62%, rgba(255,255,255,.14) 100%);
+  mix-blend-mode: soft-light; pointer-events: none;
+}
+.hero .art-float--left  { left: clamp(.5rem, 3.5vw, 4rem); top: 12%; rotate: -7deg; }
+.hero .art-float--right { right: clamp(.5rem, 3.5vw, 4rem); bottom: 10%; rotate: 6deg; }
+.hero__inner, .hero-split { position: relative; z-index: 1; }
+
+/* Sous 1100 px, les œuvres de « L'atelier » disparaissent : ses 720 px de texte
+   ne laissent plus de marge, elles mordraient sur les mots. */
+@media (max-width: 1099px) { .atelier .art-float { display: none; } }
+
+/* Dans le bandeau, elles restent — plus petites, en coin, à moitié sorties de
+   l'écran, derrière le texte. Sans elles, l'accueil sur téléphone n'était que
+   des mots et deux boutons : la première impression se joue là aussi. Un léger
+   assombrissement garde le texte lisible là où un coin passe dessous. */
+@media (max-width: 1099px) {
+  .hero .art-float {
+    width: clamp(120px, 30vw, 170px);
+    filter: brightness(.82) saturate(.95);
+  }
+  .hero .art-float--left  { left: -9%; top: 5%; rotate: -10deg; }
+  .hero .art-float--right { right: -9%; bottom: 6%; rotate: 8deg; }
+}
+@media (max-width: 480px) {
+  .hero .art-float { width: clamp(110px, 32vw, 140px); }
+  .hero .art-float--left  { left: -12%; top: 4%; }
+  /* Plus bas que sur tablette : à cette largeur les deux boutons s'empilent
+     et descendent jusqu'au bas du bandeau. Placée là, l'œuvre passait sous
+     le bouton contour, visible au travers ; elle pointe désormais sous lui. */
+  .hero .art-float--right { right: -12%; bottom: -12%; }
+}
 
 /* Image d'accueil, en bandeau large. */
 /* Les photos d'accueil et d'À propos sont des portraits 3:4 : le cadre reprend
