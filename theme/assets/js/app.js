@@ -172,24 +172,112 @@
   });
 
   /* -------------------------------------------------------
-     2 quater. Bandeau de mots-clés : retirer la série en double
-     Les pages créées avant que le bandeau cesse de défiler portent leurs mots
-     deux fois — la boucle CSS avait besoin de deux séries pour se recoudre.
-     Immobile, la liste se lit désormais en entier sur un écran large, et la
-     répétition se voit. `install/pages.php` n'en écrit plus qu'une ; ceci
-     rattrape les pages déjà en base, sans exiger de les régénérer, et ne fait
-     rien une fois qu'elles le sont.
+     2 quater. Bandeau de mots-clés : le mettre en marche s'il déborde
+     Sur grand écran la liste tient en entier et reste immobile. Sur téléphone
+     elle est plus large que l'écran, et le bandeau en coupait les deux bouts :
+     là, et là seulement, elle défile. Le CSS ne sait pas mesurer, d'où ce
+     calcul ici — il pose la classe, double la série de mots (la boucle a
+     besoin de deux séries pour se recoudre sans saut) et donne la durée.
      ------------------------------------------------------- */
-  document.querySelectorAll('.color-band .marquee').forEach(function (ruban) {
-    var mots = Array.prototype.slice.call(ruban.children);
-    var moitie = mots.length / 2;
-    if (mots.length < 2 || mots.length % 2 !== 0) return;
+  var VITESSE_RUBAN = 35;   // pixels par seconde — l'allure du bandeau
+  var moinsDeMouvement = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    for (var i = 0; i < moitie; i++) {
-      if (mots[i].textContent !== mots[i + moitie].textContent) return;
+  var rubans = Array.prototype.map.call(
+    document.querySelectorAll('.color-band .marquee'),
+    function (ruban) {
+      var mots = Array.prototype.slice.call(ruban.children);
+
+      /*
+       * Les pages créées avant septembre portent leurs mots deux fois : la
+       * boucle d'alors avait besoin de deux séries, et `install/pages.php`
+       * n'en écrit plus qu'une depuis. On repart d'une série unique dans les
+       * deux cas — c'est le clone plus bas qui la redouble, au besoin. Aucune
+       * page n'a donc à être régénérée.
+       */
+      var moitie = mots.length / 2;
+      if (mots.length >= 2 && mots.length % 2 === 0) {
+        var enDouble = true;
+        for (var i = 0; i < moitie; i++) {
+          if (mots[i].textContent !== mots[i + moitie].textContent) { enDouble = false; break; }
+        }
+        if (enDouble) {
+          for (var j = moitie; j < mots.length; j++) mots[j].remove();
+          mots = mots.slice(0, moitie);
+        }
+      }
+
+      return { bande: ruban.parentNode, ruban: ruban, serie: mots };
     }
-    for (var j = moitie; j < mots.length; j++) mots[j].remove();
-  });
+  );
+
+  var reglerRuban = function (r) {
+    if (!r.serie.length) return;
+
+    // Retour à la série seule : c'est la seule mise en page où la mesure veut
+    // dire quelque chose, et celle qu'on garde si les mots tiennent.
+    r.bande.classList.remove('is-defilant');
+    while (r.ruban.children.length > r.serie.length) {
+      r.ruban.removeChild(r.ruban.lastChild);
+    }
+
+    // Qui demande moins d'animations lit le bandeau sur plusieurs lignes
+    // (feuille de style, § 16) : pas de mouvement, et surtout pas de série en
+    // double, qui lui ferait lire deux fois la même liste.
+    if (moinsDeMouvement.matches) return;
+
+    /*
+     * `getBoundingClientRect()` plutôt que `scrollWidth` : immobile, le ruban
+     * est centré, et un débordement centré déborde des deux côtés — la partie
+     * gauche échappe à `scrollWidth`, qui annoncerait que tout tient. Les
+     * rectangles, eux, donnent la position réelle même hors du cadre.
+     */
+    var gauche = r.serie[0].getBoundingClientRect().left;
+    var droite = r.serie[r.serie.length - 1].getBoundingClientRect().right;
+    if (droite - gauche <= r.bande.clientWidth) return;   // ça tient : rien à faire
+
+    r.serie.forEach(function (mot) { r.ruban.appendChild(mot.cloneNode(true)); });
+    r.bande.classList.add('is-defilant');
+
+    // Une durée par bandeau, tirée de sa largeur : les trois pages qui en
+    // portent un n'ont pas le même nombre de mots, et une durée fixe les ferait
+    // défiler à trois vitesses. Un tour = une série, soit la moitié du ruban.
+    var duree = r.ruban.scrollWidth / 2 / VITESSE_RUBAN;
+    r.ruban.style.setProperty('--marquee-duree', duree.toFixed(1) + 's');
+  };
+
+  if (rubans.length) {
+    var largeurConnue = -1;
+    var majRubans = function () {
+      /*
+       * Seule la largeur nous concerne. Sur mobile, la barre d'adresse qui se
+       * replie au défilement change la hauteur et déclenche un `resize` : sans
+       * ce garde-fou, l'animation repartirait de zéro à chaque fois.
+       */
+      if (root.clientWidth === largeurConnue) return;
+      largeurConnue = root.clientWidth;
+      rubans.forEach(reglerRuban);
+    };
+
+    majRubans();
+    window.addEventListener('resize', majRubans);
+
+    /*
+     * Les titres sont dans une police auto-hébergée. Tant qu'elle n'est pas
+     * arrivée, les mots sont mesurés dans la police de secours, plus étroite :
+     * un bandeau limite se croirait à l'aise. On remesure à son arrivée.
+     */
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        largeurConnue = -1;
+        majRubans();
+      });
+    }
+
+    // La préférence « moins d'animations » se change sans recharger la page.
+    if (moinsDeMouvement.addEventListener) {
+      moinsDeMouvement.addEventListener('change', function () { rubans.forEach(reglerRuban); });
+    }
+  }
 
   /* -------------------------------------------------------
      3. En-tête : fond givré au défilement

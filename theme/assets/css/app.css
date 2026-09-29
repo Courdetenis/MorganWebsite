@@ -855,7 +855,8 @@ body.home .hero { min-height: 66vh !important; }
 .section-head h2 { margin: 0; }
 
 /* Bandeau couleur défilant */
-/* Bandeau de mots-clés. Immobile, et teinté depuis la palette du site.
+/* Bandeau de mots-clés. Teinté depuis la palette du site, et immobile tant que
+   ses mots tiennent dans la largeur.
 
    Il défilait sur un dégradé à cinq teintes qui ne ressemblait à rien d'autre
    dans la page. Le fond se compose maintenant à partir des jetons du thème :
@@ -863,12 +864,18 @@ body.home .hero { min-height: 66vh !important; }
    s'inversent déjà entre le mode clair et le mode sombre, le bandeau suit sans
    qu'on ait à écrire deux palettes — discret sur crème, discret sur prune.
 
-   Les mots restent doublés dans le contenu, héritage de la boucle défilante.
-   Sans animation ils forment un ruban centré que le bandeau rogne de part et
-   d'autre : la répétition ne se voit pas, et le ruban paraît courir au-delà de
-   l'écran plutôt que s'arrêter net. */
+   Sur grand écran la liste tient en entier : elle reste centrée et immobile.
+   Sur téléphone elle est plus large que l'écran, et le bandeau en coupait les
+   deux bouts — c'est le seul cas que le mouvement corrige. `app.js` mesure et
+   ne met en marche que les bandeaux qui débordent ; c'est lui aussi qui double
+   la série de mots, et qui pose `--marquee-duree` pour que les trois pages qui
+   portent un bandeau (accueil, Portfolio, À propos) défilent à la même allure
+   malgré leurs 6, 4 et 7 mots. */
 .color-band {
-  background: color-mix(in srgb, var(--wp--preset--color--blush) 12%, var(--wp--preset--color--paper));
+  /* Nommé : les fondus des bords, plus bas, reprennent exactement ce fond. */
+  --fond-bandeau: color-mix(in srgb, var(--wp--preset--color--blush) 12%, var(--wp--preset--color--paper));
+  position: relative;
+  background: var(--fond-bandeau);
   border-block: 1px solid var(--hairline);
   overflow: hidden;
 }
@@ -882,6 +889,40 @@ body.home .hero { min-height: 66vh !important; }
 }
 .color-band .marquee span { display: inline-flex; align-items: center; gap: 2.5rem; }
 .color-band .marquee span::after { content: "✦"; opacity: .4; font-size: .7em; }
+
+/* En mouvement. Le ruban reprend sa largeur naturelle — deux séries, posées
+   par `app.js` — et glisse d'exactement une série : à mi-course, la seconde
+   occupe la place qu'avait la première, et la boucle se referme sans saut.
+
+   L'écart entre les mots passe de `gap` à une marge portée par chaque mot, la
+   dernière comprise. Avec `gap`, deux séries de n mots comptent 2n-1 écarts :
+   la moitié de cette largeur tombe une demi-marge trop tôt, et la boucle
+   sautait d'autant à chaque tour. En marges, les deux moitiés sont identiques
+   au pixel près. La marge ne s'applique qu'ici : immobile, une marge finale
+   décentrerait le ruban. */
+.color-band.is-defilant .marquee {
+  justify-content: flex-start; width: max-content; gap: 0;
+  animation: marquee var(--marquee-duree, 30s) linear infinite;
+}
+.color-band.is-defilant .marquee span { margin-right: 2.5rem; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Les mots ne se coupent plus net contre le bord de l'écran : ils s'y fondent.
+   Invisible à l'arrêt, un raccord franc se remarque dès que ça bouge.
+
+   Deux voiles du fond du bandeau, et non un `mask-image` sur le bandeau
+   lui-même : le masque aurait emporté avec lui les filets d'un pixel du haut
+   et du bas, qui se seraient éteints à trois centimètres de chaque bord. Les
+   pseudo-éléments se posent dans la boîte, les filets restent entiers. */
+.color-band.is-defilant::before,
+.color-band.is-defilant::after {
+  /* Large sur un écran d'ordinateur, mesuré sur un téléphone : 3 rem fixes y
+     auraient voilé un huitième du bandeau de chaque côté. */
+  content: ""; position: absolute; top: 0; bottom: 0; width: clamp(1.5rem, 5vw, 3rem);
+  pointer-events: none;
+}
+.color-band.is-defilant::before { left: 0;  background: linear-gradient(90deg,  var(--fond-bandeau), transparent); }
+.color-band.is-defilant::after  { right: 0; background: linear-gradient(270deg, var(--fond-bandeau), transparent); }
 
 /* Repère visuel léger entre deux blocs de texte long.
    `:not(.alignwide)` et le nom de balise ne sont pas décoratifs : la feuille du
@@ -2174,12 +2215,20 @@ hr.wp-block-separator.rule:not(.alignwide),
   html { scroll-behavior: auto; }
   .hero::before,
   .atelier::before,
-  /* Le bandeau de mots-clés ne figure plus ici : il n'a plus d'animation, et
-     cette règle l'aurait vidé de son texte pour qui réduit les animations. */
+  /* Le bandeau de mots-clés ne figure pas dans cette liste : elle l'aurait vidé
+     de son texte. Il se règle juste en dessous. */
   .menu__panel,
   /* Le reflet ne descend plus : il resterait figé en haut du trait, ce qui ne
      voudrait rien dire. On ne garde que le cheveu. */
   .scroll-cue::after { animation: none !important; opacity: 0; }
+
+  /* Le bandeau de mots-clés se déplie sur plusieurs lignes au lieu de défiler.
+     Sans quoi ses derniers mots resteraient coupés par le bord de l'écran sur
+     téléphone — ce que le mouvement corrige ailleurs, et qui ne doit pas être
+     le prix à payer pour qui demande moins d'animations. `app.js` lit la même
+     préférence et s'abstient alors de doubler la série de mots. */
+  .color-band .marquee { flex-wrap: wrap; white-space: normal; row-gap: .4rem; }
+
   *, *::before, *::after {
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;

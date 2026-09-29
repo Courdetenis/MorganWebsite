@@ -168,7 +168,7 @@ fois dans `scripts/pages.php` et posé en CSS dans `theme/assets/css/app.css` :
 | Brique | Ce qu'elle fait |
 |---|---|
 | `mg_hero()` | Bandeau d'ouverture pleine largeur : fond « aurore » animé, formes floues en parallaxe, accroche manuscrite, h1 découpé en mots à l'entrée. Deux formes — image et texte côte à côte, ou texte centré entre deux œuvres flottantes. |
-| `mg_marquee()` | Bandeau de mots défilant, en dégradé pleine largeur. |
+| `mg_marquee()` | Bandeau de mots-clés pleine largeur, teinté depuis la palette. Immobile tant que les mots tiennent dans la largeur ; il défile lentement là où ils débordent, faute de quoi le téléphone en coupait les deux bouts. La mesure se fait dans `app.js` — le CSS ne sait pas mesurer. |
 | `mg_atelier()` | Section respiration : titre centré en colonne étroite, deux œuvres qui flottent de part et d'autre, sur le même fond que le hero. |
 | `mg_quote()` | Une phrase de Morgane sortie du texte courant, en grand et dans la police manuscrite. |
 | `mg_tags()` | Rangée de pastilles manuscrites, pour des mots-clés tirés du texte. |
