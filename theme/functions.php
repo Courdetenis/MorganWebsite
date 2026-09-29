@@ -17,6 +17,7 @@ require_once get_theme_file_path( 'inc/forms.php' );
 require_once get_theme_file_path( 'inc/contact.php' );
 require_once get_theme_file_path( 'inc/securite.php' );
 require_once get_theme_file_path( 'inc/boutique.php' );
+require_once get_theme_file_path( 'inc/devise.php' );
 
 // L'installateur ne sert qu'à l'administration : inutile de le charger sur le
 // site public, où personne ne peut l'atteindre.

@@ -213,6 +213,11 @@ deuxième endroit où écrire.
 - La qualité du papier, les matériaux et le certificat d'authenticité sont
   écrits **une fois** dans la description de catégorie — pas recopiés dans
   chaque fiche.
+- Les prix disent leur devise, dans la forme de la langue : « 45,00 $ CA »
+  en français, « CA$45.00 » en anglais (`theme/inc/devise.php`). Quatre
+  filtres à la source (symbole, position, séparateurs), parce que le panier et
+  la commande sont des blocs qui formatent côté navigateur à partir du Store
+  API. Dans wp-admin, Morgane saisit toujours les prix avec un point.
 
 ### Gestion du toggle FR / EN
 

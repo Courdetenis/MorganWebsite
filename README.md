@@ -59,6 +59,7 @@ menu attend, l'envoi de courriel, les en-têtes HTTP.
   - `inc/blocks.php` — menu, bascule de langue, bascule de thème, grille
     d'œuvres, contenu de la page 404.
   - `inc/forms.php` — les trois formulaires.
+  - `inc/devise.php` — les prix disent « $ CA » / « CA$ », selon la langue.
   - `assets/fonts/` et `assets/js/vendor/` — polices et GSAP, **auto-hébergés**.
     Rien n'est chargé depuis un CDN : les scripts du thème s'exécutent aussi sur
     le panier et la page de commande, et une adresse IP de visiteur n'a pas à
