@@ -89,8 +89,24 @@ main ne peut que diverger.
 
 ### 3. Le thème
 
-`Apparence > Thèmes > Ajouter > Téléverser un thème` → le zip, puis **Activer**.
-Environ 600 Ko : polices et GSAP compris, aucune dépendance externe.
+Fabriquer le zip depuis le dépôt :
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/faire-zip.ps1
+```
+
+Il sort dans `dist/`, numéroté d'après la version lue dans `theme/style.css`.
+Environ 700 Ko : polices et GSAP compris, aucune dépendance externe.
+
+**Ne pas le faire à la main avec `tar`.** `tar -a -cf morgane.zip theme` écrit
+une archive *tar* sous un nom en « .zip » — bsdtar, livré avec Windows, ignore
+l'extension. Rien ne se voit : le fichier pèse le poids attendu et s'ouvre dans
+l'explorateur, mais WordPress le refuse avec « Archive incompatible ». Le
+script passe par le compresseur de .NET et vérifie la signature du fichier
+avant de le rendre.
+
+Puis `Apparence > Thèmes > Ajouter > Téléverser un thème` → le zip, puis
+**Activer**.
 
 ### 4. Les photos
 

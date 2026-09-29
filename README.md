@@ -64,7 +64,8 @@ menu attend, l'envoi de courriel, les en-têtes HTTP.
     Rien n'est chargé depuis un CDN : les scripts du thème s'exécutent aussi sur
     le panier et la page de commande, et une adresse IP de visiteur n'a pas à
     partir chez Google (Loi 25).
-- `scripts/` — installation reproductible, tous idempotents.
+- `scripts/` — installation reproductible, tous idempotents. `faire-zip.ps1`
+  fabrique le zip du thème à téléverser (voir `docs/deploiement.md`).
 - `pictures/` — photos d'origine, en JPEG pleine résolution. Elles ne sont pas
   servies telles quelles : `scripts/media.php` les convertit en WebP (2000 px de
   plus grand côté) et les importe dans la médiathèque.
