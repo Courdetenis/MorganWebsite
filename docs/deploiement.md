@@ -131,7 +131,7 @@ donnent.
 verts, cliquer.
 
 Trente et une étapes s'enchaînent, **une par requête** : langues, produits
-traduisibles, les vingt-trois photos une à une, les quatorze pages dans les deux
+traduisibles, les vingt-trois photos une à une, les quinze pages dans les deux
 langues, la boutique, les réglages. Progression et journal à l'écran.
 
 C'est **rejouable** : un second passage ne duplique rien et n'écrase aucune page

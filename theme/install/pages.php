@@ -71,6 +71,7 @@ $tree = array(
 	 * Même raison que `works` pour le portfolio.
 	 */
 	'contact'        => array( 'fr' => array( 'contact', 'Contact' ), 'en' => array( 'contact-us', 'Contact' ) ),
+	'terms'          => array( 'fr' => array( 'conditions-generales-de-vente', 'Conditions générales de vente' ), 'en' => array( 'terms-and-conditions', 'Terms and conditions of sale' ) ),
 	'returns'        => array( 'fr' => array( 'retours-et-remboursements', 'Retours et remboursements' ), 'en' => array( 'returns-and-refunds', 'Returns and refunds' ) ),
 	'privacy'        => array( 'fr' => array( 'confidentialite', 'Politique de confidentialité' ), 'en' => array( 'privacy', 'Privacy policy' ) ),
 );
@@ -653,7 +654,7 @@ function mg_band( $title, $inner ) {
 }
 
 /**
- * Pages de conditions : contact, retours, confidentialité.
+ * Pages de conditions : contact, conditions de vente, retours, confidentialité.
  *
  * Une colonne, alignée à gauche, sur une mesure de lecture. On n'emploie pas
  * `mg_band()` ici : celle-ci met le titre dans un rail et le texte en regard,
@@ -669,12 +670,13 @@ function mg_legal( $inner ) {
 }
 
 /**
- * Une section : son titre, puis son contenu, dans le fil.
+ * Une section : son titre, puis son contenu, dans le fil. Sans titre, c'est un
+ * préambule : il garde la mesure de lecture des sections qui le suivent.
  */
 function mg_legal_part( $title, $inner ) {
 	return '<!-- wp:group {"className":"legal__part","layout":{"type":"default"}} -->' . "\n"
 		. '<div class="wp-block-group legal__part">' . "\n"
-		. mg_h2( $title ) . "\n" . $inner . "\n"
+		. ( '' !== $title ? mg_h2( $title ) . "\n" : '' ) . $inner . "\n"
 		. '</div>' . "\n" . '<!-- /wp:group -->';
 }
 
@@ -1584,16 +1586,30 @@ function mg_content( $key, $lang ) {
 				),
 			) );
 
-		/* ------------------------------------------ Retours, remboursements */
-		case 'returns':
+		/* ------------------------------------ Conditions générales de vente */
+		case 'terms':
+			/*
+			 * Le texte de Morgane, repris tel quel à quelques corrections près.
+			 * Le domaine n'est pas écrit en dur : il est lu sur le serveur qui
+			 * génère la page, et ne peut donc pas désigner un autre site que
+			 * celui où l'on achète.
+			 *
+			 * La date est celle de la version du texte, pas celle de la
+			 * génération : les conditions d'une commande sont celles affichées
+			 * au moment où elle est confirmée (section 12). À changer à la main
+			 * avec le texte.
+			 */
+			$domaine = preg_replace( '/^www\./', '', (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+
 			return implode( "\n\n", array(
 				mg_hero(
 					$fr ? 'Avant d’acheter' : 'Before you buy',
-					$fr ? 'Retours et remboursements' : 'Returns and refunds',
+					$fr ? 'Conditions générales de vente' : 'Terms and conditions of sale',
 					array(
 						$fr
-							? 'Pas d’échange, de retour ou de remboursement possible, sauf en cas de casse ou d’erreur d’envoi.'
-							: 'No exchanges, returns, or refunds are possible, except in case of breakage or shipping error.',
+							? 'Les présentes conditions générales de vente s’appliquent à tout achat effectué sur le site ' . $domaine . ', exploité par Morgane Cachia.'
+							: 'These Terms and Conditions of Sale apply to all purchases made on the website ' . $domaine . ', operated by Morgane Cachia.',
+						$fr ? 'Dernière mise à jour : 29 septembre 2026' : 'Last updated: September 29, 2026',
 					),
 					array(),   // pas de bouton
 					array(),   // pas de photo
@@ -1602,6 +1618,333 @@ function mg_content( $key, $lang ) {
 				),
 				mg_legal(
 					mg_legal_part(
+						'',
+						mg_p(
+							$fr
+								? 'En passant une commande, le client reconnaît avoir lu et expressément accepté les présentes conditions générales de vente, telles qu’affichées sur le site au moment de la confirmation du paiement. Cette acceptation se matérialise par le clic sur le bouton de confirmation de commande, après validation d’une case à cocher à cet effet.'
+								: 'By placing an order, the customer acknowledges having read and expressly accepted these Terms and Conditions of Sale as displayed on the website at the time payment is confirmed. This acceptance is completed by clicking the order confirmation button after selecting the relevant checkbox.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'La présente entente est rédigée en français. En cas de traduction dans une autre langue, la version française prévaut en cas de contradiction ou d’ambiguïté.'
+								: 'This agreement is drafted in French. If it is translated into another language, the French version prevails in the event of any discrepancy or ambiguity.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '1. Produits' : '1. Products',
+						mg_p(
+							$fr
+								? 'La boutique vend notamment des œuvres originales, impressions, illustrations, objets artistiques et produits réalisés en collaboration.'
+								: 'The shop sells, in particular, original artworks, prints, illustrations, art objects, and products created in collaboration with others.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Les dimensions, couleurs et textures peuvent légèrement varier selon l’écran utilisé. Les œuvres et objets réalisés à la main peuvent aussi présenter de petites variations qui ne constituent pas un défaut.'
+								: 'Dimensions, colours, and textures may vary slightly depending on the screen used. Handmade artworks and objects may also have minor variations, which do not constitute defects.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Les informations essentielles concernant chaque produit (format, matériaux, dimensions, options et disponibilité) sont indiquées dans sa fiche descriptive.'
+								: 'The essential information concerning each product — including its format, materials, dimensions, options, and availability — is provided in the product description.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '2. Prix et taxes' : '2. Prices and taxes',
+						mg_p(
+							$fr
+								? 'Les prix sont indiqués en dollars canadiens, sauf indication contraire.'
+								: 'Prices are shown in Canadian dollars unless otherwise indicated.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Les taxes applicables et les frais de livraison sont ajoutés ou affichés avant la confirmation du paiement. Les prix peuvent être modifiés à tout moment, mais ces modifications ne s’appliquent pas aux commandes déjà confirmées.'
+								: 'Applicable taxes and shipping fees are added or displayed before payment is confirmed. Prices may be changed at any time; however, such changes do not apply to orders that have already been confirmed.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Pour toute commande expédiée hors du Canada, les droits de douane, taxes d’importation et autres frais exigés par les autorités du pays de destination sont entièrement à la charge du client, sans exception. La boutique n’a aucune visibilité sur ces montants, qui varient selon le pays et la nature des produits. Il appartient au client de vérifier la réglementation d’importation en vigueur dans son pays avant de passer commande. Aucun remboursement ne sera accordé en cas de refus de dédouanement ou de non-retrait du colis imputable au client.'
+								: 'For any order shipped outside Canada, customs duties, import taxes, and any other fees required by the authorities of the destination country are entirely the customer’s responsibility, without exception. The shop has no control over or visibility into these amounts, which vary depending on the country and the nature of the products. Customers are responsible for checking the import regulations in force in their country before placing an order. No refund will be issued if customs clearance is refused or if the parcel is not collected for reasons attributable to the customer.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '3. Commandes et paiement' : '3. Orders and payment',
+						mg_p(
+							$fr
+								? 'Le client doit fournir des renseignements exacts, notamment son nom, son adresse courriel et son adresse de livraison.'
+								: 'The customer must provide accurate information, including their name, email address, and shipping address.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Une commande est confirmée une fois le paiement accepté. Un courriel de confirmation est alors envoyé au client.'
+								: 'An order is confirmed once payment has been accepted. A confirmation email is then sent to the customer.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Les paiements sont traités par Stripe, selon les modes proposés sur le site.'
+								: 'Payments are processed by Stripe, using the payment methods offered on the website.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Si un produit devient indisponible ou si une erreur importante s’est glissée dans sa description ou son prix, la boutique peut annuler la commande concernée et rembourser intégralement le montant payé.'
+								: 'If a product becomes unavailable or if a significant error appears in its description or price, the shop may cancel the relevant order and issue a full refund of the amount paid.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '4. Préparation et livraison' : '4. Processing and delivery',
+						mg_p(
+							$fr
+								? 'Le délai de préparation varie selon le type de produit :'
+								: 'Processing times vary depending on the type of product:'
+						)
+						. "\n\n" . mg_bullets( $fr ? array(
+							'<strong>Produit en stock</strong> : 1 à 7 jours ouvrables ;',
+							'<strong>Impression à produire</strong> : 5 à 15 jours ouvrables ;',
+							'<strong>Commande personnalisée</strong> (murale, collaboration) : délai convenu dans le devis.',
+						) : array(
+							'<strong>In-stock product:</strong> 1 to 7 business days;',
+							'<strong>Print made to order:</strong> 5 to 15 business days;',
+							'<strong>Custom order</strong>, including murals and collaborations: timeframe agreed upon in the quotation.',
+						) )
+						. "\n\n" . mg_p(
+							$fr
+								? 'Ces délais sont indicatifs et s’entendent hors temps de transport. En cas de délai inhabituellement long, la boutique en informera le client par courriel.'
+								: 'These timeframes are estimates and do not include shipping time. In the event of an unusually long delay, the shop will notify the customer by email.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Les délais de transport dépendent du transporteur. La boutique ne peut être tenue responsable des retards causés par le transporteur, les douanes, les conditions météorologiques ou un événement indépendant de sa volonté.'
+								: 'Shipping times depend on the carrier. The shop cannot be held responsible for delays caused by the carrier, customs authorities, weather conditions, or events beyond its reasonable control.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Le client est responsable de l’exactitude de son adresse. Des frais peuvent être demandés pour une nouvelle expédition lorsque l’adresse fournie est erronée ou incomplète.'
+								: 'The customer is responsible for ensuring that their shipping address is accurate. Additional fees may be charged for reshipping when the address provided is incorrect or incomplete.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '5. Retours et remboursements' : '5. Returns and refunds',
+						mg_p(
+							$fr
+								? 'Les retours, échanges, remboursements et réclamations concernant les articles endommagés sont régis par la page <a href="{{returns}}">Retours et remboursements</a>, qui fait partie intégrante des présentes conditions. En résumé :'
+								: 'Returns, exchanges, refunds, and claims concerning damaged items are governed by the <a href="{{returns}}">Returns and refunds</a> page, which forms an integral part of these Terms and Conditions. In summary:'
+						)
+						. "\n\n" . mg_bullets( $fr ? array(
+							'Tout produit reçu endommagé ou non conforme doit être signalé dans les 48 heures suivant la réception, avec photos à l’appui ;',
+							'Un remplacement ou un remboursement sera offert au choix de la boutique ;',
+							'Les produits retournés doivent être dans leur état d’origine.',
+						) : array(
+							'Any product received damaged or not as described must be reported within 48 hours of receipt, with supporting photographs;',
+							'A replacement or refund will be offered at the shop’s discretion;',
+							'Returned products must be in their original condition.',
+						) )
+						. "\n\n" . mg_p(
+							$fr
+								? 'Cette politique ne limite pas les droits et recours prévus par les lois applicables, notamment en cas de produit défectueux ou non conforme.'
+								: 'This policy does not limit any rights or remedies provided under applicable laws, including in cases involving defective or non-conforming products.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '6. Droit d’annulation et exceptions' : '6. Cancellation rights and exceptions',
+						/*
+						 * La Loi sur la protection du consommateur n'impose aucun délai
+						 * de réflexion pour un achat en ligne : ses sept jours ne jouent
+						 * que si le commerçant a manqué à son devoir d'information
+						 * (art. 54.8). Le texte d'origine lui attribuait ce droit ; c'est
+						 * la boutique qui l'accorde, et il s'ajoute à ceux de la Loi.
+						 */
+						mg_p(
+							$fr
+								? 'Le client dispose d’un droit d’annulation de sept (7) jours suivant la réception de la marchandise pour les produits standards en stock. Ce droit est accordé par la boutique et s’ajoute à ceux que la Loi sur la protection du consommateur du Québec (RLRQ, c. P-40.1) reconnaît au client.'
+								: 'The customer has a seven (7)-day cancellation period following receipt of the goods for standard in-stock products. This right is granted by the shop and is in addition to the rights the customer has under Quebec’s Consumer Protection Act (CQLR, c. P-40.1).'
+						)
+						. "\n\n" . mg_p( $fr ? 'Ce droit ne s’applique pas aux :' : 'This right does not apply to:' )
+						. "\n\n" . mg_bullets( $fr ? array(
+							'œuvres originales (pièce unique ou non reproductible) ;',
+							'impressions produites sur commande spécifique (format, papier ou personnalisation) ;',
+							'commandes personnalisées (murales, collaborations, œuvres sur devis).',
+						) : array(
+							'original artworks, including one-of-a-kind or non-reproducible pieces;',
+							'prints produced to a customer’s specific requirements, including format, paper, or personalization;',
+							'custom orders, including murals, collaborations, and artworks produced pursuant to a quotation.',
+						) )
+						/*
+						 * La directive européenne n'exclut pas les pièces uniques : ses
+						 * exceptions (art. 16) visent les biens faits sur mesure ou
+						 * personnalisés. « Sous réserve des mêmes exceptions » promettait
+						 * aux clients européens moins que ce que la directive leur donne.
+						 */
+						. "\n\n" . mg_p(
+							$fr
+								? 'Pour les clients résidant dans l’Union européenne, le droit de rétractation est de quatorze (14) jours suivant la réception de la marchandise (Directive 2011/83/UE). Il ne s’applique pas aux biens confectionnés selon les spécifications du client ou nettement personnalisés.'
+								: 'For customers residing in the European Union, the withdrawal period is fourteen (14) days following receipt of the goods under Directive 2011/83/EU. It does not apply to goods made to the customer’s specifications or clearly personalized.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Pour exercer ce droit, le client informe la boutique par courriel, à ' . $mg_lien_mail . ', avant l’expiration du délai. Les frais de retour sont à la charge du client.'
+								: 'To exercise this right, the customer must notify the shop by email, at ' . $mg_lien_mail . ', before the applicable deadline expires. Return shipping costs are the customer’s responsibility.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '7. Commandes personnalisées, collaborations et murales' : '7. Custom orders, collaborations, and murals',
+						mg_p(
+							$fr
+								? 'Les commandes personnalisées, collaborations et murales font l’objet d’un devis ou d’une entente distincte précisant le projet, le prix, les délais, les modalités de paiement et les droits d’utilisation. Toute modification demandée après l’approbation du projet peut entraîner des frais et un délai supplémentaires. Les conditions particulières indiquées dans le devis ou l’entente applicable prévalent sur les présentes conditions en cas de différence.'
+								: 'Custom orders, collaborations, and murals are subject to a quotation or separate agreement specifying the project, price, timeframe, payment terms, and usage rights. Any modification requested after the project has been approved may result in additional fees and an extended timeframe. In the event of any discrepancy, the specific terms set out in the applicable quotation or agreement shall prevail over these Terms and Conditions.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Sauf indication contraire dans le devis, un acompte non remboursable de 50&nbsp;% du montant total est exigé avant le début des travaux. Cet acompte couvre les frais de conception, de matériaux et le temps de travail engagés. Il n’est pas remboursé en cas d’annulation après le début de la réalisation.'
+								: 'Unless otherwise stated in the quotation, a non-refundable deposit equal to 50% of the total amount is required before work begins. This deposit covers design costs, materials, and work time incurred. It will not be refunded in the event of cancellation after production has begun.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '8. Droits d’auteur et utilisation des œuvres' : '8. Copyright and use of the works',
+						mg_p(
+							$fr
+								? 'Les œuvres, illustrations, photographies, textes, designs et autres contenus créés par Morgane Cachia demeurent protégés par le droit d’auteur.'
+								: 'The artworks, illustrations, photographs, texts, designs, and other content created by Morgane Cachia remain protected by copyright.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'L’achat d’une œuvre originale, d’une impression, d’un objet artistique ou d’un fichier numérique transfère uniquement la propriété de l’article acheté. Il ne transfère aucun droit de reproduction, de modification, de publication, de diffusion, de revente ou d’utilisation commerciale.'
+								: 'The purchase of an original artwork, print, art object, or digital file transfers ownership of the purchased item only. It does not transfer any right to reproduce, modify, publish, distribute, resell, or commercially use the work.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Sauf autorisation écrite contraire, le client peut utiliser l’article acheté uniquement à des fins personnelles et non commerciales. Il ne peut notamment pas le reproduire, le numériser, le modifier, l’imprimer ou l’intégrer à un produit destiné à la vente.'
+								: 'Unless otherwise authorized in writing, the customer may use the purchased item solely for personal, non-commercial purposes. In particular, the customer may not reproduce, digitize, modify, print, or incorporate it into a product intended for sale.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Toute licence commerciale ou cession de droits doit faire l’objet d’une entente écrite distincte précisant les droits accordés, les supports, le territoire, la durée, les usages permis et la rémunération applicable. Les droits non expressément accordés demeurent la propriété de Morgane Cachia.'
+								: 'Any commercial licence or assignment of rights must be set out in a separate written agreement specifying the rights granted, media, territory, duration, permitted uses, and applicable compensation. Any rights not expressly granted remain the property of Morgane Cachia.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '9. Présentation des projets' : '9. Presentation of projects',
+						mg_p(
+							$fr
+								? 'Sauf demande écrite de confidentialité formulée avant le début du projet, Morgane Cachia peut présenter une œuvre vendue ou réalisée sur commande dans son portfolio, sur son site Web, sur ses réseaux sociaux ou dans son matériel promotionnel. Cette utilisation n’inclut pas la divulgation de renseignements confidentiels du client.'
+								: 'Unless the customer submits a written confidentiality request before the project begins, Morgane Cachia may showcase a sold or commissioned work in her portfolio, on her website, on social media, or in promotional materials. This use does not include the disclosure of the customer’s confidential information.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '10. Entretien et responsabilité' : '10. Care and liability',
+						mg_p(
+							$fr
+								? 'Le client est responsable de manipuler, entreposer et entretenir le produit conformément aux recommandations fournies.'
+								: 'The customer is responsible for handling, storing, and caring for the product in accordance with the recommendations provided.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'La boutique ne peut être tenue responsable des dommages causés après la livraison par une mauvaise manipulation, un mauvais entretien, un encadrement inadéquat ou des conditions d’entreposage inappropriées.'
+								: 'The shop cannot be held responsible for damage caused after delivery by improper handling, inadequate care, unsuitable framing, or inappropriate storage conditions.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Cette clause ne limite pas les droits, garanties ou responsabilités qui ne peuvent légalement être exclus ou restreints.'
+								: 'This clause does not limit any rights, warranties, or liabilities that cannot legally be excluded or restricted.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '11. Renseignements personnels' : '11. Personal information',
+						mg_p(
+							$fr
+								? 'Les renseignements personnels recueillis (nom, adresse, courriel, données de paiement) sont utilisés pour traiter le paiement, préparer et expédier la commande, et communiquer avec le client à ce sujet. Ces renseignements sont traités par des tiers de confiance (Stripe pour les paiements, transporteurs pour la livraison) dans le respect de leurs propres politiques.'
+								: 'The personal information collected — including the customer’s name, address, email address, and payment details — is used to process payment, prepare and ship the order, and communicate with the customer regarding the order. This information is processed by trusted third parties, including Stripe for payment processing and shipping carriers for delivery, in accordance with their own policies.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Conformément à la Loi 25 (Québec), le client dispose d’un droit d’accès, de rectification et de suppression de ses renseignements personnels. Pour exercer ces droits : ' . $mg_lien_mail . '.'
+								: 'In accordance with Quebec’s Law 25, customers have the right to access, correct, and delete their personal information. To exercise these rights, please contact ' . $mg_lien_mail . '.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Pour plus d’information, veuillez consulter la <a href="{{privacy}}">Politique de confidentialité</a>.'
+								: 'For more information, please consult the <a href="{{privacy}}">Privacy policy</a>.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						$fr ? '12. Modifications et droit applicable' : '12. Amendments and governing law',
+						mg_p(
+							$fr
+								? 'La boutique peut modifier les présentes conditions au besoin. Les conditions applicables à une commande sont celles qui étaient affichées au moment de sa confirmation.'
+								: 'The shop may amend these Terms and Conditions as needed. The terms applicable to an order are those displayed at the time the order is confirmed.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Les présentes conditions sont régies par les lois applicables au Québec et au Canada, sous réserve des droits impératifs accordés aux consommateurs par les lois de leur pays de résidence.'
+								: 'These Terms and Conditions are governed by the laws applicable in Quebec and Canada, subject to the mandatory rights granted to consumers under the laws of their country of residence.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'En cas de litige, les parties s’engagent à tenter de le résoudre à l’amiable avant tout recours judiciaire. À défaut de règlement amiable dans un délai de trente (30) jours, tout litige sera soumis à la compétence exclusive des tribunaux du district judiciaire de Montréal, Québec, Canada. Pour les clients résidant au Québec, le recours à la Division des petites créances de la Cour du Québec demeure possible conformément à la législation applicable.'
+								: 'In the event of a dispute, the parties agree to attempt to resolve the matter amicably before initiating legal proceedings. If no amicable settlement is reached within thirty (30) days, any dispute shall be submitted to the exclusive jurisdiction of the courts of the judicial district of Montréal, Quebec, Canada. For customers residing in Quebec, recourse to the Small Claims Division of the Court of Québec remains available in accordance with applicable legislation.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
+						'13. Contact',
+						mg_p(
+							$fr
+								? 'Pour toute question concernant une commande ou les présentes conditions :'
+								: 'For any questions concerning an order or these Terms and Conditions, please contact:'
+						)
+						. "\n\n" . mg_p( '<strong>Morgane Cachia</strong><br>' . $mg_lien_mail )
+					)
+				),
+			) );
+
+		/* ------------------------------------------ Retours, remboursements */
+		case 'returns':
+			return implode( "\n\n", array(
+				mg_hero(
+					$fr ? 'Avant d’acheter' : 'Before you buy',
+					$fr ? 'Retours et remboursements' : 'Returns and refunds',
+					/*
+					 * Aligné sur les conditions générales de vente (sections 5 et
+					 * 6), dont cette page fait partie : les deux textes ne doivent
+					 * jamais se contredire. Une ambiguïté entre eux se lirait en
+					 * faveur du client.
+					 */
+					array(
+						$fr
+							? 'Un produit standard en stock peut être retourné dans les 7 jours suivant sa réception. Pour le reste, pas d’échange, de retour ou de remboursement, sauf en cas de casse ou d’erreur d’envoi.'
+							: 'A standard in-stock product can be returned within 7 days of delivery. Otherwise, no exchanges, returns, or refunds, except in case of breakage or shipping error.',
+					),
+					array(),   // pas de bouton
+					array(),   // pas de photo
+					array(),   // pas d'œuvres flottantes
+					'44vh'
+				),
+				mg_legal(
+					mg_legal_part(
+						$fr ? 'Annuler sous 7 jours' : 'Cancelling within 7 days',
+						mg_p(
+							$fr
+								? 'Vous disposez de <strong>7 jours</strong> suivant la réception pour annuler l’achat d’un produit standard en stock. Ce droit ne s’applique pas aux :'
+								: 'You have <strong>7 days</strong> from delivery to cancel the purchase of a standard in-stock product. This right does not apply to:'
+						)
+						. "\n\n" . mg_bullets( $fr ? array(
+							'œuvres originales (pièce unique ou non reproductible) ;',
+							'impressions produites sur commande spécifique (format, papier ou personnalisation) ;',
+							'commandes personnalisées (murales, collaborations, œuvres sur devis).',
+						) : array(
+							'original artworks, including one-of-a-kind or non-reproducible pieces;',
+							'prints produced to a customer’s specific requirements, including format, paper, or personalization;',
+							'custom orders, including murals, collaborations, and artworks produced pursuant to a quotation.',
+						) )
+						. "\n\n" . mg_p(
+							$fr
+								? 'Écrivez-moi à ' . $mg_lien_mail . ' avant la fin du délai, avec votre numéro de commande. Le produit doit revenir dans son état d’origine, et <strong>les frais de retour sont à votre charge</strong>.'
+								: 'Email me at ' . $mg_lien_mail . ' before the deadline, with your order number. The product must come back in its original condition, and <strong>return shipping costs are yours</strong>.'
+						)
+						. "\n\n" . mg_p(
+							$fr
+								? 'Vous résidez dans l’Union européenne ? Le délai est alors de 14 jours : voir les <a href="{{terms}}">conditions générales de vente</a>.'
+								: 'Living in the European Union? The period is then 14 days: see the <a href="{{terms}}">terms and conditions of sale</a>.'
+						)
+					)
+					. "\n\n" . mg_legal_part(
 						$fr ? 'Casse ou erreur d’envoi' : 'Damage or wrong item',
 						mg_p(
 							$fr
@@ -1611,14 +1954,18 @@ function mg_content( $key, $lang ) {
 						. "\n\n" . mg_steps( $fr ? array(
 							'Écrivez-moi <strong>sous 48 heures</strong> après réception, avec une photo de l’œuvre et une de l’emballage.',
 							'Je vous réponds avec la marche à suivre. Les <strong>frais sont à ma charge</strong>.',
-							'Au choix : remboursement complet, ou remplacement quand la pièce est un tirage.',
+							'À mon choix : remboursement complet, ou remplacement quand la pièce est un tirage.',
 						) : array(
 							'Write to me <strong>within 48 hours</strong> of delivery, with a photo of the piece and one of the packaging.',
 							'I will reply with what to do next. <strong>Costs are on me</strong>.',
-							'Your choice: a full refund, or a replacement where the piece is a print.',
+							'At my discretion: a full refund, or a replacement where the piece is a print.',
 						) )
+						. "\n\n" . mg_p(
+							$fr
+								? 'Cette page fait partie des <a href="{{terms}}">conditions générales de vente</a>. Elle ne limite pas les droits et recours prévus par les lois applicables, notamment en cas de produit défectueux ou non conforme.'
+								: 'This page forms part of the <a href="{{terms}}">terms and conditions of sale</a>. It does not limit any rights or remedies provided under applicable laws, including in cases involving defective or non-conforming products.'
+						)
 					)
-
 				),
 			) );
 
@@ -1709,7 +2056,7 @@ function mg_content( $key, $lang ) {
  */
 $no_title = array_flip( array(
 	'about', 'portfolio', 'pf_youth', 'pf_illus', 'pf_draw', 'pf_murals',
-	'contact', 'returns', 'privacy',
+	'contact', 'terms', 'returns', 'privacy',
 	'murals', 'hub', 'commissions', 'collaborations',
 ) );
 

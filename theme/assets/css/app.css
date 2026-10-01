@@ -1755,8 +1755,16 @@ hr.wp-block-separator.rule:not(.alignwide),
   justify-self: end; margin: 0;
   display: grid; gap: .35rem; justify-items: end; text-align: right;
 }
-.site-footer__links { display: flex; flex-wrap: wrap; gap: .4rem .9rem; justify-content: flex-end; }
-.site-footer__links a { color: var(--wp--preset--color--ink-soft); text-decoration: none; font-size: .9rem; }
+/* Quatre liens ne tiennent sur une ligne qu'au-delà de ~1180 px (et au milieu
+   du téléphone en anglais). En dessous, ils passent à la ligne — et en flex, le
+   dernier s'y retrouvait seul, « Confidentialité » orphelin sous les trois
+   autres. En ligne, `text-wrap: balance` répartit deux et deux. La marge
+   négative compense celle des liens, pour que le bloc reste calé sur le bord. */
+.site-footer__links { text-wrap: balance; margin-inline: -.35rem; }
+.site-footer__links a {
+  display: inline-block; margin-inline: .35rem;
+  color: var(--wp--preset--color--ink-soft); text-decoration: none; font-size: .9rem;
+}
 .site-footer__links a:hover { color: var(--wp--preset--color--blush); text-decoration: underline; }
 .site-footer__copy { margin: 0; }
 /* Les trois zones ne tiennent sur une ligne qu'à partir de 900 px : en dessous,
@@ -1767,7 +1775,6 @@ hr.wp-block-separator.rule:not(.alignwide),
   .site-footer__mail,
   .site-footer__legal { justify-self: center; }
   .site-footer__legal { justify-items: center; text-align: center; }
-  .site-footer__links { justify-content: center; }
 }
 .site-footer__social { display: flex; align-items: center; gap: .35rem; }
 .site-footer__social a {

@@ -151,6 +151,14 @@ if [ -n "$PRIVACY_ID" ]; then
   echo "Page de confidentialité : #$PRIVACY_ID"
 fi
 
+# Conditions générales de vente, même raison : WooCommerce les lie au moment de
+# payer, avec la case à cocher que le texte des conditions exige.
+TERMS_ID=$(wp post list --name=conditions-generales-de-vente --post_type=page --field=ID --format=ids 2>/dev/null || true)
+if [ -n "$TERMS_ID" ]; then
+  wp option update woocommerce_terms_page_id "$TERMS_ID" >/dev/null
+  echo "Page des conditions de vente : #$TERMS_ID"
+fi
+
 wp rewrite flush --hard
 
 echo ""

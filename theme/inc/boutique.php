@@ -258,6 +258,57 @@ add_filter( 'render_block', function ( $html, $bloc ) {
 }, 10, 2 );
 
 /* -------------------------------------------------------------------------
+   Les conditions de vente, au moment de payer.
+   ------------------------------------------------------------------------- */
+
+/*
+ * Une case à cocher, et non une simple phrase.
+ *
+ * Les conditions générales de vente disent que l'acceptation se fait par le
+ * clic sur « Commander », après avoir coché une case prévue à cet effet. Le bloc
+ * « Conditions » de la page Commande n'affiche par défaut qu'une phrase — « En
+ * passant commande, vous acceptez… » — sans case. La case est un attribut du
+ * bloc, enregistré dans le contenu de la page Commande : on la force au rendu
+ * plutôt que de réécrire une page qui vit dans la base, où une modification
+ * faite depuis l'éditeur la ferait disparaître sans bruit.
+ *
+ * WooCommerce recopie les attributs de ses blocs en `data-*` sur leur balisage,
+ * et c'est là que le script de la page les relit : les changer ici suffit.
+ * La commande « classique » (code court) n'est pas concernée : la case y
+ * apparaît d'elle-même dès qu'une page de conditions est désignée.
+ */
+add_filter( 'render_block_data', function ( $bloc ) {
+	if ( isset( $bloc['blockName'] ) && 'woocommerce/checkout-terms-block' === $bloc['blockName'] ) {
+		$bloc['attrs']['checkbox'] = true;
+	}
+	return $bloc;
+} );
+
+/**
+ * Les pages de conditions et de confidentialité dans la langue de la page.
+ *
+ * WooCommerce les connaît par un identifiant unique, celui de la page
+ * française : sur `/en/commande/`, « Terms and Conditions » menait au texte
+ * français. On rend la traduction que Polylang connaît, dans la langue lue dans
+ * l'adresse — la page Commande est rattachée au français, et Polylang y répond
+ * « fr » même sous `/en/` (voir morgane_lang()).
+ *
+ * Jamais dans l'administration : les réglages de WooCommerce doivent y montrer
+ * la page choisie, pas sa traduction.
+ *
+ * @param int|string $id Identifiant de page, tel que WooCommerce le lit.
+ */
+function morgane_page_legale_traduite( $id ) {
+	if ( is_admin() || ! $id || ! function_exists( 'pll_get_post' ) ) {
+		return $id;
+	}
+	$traduite = pll_get_post( (int) $id, morgane_lang() );
+	return $traduite ? (int) $traduite : $id;
+}
+add_filter( 'woocommerce_get_terms_page_id', 'morgane_page_legale_traduite' );
+add_filter( 'woocommerce_privacy_policy_page_id', 'morgane_page_legale_traduite' );
+
+/* -------------------------------------------------------------------------
    Les deux rayons : les tirages d'un côté, les pièces uniques de l'autre.
    ------------------------------------------------------------------------- */
 

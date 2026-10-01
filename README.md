@@ -149,5 +149,8 @@ docker compose run --rm -e MORGANE_FORCE=about --entrypoint wp wpcli eval-file /
 - Brancher un SMTP : `wp_mail()` en PHP natif finit en spam.
 - Surcharger la fiche produit et le panier dans `theme/woocommerce/`.
 - Réactiver le bloc « compte client » WooCommerce (désactivé dans `functions.php`).
-- Livraison, taxes, paiement, pages légales.
+- Livraison, taxes, paiement.
+- Faire relire les conditions générales de vente par un juriste (compétence
+  exclusive des tribunaux de Montréal, acompte « non remboursable », adresse
+  postale et téléphone que la Loi sur la protection du consommateur exige).
 - Préproduction obligatoire avant chaque mise en production.

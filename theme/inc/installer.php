@@ -54,7 +54,7 @@ function morgane_install_steps() {
 	$steps[] = array( 'id' => 'shop',     'file' => 'shop.php',  'label' => 'Monter la boutique (catégories, tailles)' );
 	$steps[] = array( 'id' => 'seo',      'file' => 'seo.php',   'label' => 'Poser les titres et descriptions pour Google' );
 	$steps[] = array( 'id' => 'langues',  'file' => '',          'label' => 'Télécharger les traductions françaises' );
-	$steps[] = array( 'id' => 'menage',   'file' => '',          'label' => 'Ranger : doublons, confidentialité, icône' );
+	$steps[] = array( 'id' => 'menage',   'file' => '',          'label' => 'Ranger : doublons, pages légales, icône' );
 
 	return $steps;
 }
@@ -339,6 +339,18 @@ function morgane_install_menage() {
 	if ( $privacy ) {
 		update_option( 'wp_page_for_privacy_policy', $privacy->ID );
 		WP_CLI::log( 'Page de confidentialité déclarée.' );
+	}
+
+	// Conditions générales de vente : désignées à WooCommerce, elles sont liées
+	// au moment de payer, et c'est ce réglage qui fait apparaître la case à
+	// cocher de la commande classique (celle du bloc est forcée dans
+	// inc/boutique.php). Une page choisie à la main dans les réglages est
+	// respectée.
+	$cgv   = get_page_by_path( 'conditions-generales-de-vente' );
+	$choix = (int) get_option( 'woocommerce_terms_page_id' );
+	if ( $cgv && function_exists( 'WC' ) && ( ! $choix || ! get_post( $choix ) ) ) {
+		update_option( 'woocommerce_terms_page_id', $cgv->ID );
+		WP_CLI::log( 'Page des conditions de vente déclarée.' );
 	}
 
 	// Icône du site, prise dans le thème.

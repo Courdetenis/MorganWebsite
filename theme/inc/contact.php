@@ -22,11 +22,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Modifiables sans toucher au code par le filtre `morgane_contact_info`.
  *
  * Attention en cas de changement : le pied de page lit ces valeurs à chaque
- * affichage, mais les pages Contact, Retours et Confidentialité les ont
- * recopiées dans leur contenu au moment de leur création. Changer l'adresse ici
- * ne suffit donc pas — il faut régénérer ces trois pages :
+ * affichage, mais les pages Contact, Conditions de vente, Retours et
+ * Confidentialité les ont recopiées dans leur contenu au moment de leur
+ * création. Changer l'adresse ici ne suffit donc pas — il faut régénérer ces
+ * quatre pages :
  *
- *   MORGANE_FORCE=contact wp eval-file .../install/pages.php   (puis returns, privacy)
+ *   MORGANE_FORCE=contact,terms,returns,privacy wp eval-file .../install/pages.php
  */
 function morgane_contact_info() {
 	return (array) apply_filters( 'morgane_contact_info', array(
@@ -71,17 +72,24 @@ function morgane_render_footer() {
 
 	// Les pages légales : discrètes, mais toujours atteignables. Leur place est
 	// ici et non dans le menu, qui tient volontairement à cinq entrées.
+	// Libellés courts : les quatre doivent tenir sur une ligne dans la colonne
+	// de droite, qui ne fait que 470 px sur le plus large des écrans. Le titre
+	// complet est sur la page.
 	$legales = array(
-		array( 'contact',                     array( 'fr' => 'Contact',                    'en' => 'Contact' ) ),
-		array( 'retours-et-remboursements',   array( 'fr' => 'Retours et remboursements',  'en' => 'Returns and refunds' ) ),
-		array( 'confidentialite',             array( 'fr' => 'Confidentialité',            'en' => 'Privacy' ) ),
+		array( 'contact',                       array( 'fr' => 'Contact',             'en' => 'Contact' ) ),
+		array( 'conditions-generales-de-vente', array( 'fr' => 'Conditions de vente', 'en' => 'Terms of sale' ) ),
+		array( 'retours-et-remboursements',     array( 'fr' => 'Retours',             'en' => 'Returns' ) ),
+		array( 'confidentialite',               array( 'fr' => 'Confidentialité',     'en' => 'Privacy' ) ),
 	);
 
-	$liens = '';
+	// Séparés par une espace : c'est là que la ligne peut se couper (voir
+	// `.site-footer__links` dans app.css).
+	$liens = array();
 	foreach ( $legales as $page ) {
-		$liens .= '<a href="' . esc_url( morgane_url( $page[0] ) ) . '">'
+		$liens[] = '<a href="' . esc_url( morgane_url( $page[0] ) ) . '">'
 			. esc_html( morgane_t( $page[1] ) ) . '</a>';
 	}
+	$liens = implode( ' ', $liens );
 
 	$out .= '<div class="site-footer__legal">'
 		. '<nav class="site-footer__links" aria-label="' . esc_attr( morgane_t( array(
