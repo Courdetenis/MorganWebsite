@@ -1,33 +1,50 @@
-{%- comment -%} Boutique et collections. Même grille que l'accueil. {%- endcomment -%}
-{%- assign heading = collection.title -%}
-{%- if heading == blank -%}{%- assign heading = 'collection.all' | t -%}{%- endif -%}
+{%- comment -%}
+  Un rayon (Prints, Originaux) ou le catalogue entier (/collections/all).
+  Même balisage que le gabarit archive-product de WooCommerce : en-tête,
+  description du rayon, nombre d'œuvres, grille, pagination.
+{%- endcomment -%}
+{%- liquid
+  assign en = false
+  if request.locale.iso_code == 'en'
+    assign en = true
+  endif
+  assign heading = collection.title
+  if collection.handle == 'all'
+    assign heading = 'Boutique'
+    if en
+      assign heading = 'Shop'
+    endif
+  elsif collection.handle == 'originaux' and en
+    assign heading = 'Originals'
+  endif
+-%}
+<div class="wp-block-group woocommerce has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+  <header class="woocommerce-products-header">
+    <h1 class="woocommerce-products-header__title page-title">{{ heading }}</h1>
+    {%- if collection.description != blank -%}<div class="term-description">{{ collection.description }}</div>{%- endif -%}
+  </header>
 
-<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
-  <div class="mg-inner">
-    <header class="woocommerce-products-header section-head">
-      <p class="eyebrow">{{ 'collection.count' | t: count: collection.products_count }}</p>
-      <h1 class="woocommerce-products-header__title page-title">{{ heading }}</h1>
-      {%- if collection.description != blank -%}<div class="prose">{{ collection.description }}</div>{%- endif -%}
-    </header>
-
+  {%- paginate collection.products by 24 -%}
     {%- if collection.products.size > 0 -%}
-      {%- paginate collection.products by 24 -%}
-        <div class="woocommerce artworks-grid">
-          <ul class="products">
-            {%- for product in collection.products -%}
-              {%- render 'artwork-card', product: product -%}
-            {%- endfor -%}
-          </ul>
-        </div>
-        {%- if paginate.pages > 1 -%}
-          <nav class="mg-center" style="margin-top:var(--wp--preset--spacing--50)">{{ paginate | default_pagination }}</nav>
-        {%- endif -%}
-      {%- endpaginate -%}
+      <div class="woocommerce artworks-grid">
+        <p class="woocommerce-result-count">
+          {%- if en -%}{{ collection.products_count }} artwork{% if collection.products_count > 1 %}s{% endif %}{%- else -%}{{ collection.products_count }} œuvre{% if collection.products_count > 1 %}s{% endif %}{%- endif -%}
+        </p>
+        <ul class="products">
+          {%- for product in collection.products -%}
+            {%- render 'artwork-card', product: product -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+      {%- if paginate.pages > 1 -%}
+        <nav class="woocommerce-pagination" aria-label="Pagination">{{ paginate | default_pagination }}</nav>
+      {%- endif -%}
     {%- else -%}
-      <p class="mg-notice">{{ 'collection.empty' | t }}</p>
+      <p class="woocommerce-info">{% if en %}No artworks here yet.{% else %}Aucune œuvre ici pour l'instant.{% endif %}</p>
     {%- endif -%}
-  </div>
-</section>
+  {%- endpaginate -%}
+</div>
+
 {% schema %}
-{ "name": "Boutique", "settings": [] }
+{ "name": "Rayon", "settings": [] }
 {% endschema %}

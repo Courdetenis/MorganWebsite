@@ -1,84 +1,117 @@
-{%- comment -%} Fiche d'une œuvre. La galerie reprend le bandeau `is-style-strip` : app.js lui greffe ses deux flèches sans rien savoir de Shopify. {%- endcomment -%}
-<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
-  <div class="mg-inner">
+{%- comment -%}
+  Fiche d'une œuvre. La galerie reprend le bandeau `is-style-strip` : app.js
+  lui greffe ses deux flèches sans rien savoir de Shopify. Le formulaire porte
+  les classes de WooCommerce (`div.product form.cart .quantity`) : le galet de
+  quantité d'app.css et ses boutons − / + s'y appliquent tels quels.
+{%- endcomment -%}
+
+{%- liquid
+  assign en = false
+  if request.locale.iso_code == 'en'
+    assign en = true
+  endif
+  assign variant = product.selected_or_first_available_variant
+  assign rayon = collection
+  if rayon == blank
+    assign rayon = product.collections | where: 'handle', 'originaux' | first
+    if rayon == blank
+      assign rayon = product.collections | where: 'handle', 'prints' | first
+    endif
+  endif
+-%}
+
+<section class="wp-block-group alignwide woocommerce" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+  <div class="mg-inner product">
     <div class="mg-product">
 
-      <div class="mg-product__media">
+      <div class="mg-product__media woocommerce-product-gallery">
         {%- if product.media.size > 1 -%}
-          <div class="wp-block-gallery is-style-strip has-nested-images alignwide">
+          <figure class="wp-block-gallery is-style-strip has-nested-images is-layout-flex wp-block-gallery-is-layout-flex">
             {%- for media in product.media -%}
               {%- assign alt = media.alt | default: product.title -%}
               {%- if forloop.first -%}{%- assign loading = 'eager' -%}{%- else -%}{%- assign loading = 'lazy' -%}{%- endif -%}
               <figure class="wp-block-image">
-                {{ media | image_url: width: 1200 | image_tag: loading: loading, alt: alt }}
+                {{ media | image_url: width: 1400 | image_tag: loading: loading, widths: '600,900,1200,1400', sizes: '(max-width: 900px) 78vw, 460px', alt: alt }}
               </figure>
             {%- endfor -%}
-          </div>
+          </figure>
         {%- elsif product.featured_image -%}
           {%- assign alt = product.featured_image.alt | default: product.title -%}
-          <figure class="wp-block-image">
-            {{ product.featured_image | image_url: width: 1400 | image_tag: loading: 'eager', sizes: '(max-width: 900px) 100vw, 620px', alt: alt }}
+          <figure class="wp-block-image woocommerce-product-gallery__image">
+            {{ product.featured_image | image_url: width: 1400 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '600,900,1200,1400', sizes: '(max-width: 900px) 100vw, 620px', alt: alt }}
           </figure>
         {%- else -%}
           <span class="artwork__frame artwork__frame--empty" style="display:block;aspect-ratio:4/5"></span>
         {%- endif -%}
       </div>
 
-      <div class="mg-product__info">
-        <p class="eyebrow">{{ product.type | default: collection.title | default: shop.name }}</p>
-        <h1 class="wp-block-heading">{{ product.title }}</h1>
+      <div class="mg-product__info summary entry-summary">
+        {%- if rayon -%}<p class="eyebrow"><a href="{{ rayon.url }}">{{ rayon.title }}</a></p>{%- endif -%}
+        <h1 class="wp-block-heading product_title entry-title">{{ product.title }}</h1>
 
-        <p class="mg-product__price">
-          {{ product.price | money }}
-          {%- if product.compare_at_price > product.price -%}
-            <s class="mg-muted">{{ product.compare_at_price | money }}</s>
+        <p class="price mg-product__price">
+          {%- if variant.compare_at_price > variant.price -%}
+            <del class="mg-muted">{{ variant.compare_at_price | money }}</del> <ins>{{ variant.price | money }}</ins>
+          {%- else -%}
+            {{ variant.price | money }}
           {%- endif -%}
         </p>
 
         {%- if product.available -%}
-          {%- form 'product', product -%}
-            {%- unless product.has_only_default_variant -%}
-              {%- for option in product.options_with_values -%}
-                <div class="mg-field">
-                  <label for="opt-{{ forloop.index }}">{{ option.name }}</label>
-                  <select id="opt-{{ forloop.index }}" name="options[{{ option.name | escape }}]">
-                    {%- for value in option.values -%}
-                      <option value="{{ value | escape }}"{% if option.selected_value == value %} selected{% endif %}>{{ value }}</option>
-                    {%- endfor -%}
-                  </select>
+          {%- form 'product', product, class: 'cart' -%}
+            {%- if product.has_only_default_variant -%}
+              <input type="hidden" name="id" value="{{ variant.id }}">
+            {%- else -%}
+              {%- comment -%}
+                Une liste des formats plutôt qu'un sélecteur par option : elle
+                envoie directement le bon article au panier, sans script.
+              {%- endcomment -%}
+              <p class="mg-field">
+                <label for="variant-{{ section.id }}">{{ product.options | join: ' / ' }}</label>
+                <select id="variant-{{ section.id }}" name="id">
+                  {%- for v in product.variants -%}
+                    <option value="{{ v.id }}"{% if v.id == variant.id %} selected{% endif %}{% unless v.available %} disabled{% endunless %}>{{ v.title }} — {{ v.price | money }}{% unless v.available %} ({% if en %}sold{% else %}vendu{% endif %}){% endunless %}</option>
+                  {%- endfor -%}
+                </select>
+              </p>
+            {%- endif -%}
+
+            <div class="mg-product__buy">
+              {%- unless variant.inventory_management == 'shopify' and variant.inventory_quantity == 1 -%}
+                <div class="quantity">
+                  <button class="qty-step" type="button" data-qty-step="down" aria-label="{% if en %}Decrease quantity{% else %}Diminuer la quantité{% endif %}"><span aria-hidden="true">&minus;</span></button>
+                  <input type="number" class="input-text qty text" name="quantity" value="1" min="1" inputmode="numeric" aria-label="{% if en %}Quantity{% else %}Quantité{% endif %}">
+                  <button class="qty-step" type="button" data-qty-step="up" aria-label="{% if en %}Increase quantity{% else %}Augmenter la quantité{% endif %}"><span aria-hidden="true">+</span></button>
                 </div>
-              {%- endfor -%}
-            {%- endunless -%}
-
-            <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-
-            <div class="mg-field">
-              <label for="qty">{{ 'product.quantity' | t }}</label>
-              <input type="number" id="qty" name="quantity" value="1" min="1">
-            </div>
-
-            <div class="wp-block-buttons">
+              {%- endunless -%}
               <div class="wp-block-button">
-                <button type="submit" class="wp-block-button__link wp-element-button">{{ 'product.add_to_cart' | t }}</button>
+                <button type="submit" class="single_add_to_cart_button wp-block-button__link wp-element-button">{% if en %}Add to cart{% else %}Ajouter au panier{% endif %}</button>
               </div>
             </div>
           {%- endform -%}
         {%- else -%}
-          <p class="mg-notice">{{ 'product.sold_out' | t }}</p>
+          <p class="stock out-of-stock mg-notice">{% if en %}Sold{% else %}Vendu{% endif %}</p>
         {%- endif -%}
 
         {%- if product.description != blank -%}
-          <div class="prose" style="margin-top:var(--wp--preset--spacing--40)">
+          <div class="prose woocommerce-product-details__short-description" style="margin-top:var(--wp--preset--spacing--40)">
             {{ product.description }}
           </div>
         {%- endif -%}
 
-        <p class="note" style="margin-top:var(--wp--preset--spacing--30)">{{ 'product.shipping_note' | t }}</p>
+        {%- comment -%}
+          Les matériaux et le certificat des originaux sont écrits une fois, dans
+          la description du rayon — pas recopiés dans chaque fiche.
+        {%- endcomment -%}
+        {%- if rayon.description != blank -%}
+          <div class="note" style="margin-top:var(--wp--preset--spacing--30)">{{ rayon.description }}</div>
+        {%- endif -%}
       </div>
 
     </div>
   </div>
 </section>
+
 {% schema %}
 { "name": "Fiche d'œuvre", "settings": [] }
 {% endschema %}

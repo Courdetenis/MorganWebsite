@@ -205,14 +205,16 @@ deuxième endroit où écrire.
 ### Gestion WooCommerce
 
 - **Un print** = produit *variable*, attribut `Taille` en variations
-  (5×7, 8×10, 11×14, 12×18 po). Un produit modèle en brouillon
-  (« Modèle — print en plusieurs tailles ») sert de gabarit : Morgane le
-  duplique, change titre, photo, description et prix.
+  (A5, A4). Morgane duplique un tirage existant, change titre, photo,
+  description et prix. L'installation ne crée plus de produit modèle et ne
+  touche à aucun produit : elle rangeait d'office tout produit dans « Prints »
+  à chaque relance.
 - **Un original** = produit *simple*, stock 1. Il s'affiche « Vendu » tout seul
   quand le stock tombe à zéro.
-- La qualité du papier, les matériaux et le certificat d'authenticité sont
-  écrits **une fois** dans la description de catégorie — pas recopiés dans
-  chaque fiche.
+- Les matériaux et le certificat d'authenticité des originaux sont écrits
+  **une fois** dans la description de la catégorie — pas recopiés dans chaque
+  fiche. Le rayon Prints n'a pas de description, à la demande de Morgane : le
+  titre suffit.
 - Les prix disent leur devise, dans la forme de la langue : « 45,00 $ CA »
   en français, « CA$45.00 » en anglais (`theme/inc/devise.php`). Quatre
   filtres à la source (symbole, position, séparateurs), parce que le panier et
@@ -264,7 +266,7 @@ le message. Les erreurs réaffichent le formulaire avec les valeurs saisies.
 
 Ce que Morgane fait seule, sans toucher au code :
 
-- ajouter une œuvre → dupliquer le produit modèle, changer titre / photo / prix ;
+- ajouter une œuvre → dupliquer un tirage existant, changer titre / photo / prix ;
 - remplir un portfolio → éditer la page, insérer un bloc Galerie, choisir le
   style « Défilement horizontal » ;
 - corriger un texte → éditer la page, puis sa traduction ;

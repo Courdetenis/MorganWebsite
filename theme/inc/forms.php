@@ -149,25 +149,19 @@ function &morgane_form_state() {
  * @return bool true si l'envoi est autorisé.
  */
 function morgane_form_rate_ok() {
-	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-	if ( '' === $ip ) {
-		return true;
-	}
-
-	$key   = 'morgane_fq_' . substr( wp_hash( $ip ), 0, 20 );
-	$count = (int) get_transient( $key );
-
 	/**
 	 * Plafond horaire. Cinq laisse la place à une hésitation, à un renvoi après
 	 * une erreur de saisie et à deux formulaires différents ; au-delà, ce n'est
 	 * plus quelqu'un qui écrit.
+	 *
+	 * Le compteur est celui des comptes clients (inc/securite.php, § 5).
 	 */
 	$max = (int) apply_filters( 'morgane_form_max_per_hour', 5 );
-	if ( $count >= $max ) {
+	if ( morgane_quota_atteint( 'fq', $max ) ) {
 		return false;
 	}
 
-	set_transient( $key, $count + 1, HOUR_IN_SECONDS );
+	morgane_quota_compter( 'fq', HOUR_IN_SECONDS );
 	return true;
 }
 

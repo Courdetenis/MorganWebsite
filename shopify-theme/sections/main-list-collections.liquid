@@ -1,26 +1,62 @@
-<section class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
-  <div class="mg-inner">
-    <div class="section-head">
-      <p class="eyebrow">{{ shop.name }}</p>
-      <h1 class="wp-block-heading page-title">{{ page_title }}</h1>
-    </div>
-    <div class="nav-cards alignwide" data-reveal>
-      {%- for collection in collections -%}
-        <div class="nav-card">
-          <a href="{{ collection.url }}">
-            <span class="nav-card__frame">
-              {%- if collection.featured_image -%}
-                {{ collection.featured_image | image_url: width: 800 | image_tag: loading: 'lazy', sizes: '(max-width: 780px) 100vw, 390px', alt: collection.title }}
-              {%- endif -%}
-            </span>
-            <span class="nav-card__label">{{ collection.title }}</span>
-            <span class="nav-card__note">{{ 'collection.count' | t: count: collection.products_count }}</span>
-          </a>
-        </div>
-      {%- endfor -%}
-    </div>
-  </div>
-</section>
+{%- comment -%}
+  La boutique (/collections) : la vitrine de morgane_boutique_vitrine()
+  (theme/inc/boutique.php). Les deux rayons en cartes, puis de quoi voir tout
+  le catalogue d'un coup. Un rayon dont la collection n'existe pas est absent ;
+  sans aucun rayon, la boutique est directement la liste des œuvres.
+
+  L'image d'un rayon : celle de la collection, sinon celle d'une de ses
+  œuvres — Morgane n'a pas à en poser une pour que la vitrine tienne debout.
+{%- endcomment -%}
+{%- liquid
+  assign en = false
+  if request.locale.iso_code == 'en'
+    assign en = true
+  endif
+-%}
+<div class="wp-block-group woocommerce has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+  <header class="woocommerce-products-header">
+    <h1 class="woocommerce-products-header__title page-title">{% if en %}Shop{% else %}Boutique{% endif %}</h1>
+  </header>
+
+  {%- capture cartes -%}
+    {%- assign rayons = 'prints,originaux' | split: ',' -%}
+    {%- for handle in rayons -%}
+      {%- assign c = collections[handle] -%}
+      {%- unless c.id -%}{%- continue -%}{%- endunless -%}
+      {%- liquid
+        assign img = c.featured_image
+        if img == blank
+          assign img = c.products | where: 'featured_image' | map: 'featured_image' | first
+        endif
+        if handle == 'prints'
+          assign label = 'Prints'
+          assign note = 'Tirages d’art'
+          if en
+            assign note = 'Fine art prints'
+          endif
+        else
+          assign label = 'Originaux'
+          assign note = 'Pièces uniques'
+          if en
+            assign label = 'Originals'
+            assign note = 'One-of-a-kind pieces'
+          endif
+        endif
+      -%}
+      <div class="nav-card"><a href="{{ c.url }}"><span class="nav-card__frame">
+        {%- if img -%}{{ img | image_url: width: 800 | image_tag: loading: 'lazy', widths: '400,600,800', sizes: '(max-width: 780px) 100vw, 390px', alt: '' }}{%- endif -%}
+      </span><span class="nav-card__label">{{ label }}</span><span class="nav-card__note">{{ note }}</span></a></div>
+    {%- endfor -%}
+  {%- endcapture -%}
+
+  {%- if cartes != blank -%}
+    <div class="nav-cards alignwide boutique-rayons">{{ cartes }}</div>
+    <p class="boutique-rayons__tout"><a href="{{ routes.all_products_collection_url }}">{% if en %}Browse everything{% else %}Voir tout le catalogue{% endif %}</a></p>
+  {%- else -%}
+    {%- render 'artworks-grid', limit: 48 -%}
+  {%- endif -%}
+</div>
+
 {% schema %}
-{ "name": "Liste des collections", "settings": [] }
+{ "name": "Boutique", "settings": [] }
 {% endschema %}

@@ -2004,13 +2004,13 @@ function mg_content( $key, $lang ) {
 							'<strong>Formulaires</strong> (commissions, collaborations, murales) : vos réponses me parviennent par courriel et ne sont pas stockées sur le site.',
 							'<strong>Témoins (cookies)</strong> : panier et langue choisie, uniquement pour le fonctionnement du site.',
 							'<strong>Préférence de thème</strong> (clair/sombre) : enregistrée dans votre navigateur, jamais transmise.',
-							'<strong>Empreinte IP</strong> (chiffrée) : utilisée uniquement pour limiter les envois automatisés de formulaires ; effacée après 1 heure.',
+							'<strong>Empreinte IP</strong> (chiffrée) : utilisée uniquement pour limiter les envois automatisés — formulaires, inscriptions, tentatives de connexion, demandes de mot de passe ; effacée après 1 heure au plus.',
 						) : array(
 							'<strong>Orders</strong>: name, shipping address, email, cart contents. Payments are handled by an external provider; I never see your card details.',
 							'<strong>Forms</strong> (commissions, collaborations, murals): your responses are sent to me by email and are not stored on the site.',
 							'<strong>Cookies</strong>: cart contents and selected language, used only for site functionality.',
 							'<strong>Theme preference</strong> (light/dark): saved in your browser, never transmitted to me.',
-							'<strong>IP fingerprint</strong> (hashed): used solely to limit automated form submissions; deleted after 1 hour.',
+							'<strong>IP fingerprint</strong> (hashed): used solely to limit automated submissions — forms, sign-ups, login attempts, password requests; deleted after 1 hour at most.',
 						) )
 						. "\n\n" . mg_p(
 							$fr

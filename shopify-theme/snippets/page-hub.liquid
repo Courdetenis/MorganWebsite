@@ -1,0 +1,108 @@
+{%- comment -%}
+  Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « hub »).
+  Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
+{%- endcomment -%}
+{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
+{%- if request.locale.iso_code == 'en' -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+<figure class="art-float art-float--left"><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Gouache illustration: a woman with long hair holds a glowing moon in a blue winter forest" decoding="async" loading="eager" fetchpriority="high"></figure>
+<figure class="art-float art-float--right"><img src="{{ 'art-21.webp' | asset_url }}" width="1200" height="1600" alt="Mural: a child in a yellow raincoat unearthing a glowing seed" decoding="async" loading="eager" fetchpriority="high"></figure>
+
+<div class="wp-block-group hero__inner is-layout-flow wp-block-group-is-layout-flow">
+
+<p class="hero__eyebrow">Work together</p>
+
+<h1 class="wp-block-heading">Commissions and collaborations</h1>
+
+<p class="hero__lede has-large-font-size">Two ways of working together: a piece commissioned for you, or a project developed with a brand, a venue or a team.</p>
+
+<div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commissions</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/collaborations">Collaborations</a></div>
+</div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+
+<div class="wp-block-group section-head is-layout-flow wp-block-group-is-layout-flow">
+<p class="eyebrow">Where to start</p>
+
+<h2 class="wp-block-heading">Two ways in</h2>
+</div>
+
+<div class="nav-cards alignwide" data-reveal>
+  <div class="nav-card"><a href="{{ r }}pages/commissions"><span class="nav-card__frame"><img src="{{ 'art-03.webp' | asset_url }}" width="1169" height="1600" alt="Painting of a scarecrow in a flowered hat standing in a field of sunflowers, made on commission" decoding="async" loading="lazy"></span><span class="nav-card__label">Commissions</span><span class="nav-card__note">A piece created for you</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/collaborations"><span class="nav-card__frame"><img src="{{ 'art-23.webp' | asset_url }}" width="1600" height="1187" alt="Gouache illustration: an alchemist’s candlelit table with smoking flasks and old books" decoding="async" loading="lazy"></span><span class="nav-card__label">Collaborations</span><span class="nav-card__note">Brands, venues, institutions, creators</span></a></div>
+</div>
+</section>
+
+
+<div class="wp-block-group alignwide prose is-layout-flow wp-block-group-is-layout-flow">
+<hr class="wp-block-separator rule"/>
+
+
+<p>A question before you begin? <a href="mailto:morganecachia.art@gmail.com">morganecachia.art@gmail.com</a></p>
+
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">View the portfolios</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/murales">Mural project</a></div>
+</div>
+</div>
+{%- else -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+<figure class="art-float art-float--left"><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée" decoding="async" loading="eager" fetchpriority="high"></figure>
+<figure class="art-float art-float--right"><img src="{{ 'art-21.webp' | asset_url }}" width="1200" height="1600" alt="Murale : un enfant en imperméable jaune déterre une graine lumineuse" decoding="async" loading="eager" fetchpriority="high"></figure>
+
+<div class="wp-block-group hero__inner is-layout-flow wp-block-group-is-layout-flow">
+
+<p class="hero__eyebrow">Travailler ensemble</p>
+
+<h1 class="wp-block-heading">Commissions et collaborations</h1>
+
+<p class="hero__lede has-large-font-size">Deux façons de travailler ensemble : une œuvre commandée pour vous, ou un projet mené avec une marque, un lieu ou une équipe.</p>
+
+<div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commissions</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/collaborations">Collaborations</a></div>
+</div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+
+<div class="wp-block-group section-head is-layout-flow wp-block-group-is-layout-flow">
+<p class="eyebrow">Par où commencer</p>
+
+<h2 class="wp-block-heading">Deux chemins</h2>
+</div>
+
+<div class="nav-cards alignwide" data-reveal>
+  <div class="nav-card"><a href="{{ r }}pages/commissions"><span class="nav-card__frame"><img src="{{ 'art-03.webp' | asset_url }}" width="1169" height="1600" alt="Peinture d’un épouvantail coiffé d’un chapeau fleuri dans un champ de tournesols, réalisée sur commande" decoding="async" loading="lazy"></span><span class="nav-card__label">Commissions</span><span class="nav-card__note">Une œuvre créée pour vous</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/collaborations"><span class="nav-card__frame"><img src="{{ 'art-23.webp' | asset_url }}" width="1600" height="1187" alt="Illustration à la gouache : une table d’alchimiste éclairée à la bougie, fioles fumantes et vieux livres" decoding="async" loading="lazy"></span><span class="nav-card__label">Collaborations</span><span class="nav-card__note">Marques, lieux, institutions, créateurs</span></a></div>
+</div>
+</section>
+
+
+<div class="wp-block-group alignwide prose is-layout-flow wp-block-group-is-layout-flow">
+<hr class="wp-block-separator rule"/>
+
+
+<p>Une question avant de vous lancer ? <a href="mailto:morganecachia.art@gmail.com">morganecachia.art@gmail.com</a></p>
+
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">Voir les portfolios</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/murales">Projet de murale</a></div>
+</div>
+</div>
+{%- endif -%}

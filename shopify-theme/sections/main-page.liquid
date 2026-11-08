@@ -1,33 +1,40 @@
 {%- comment -%}
-  Page de contenu. Le corps de la page est du balisage de blocs WordPress
-  collé tel quel : `.page-content` lui rend la mise en page contrainte que
-  WordPress fabriquait à la volée (voir assets/base.css).
+  Page de contenu.
 
-  Deux gabarits s'appuient sur cette section :
-    page.json             — le titre est affiché
-    page.sans-titre.json  — il ne l'est pas, parce que le contenu ouvre sur
-                            son propre bandeau et son propre h1 (l'équivalent
-                            de `page-no-title` sous WordPress)
+  Les pages du site (À propos, Murales, portfolios, conditions…) sont écrites
+  dans le thème, en deux langues : snippets/page-*.liquid, générés depuis
+  theme/install/pages.php par scripts/shopify-pages.php. La page Shopify ne
+  sert qu'à donner l'adresse — son contenu dans l'admin est ignoré. On la
+  reconnaît à son handle, la table est ci-dessous.
+
+  Toute autre page (créée plus tard dans l'admin) s'affiche comme le gabarit
+  `page.html` de WordPress : son titre, puis son contenu.
 {%- endcomment -%}
 
-<section class="mg-page" style="padding-bottom:var(--wp--preset--spacing--50)">
-  {%- if section.settings.show_title -%}
-    <div class="mg-inner mg-inner--narrow" style="padding-top:var(--wp--preset--spacing--50)">
-      <h1 class="wp-block-heading page-title">{{ page.title }}</h1>
-    </div>
-  {%- endif -%}
-
-  <div class="page-content">
-    {{ page.content }}
-  </div>
-</section>
+<div class="entry-content wp-block-post-content has-global-padding is-layout-constrained wp-block-post-content-is-layout-constrained" style="padding-bottom:var(--wp--preset--spacing--60)">
+  {%- case page.handle -%}
+    {%- when 'murales' -%}{%- render 'page-murals' -%}
+    {%- when 'portfolio' -%}{%- render 'page-portfolio' -%}
+    {%- when 'illustration-jeunesse' -%}{%- render 'page-pf-youth' -%}
+    {%- when 'illustration' -%}{%- render 'page-pf-illus' -%}
+    {%- when 'dessin' -%}{%- render 'page-pf-draw' -%}
+    {%- when 'portfolio-murales' -%}{%- render 'page-pf-murals' -%}
+    {%- when 'a-propos' -%}{%- render 'page-about' -%}
+    {%- when 'commissions-et-collaborations' -%}{%- render 'page-hub' -%}
+    {%- when 'commissions' -%}{%- render 'page-commissions' -%}
+    {%- when 'collaborations' -%}{%- render 'page-collaborations' -%}
+    {%- when 'contact' -%}{%- render 'page-contact' -%}
+    {%- when 'conditions-generales-de-vente' -%}{%- render 'page-terms' -%}
+    {%- when 'retours-et-remboursements' -%}{%- render 'page-returns' -%}
+    {%- when 'confidentialite' -%}{%- render 'page-privacy' -%}
+    {%- else -%}
+      <div class="wp-block-group alignwide page-head is-layout-flow wp-block-group-is-layout-flow" style="padding-top:var(--wp--preset--spacing--50)">
+        <h1 class="wp-block-post-title page-title" style="margin-bottom:var(--wp--preset--spacing--40)">{{ page.title }}</h1>
+      </div>
+      {{ page.content }}
+  {%- endcase -%}
+</div>
 
 {% schema %}
-{
-  "name": "Page",
-  "settings": [
-    { "type": "checkbox", "id": "show_title", "label": "Afficher le titre de la page", "default": true,
-      "info": "À décocher quand le contenu commence par son propre bandeau : le titre ferait doublon." }
-  ]
-}
+{ "name": "Page", "settings": [] }
 {% endschema %}

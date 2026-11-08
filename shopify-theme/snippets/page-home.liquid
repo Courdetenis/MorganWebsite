@@ -1,0 +1,134 @@
+{%- comment -%}
+  Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « home »).
+  Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
+{%- endcomment -%}
+{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
+{%- if request.locale.iso_code == 'en' -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:84vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--50)">
+
+<div class="blob blob--rose" style="width:min(32vw,340px);aspect-ratio:1;top:10%;left:-5%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,280px);aspect-ratio:1;bottom:12%;right:-3%;"></div>
+<figure class="art-float art-float--left"><img src="{{ 'art-07.webp' | asset_url }}" width="1163" height="1600" alt="Gouache illustration: an antique mirror at the top of a stone staircase, in an enchanted forest" decoding="async" loading="eager" fetchpriority="high"></figure>
+<figure class="art-float art-float--right"><img src="{{ 'art-14.webp' | asset_url }}" width="1062" height="1600" alt="Children’s illustration: a bear cub climbing a ladder to light a streetlamp in a snowy town" decoding="async" loading="eager" fetchpriority="high"></figure>
+
+<div class="wp-block-group hero__inner is-layout-flow wp-block-group-is-layout-flow">
+
+<h1 class="wp-block-heading has-text-align-center">Soft and enchanted artworks for those who love poetry</h1>
+
+<p class="hero__lede has-text-align-center has-large-font-size">Illustrator, painter and mural artist based in Montreal.</p>
+
+<div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Discover the artworks</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions-et-collaborations">Work together</a></div>
+</div>
+<div class="scroll-cue" aria-hidden="true"></div>
+</div>
+</section>
+
+
+<div class="color-band alignfull" aria-hidden="true"><div class="marquee"><span>Illustration</span><span>Painting</span><span>Murals</span><span>Montreal</span><span>Gouache</span><span>Custom work</span></div></div>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--60)">
+
+<div class="nav-cards alignwide" data-reveal>
+  <div class="nav-card"><a href="{{ r }}collections"><span class="nav-card__frame"><img src="{{ 'art-02.webp' | asset_url }}" width="1195" height="1600" alt="A spread of fine art prints of Morgane Cachia’s gouache illustrations" decoding="async" loading="lazy"></span><span class="nav-card__label">Shop</span><span class="nav-card__note">Prints and originals</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/commissions-et-collaborations"><span class="nav-card__frame"><img src="{{ 'art-03.webp' | asset_url }}" width="1169" height="1600" alt="Painting of a scarecrow in a flowered hat standing in a field of sunflowers, made on commission" decoding="async" loading="lazy"></span><span class="nav-card__label">Commissions and collaborations</span><span class="nav-card__note">A piece made for you</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/murales"><span class="nav-card__frame"><img src="{{ 'art-04.webp' | asset_url }}" width="683" height="570" alt="Morgane Cachia in front of her mural: a child in a yellow raincoat digging in the soil" decoding="async" loading="lazy"></span><span class="nav-card__label">Murals</span><span class="nav-card__note">Transforming a space</span></a></div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="wp-block-group section-head is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">Available artworks</h2>
+</div>
+{% render 'artworks-grid', limit: 8 %}
+
+<div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Browse the shop</a></div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignfull atelier has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-720" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(30vw,320px);aspect-ratio:1;top:8%;left:-6%;"></div>
+<div class="blob blob--sage" style="width:min(24vw,260px);aspect-ratio:1;bottom:10%;right:-4%;"></div>
+<figure class="art-float art-float--left" data-reveal><img src="{{ 'art-09.webp' | asset_url }}" width="1169" height="1600" alt="Gouache illustration: a fairy seated in the heart of a huge pink peony" decoding="async" loading="lazy"></figure>
+<figure class="art-float art-float--right" data-reveal><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Gouache illustration: a long-haired woman holding a glowing moon in a blue-tinged winter forest" decoding="async" loading="lazy"></figure>
+<h2 class="wp-block-heading has-text-align-center">Between magic and melancholy</h2>
+
+<p class="has-text-align-center has-large-font-size" style="margin-top:var(--wp--preset--spacing--30)">I love painting characters and revealing their stories, their souls, in both my gouache illustrations and my murals.</p>
+
+<div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/a-propos">About</a></div>
+</div>
+</section>
+{%- else -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:84vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--50)">
+
+<div class="blob blob--rose" style="width:min(32vw,340px);aspect-ratio:1;top:10%;left:-5%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,280px);aspect-ratio:1;bottom:12%;right:-3%;"></div>
+<figure class="art-float art-float--left"><img src="{{ 'art-07.webp' | asset_url }}" width="1163" height="1600" alt="Illustration à la gouache : un miroir ancien au sommet d’un escalier de pierre, dans une forêt enchantée" decoding="async" loading="eager" fetchpriority="high"></figure>
+<figure class="art-float art-float--right"><img src="{{ 'art-14.webp' | asset_url }}" width="1062" height="1600" alt="Illustration jeunesse : un ourson grimpe à une échelle pour allumer un réverbère dans une ville enneigée" decoding="async" loading="eager" fetchpriority="high"></figure>
+
+<div class="wp-block-group hero__inner is-layout-flow wp-block-group-is-layout-flow">
+
+<h1 class="wp-block-heading has-text-align-center">Des œuvres douces et féeriques pour celles et ceux qui aiment la poésie</h1>
+
+<p class="hero__lede has-text-align-center has-large-font-size">Illustratrice, artiste peintre et muraliste basée à Montréal.</p>
+
+<div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Découvrir les œuvres</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions-et-collaborations">Travailler ensemble</a></div>
+</div>
+<div class="scroll-cue" aria-hidden="true"></div>
+</div>
+</section>
+
+
+<div class="color-band alignfull" aria-hidden="true"><div class="marquee"><span>Illustration</span><span>Peinture</span><span>Murales</span><span>Montréal</span><span>Gouache</span><span>Sur mesure</span></div></div>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--60)">
+
+<div class="nav-cards alignwide" data-reveal>
+  <div class="nav-card"><a href="{{ r }}collections"><span class="nav-card__frame"><img src="{{ 'art-02.webp' | asset_url }}" width="1195" height="1600" alt="Ensemble de tirages d’art des illustrations à la gouache de Morgane Cachia" decoding="async" loading="lazy"></span><span class="nav-card__label">Boutique</span><span class="nav-card__note">Prints et originaux</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/commissions-et-collaborations"><span class="nav-card__frame"><img src="{{ 'art-03.webp' | asset_url }}" width="1169" height="1600" alt="Peinture d’un épouvantail coiffé d’un chapeau fleuri dans un champ de tournesols, réalisée sur commande" decoding="async" loading="lazy"></span><span class="nav-card__label">Commissions et collaborations</span><span class="nav-card__note">Une œuvre pensée pour vous</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/murales"><span class="nav-card__frame"><img src="{{ 'art-04.webp' | asset_url }}" width="683" height="570" alt="Morgane Cachia devant sa murale : un enfant en imperméable jaune qui creuse la terre" decoding="async" loading="lazy"></span><span class="nav-card__label">Murales</span><span class="nav-card__note">Transformer un lieu</span></a></div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="wp-block-group section-head is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">Œuvres disponibles</h2>
+</div>
+{% render 'artworks-grid', limit: 8 %}
+
+<div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Voir toute la boutique</a></div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignfull atelier has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-720" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(30vw,320px);aspect-ratio:1;top:8%;left:-6%;"></div>
+<div class="blob blob--sage" style="width:min(24vw,260px);aspect-ratio:1;bottom:10%;right:-4%;"></div>
+<figure class="art-float art-float--left" data-reveal><img src="{{ 'art-09.webp' | asset_url }}" width="1169" height="1600" alt="Illustration à la gouache : une fée assise au cœur d’une pivoine rose immense" decoding="async" loading="lazy"></figure>
+<figure class="art-float art-float--right" data-reveal><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée" decoding="async" loading="lazy"></figure>
+<h2 class="wp-block-heading has-text-align-center">Entre magie et mélancolie</h2>
+
+<p class="has-text-align-center has-large-font-size" style="margin-top:var(--wp--preset--spacing--30)">J’aime peindre des personnages et faire apparaître leurs histoires et leurs âmes, dans mes illustrations à la gouache comme dans mes murales.</p>
+
+<div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/a-propos">À propos</a></div>
+</div>
+</section>
+{%- endif -%}

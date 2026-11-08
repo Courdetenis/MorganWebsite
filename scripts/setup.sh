@@ -109,21 +109,6 @@ fi
 wp rewrite structure '/%postname%/' --hard
 wp rewrite flush --hard
 
-# Sample products (tirages / impressions — multiples exemplaires).
-if [ "$(wp post list --post_type=product --format=count)" -eq 0 ]; then
-  echo "Creating sample products..."
-  for t in "Aurore boréale — tirage" "Forêt en hiver — tirage" "Fleurs séchées — dessin" "Marée basse — tirage"; do
-    wp wc product create \
-      --name="$t" \
-      --type=simple \
-      --regular_price="120" \
-      --manage_stock=true \
-      --stock_quantity=25 \
-      --status=publish \
-      --user="$WP_ADMIN_USER" >/dev/null 2>&1 || true
-  done
-fi
-
 # Bilingue + contenus. Ordre imposé : langues, puis produits traduisibles,
 # puis assignation, puis pages et boutique.
 # Les scripts de contenu vivent dans le thème et non plus dans /scripts : ils

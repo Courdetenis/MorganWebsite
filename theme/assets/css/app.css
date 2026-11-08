@@ -264,7 +264,9 @@ input, textarea, select { box-sizing: border-box; }
   margin: 0; line-height: 0; text-align: center;
 }
 .site-header__brand a {
-  display: inline-block;
+  /* `top` : posé sur la ligne de base, le logo laissait 6 px de jambage sous
+     lui et tombait 3 px sous le centre de la barre. */
+  display: inline-block; vertical-align: top;
   height: var(--logo-h);
   aspect-ratio: 2154 / 1689;
   font-size: 0;
@@ -2065,6 +2067,19 @@ hr.wp-block-separator.rule:not(.alignwide),
   border-radius: 12px;
 }
 
+/* Bascule « Livraison / Remise en main propre ». WooCommerce peint l'option
+   choisie d'un blanc fixe, sans suivre le thème : sur fond sombre, le texte
+   crème y devenait invisible. Même surface que les cartes ci-dessus, filet de
+   l'accent pour marquer le choix. Quatre classes : la règle de WooCommerce en
+   compte trois avec `.has-dark-controls`, et sa feuille peut arriver après la
+   nôtre. */
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method
+  .wc-block-checkout__shipping-method-option.wc-block-checkout__shipping-method-option--selected {
+  background: var(--wp--preset--color--cream);
+  border-color: var(--wp--preset--color--blush);
+  color: var(--wp--preset--color--ink);
+}
+
 /* Messages d'erreur : lisibles sur les deux fonds, sans le rouge cru par défaut. */
 :is(.wp-block-woocommerce-cart, .wp-block-woocommerce-checkout)
   :is(.wc-block-components-validation-error, .wc-block-components-validation-error p) {
@@ -2196,6 +2211,12 @@ hr.wp-block-separator.rule:not(.alignwide),
 .woocommerce-account .woocommerce .lost_password { margin-top: .2rem; font-size: .92rem; }
 .woocommerce-account .woocommerce .lost_password a { color: var(--wp--preset--color--ink-soft); }
 .woocommerce-account .woocommerce .lost_password a:hover { color: var(--wp--preset--color--blush); }
+/* La règle du mot de passe (inc/comptes.php), collée sous son champ : la grille
+   du formulaire l'en écarterait d'autant que d'un champ à l'autre. */
+.woocommerce-account .woocommerce .mg-regle-mdp {
+  margin: -.45rem 0 0;
+  font-size: .88rem; color: var(--wp--preset--color--ink-soft);
+}
 .woocommerce-account .woocommerce .woocommerce-privacy-policy-text p {
   font-size: .92rem; color: var(--wp--preset--color--ink-soft);
 }

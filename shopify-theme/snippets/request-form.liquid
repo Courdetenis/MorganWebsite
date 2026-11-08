@@ -1,0 +1,86 @@
+{%- comment -%}
+  Formulaire de demande : commission, collaboration ou murale.
+  Même balisage que morgane_render_form() (theme/inc/forms.php), donc même
+  habillage par app.css. L'envoi passe par le formulaire de contact de
+  Shopify : la demande arrive dans la boîte de l'adresse de la boutique
+  (Paramètres › Coordonnées de la boutique), chaque champ sous son libellé.
+  Le piège à robots et le plafond d'envois de WordPress sont remplacés par la
+  protection anti-spam de Shopify, posée d'office sur ce formulaire.
+
+  Usage : {% render 'request-form', type: 'commission' %}
+{%- endcomment -%}
+
+{%- liquid
+  assign en = false
+  if request.locale.iso_code == 'en'
+    assign en = true
+  endif
+
+  # Un champ par ligne : nom|type|requis|libellé FR|libellé EN|aide FR|aide EN
+  case type
+    when 'commission'
+      assign title = 'Parlez-moi de votre projet|Tell me about your project'
+      assign fields = 'Idée|textarea|1|Votre idée de projet|Your project idea|Thèmes, sujets, composition, ambiance…|Themes, subjects, composition, mood…;Format|text|0|Taille ou format souhaité (cm)|Desired size or format (cm)||;Médium|text|0|Médium souhaité|Preferred medium|Gouache, aquarelle, encre, crayon à mine…|Gouache, watercolour, ink, pencil…;email|email|1|Votre adresse courriel|Your email address||'
+    when 'collaboration'
+      assign title = 'Proposer un projet|Submit a project'
+      assign fields = 'Projet|textarea|1|Votre projet|Your project|Présentation, type de collaboration, délais, budget, liens utiles.|Overview, type of collaboration, timeline, budget, useful links.;email|email|1|Votre adresse courriel|Your email address||'
+    when 'mural'
+      assign title = 'Parlez-moi de votre mur|Tell me about your wall'
+      assign fields = 'Dimensions|text|1|Dimensions approximatives de la surface|Approximate surface dimensions||;Lieu|text|1|Lieu / adresse|Location / address||;Dates|text|0|Dates envisagées|Intended dates||;Idée|textarea|1|Votre idée|Your idea|Thèmes, composition, atmosphère souhaitée.|Themes, composition, desired atmosphere.;email|email|1|Votre adresse courriel|Your email address||'
+  endcase
+
+  assign title = title | split: '|'
+-%}
+
+{%- if fields -%}
+<div class="form-wrap" id="formulaire">
+  {%- form 'contact', id: type, class: 'form' -%}
+    {%- if form.posted_successfully? -%}
+      <p class="form__message form__message--ok" role="status">
+        {%- if en -%}Thank you, your message is on its way. I will get back to you as soon as possible.{%- else -%}Merci, votre message est parti. Je vous réponds dès que possible.{%- endif -%}
+      </p>
+    {%- elsif form.errors -%}
+      <p class="form__message form__message--error" role="alert">
+        {%- if en -%}A few details are missing: {% else %}Il manque quelques informations : {% endif -%}
+        {{ form.errors | default_errors }}
+      </p>
+    {%- endif -%}
+
+    <h2>{% if en %}{{ title[1] }}{% else %}{{ title[0] }}{% endif %}</h2>
+    <input type="hidden" name="contact[Formulaire]" value="{{ type }}">
+
+    {%- assign rows = fields | split: ';' -%}
+    {%- for row in rows -%}
+      {%- assign f = row | split: '|' -%}
+      {%- liquid
+        assign id = 'f-' | append: type | append: '-' | append: forloop.index
+        if en
+          assign label = f[4]
+          assign hint = f[6]
+        else
+          assign label = f[3]
+          assign hint = f[5]
+        endif
+        if f[0] == 'email'
+          assign name = 'contact[email]'
+        else
+          assign name = 'contact[' | append: f[0] | append: ']'
+        endif
+      -%}
+      <p class="form__field{% if f[1] == 'textarea' %} form__field--wide{% endif %}">
+        <label class="form__label" for="{{ id }}">{{ label }}
+          {%- if f[2] == '0' %} <span class="form__optional">{% if en %}(optional){% else %}(facultatif){% endif %}</span>{% endif -%}
+        </label>
+        {%- if hint != blank -%}<span class="form__hint" id="{{ id }}-hint">{{ hint }}</span>{%- endif -%}
+        {%- if f[1] == 'textarea' -%}
+          <textarea id="{{ id }}" name="{{ name }}" rows="6"{% if f[2] == '1' %} required{% endif %}{% if hint != blank %} aria-describedby="{{ id }}-hint"{% endif %}></textarea>
+        {%- else -%}
+          <input type="{{ f[1] }}" id="{{ id }}" name="{{ name }}"{% if f[2] == '1' %} required{% endif %}{% if hint != blank %} aria-describedby="{{ id }}-hint"{% endif %}{% if f[1] == 'email' %} autocomplete="email"{% endif %} value="">
+        {%- endif -%}
+      </p>
+    {%- endfor -%}
+
+    <button class="form__submit" type="submit">{% if en %}Send{% else %}Envoyer{% endif %}</button>
+  {%- endform -%}
+</div>
+{%- endif -%}

@@ -14,7 +14,12 @@ if ( ! $default ) {
 	WP_CLI::error( 'Aucune langue par défaut.' );
 }
 
-$post_types = array( 'post', 'page', 'product' );
+/*
+ * Ni les produits ni leurs catégories : ils sont sortis de Polylang (voir
+ * pll-cpt.php). Leur donner une langue ici, à chaque relance, était le premier
+ * temps d'un rangement d'office dans « Prints » que faisait shop.php.
+ */
+$post_types = array( 'post', 'page' );
 $n_posts    = 0;
 
 foreach ( $post_types as $pt ) {
@@ -37,7 +42,7 @@ foreach ( $post_types as $pt ) {
 	}
 }
 
-$taxonomies = array( 'category', 'post_tag', 'product_cat', 'product_tag' );
+$taxonomies = array( 'category', 'post_tag' );
 $n_terms    = 0;
 
 foreach ( $taxonomies as $tax ) {

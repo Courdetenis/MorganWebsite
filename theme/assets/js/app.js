@@ -553,6 +553,57 @@
     qtyInit();
   }
 
+  /* -------------------------------------------------------
+     7. Page Commande : sortir du mode retrait hors Québec
+
+     Le retrait n'existe que pour une adresse au Québec (inc/boutique.php).
+     En mode retrait, WooCommerce prend l'adresse de facturation comme adresse
+     de livraison : un client qui en saisit une hors Québec voit disparaître
+     le bouton « Remise en main propre »… et reste en mode retrait, sans tarif
+     ni moyen d'en sortir — WooCommerce ne prévoit pas ce cas. On le ramène
+     sur « Livraison », où son adresse l'attend.
+     ------------------------------------------------------- */
+  var retraitHorsQuebec = function (essais) {
+    if (!document.querySelector('.wp-block-woocommerce-checkout')) return;
+
+    /* Ce fichier passe avant les scripts de WooCommerce dans le pied de page,
+       et un optimiseur de scripts peut bousculer l'ordre encore. Sans
+       `wp.data` : on attend la fin du chargement, puis on réessaie dix
+       secondes plutôt que d'abandonner en silence. */
+    var data = window.wp && window.wp.data;
+    if (!data) {
+      if (document.readyState !== 'complete') {
+        window.addEventListener('load', function () { retraitHorsQuebec(0); }, { once: true });
+      } else if (essais < 50) {
+        setTimeout(function () { retraitHorsQuebec(essais + 1); }, 200);
+      }
+      return;
+    }
+
+    /* Les stores de WooCommerce sont relus à chaque passage, jamais gardés :
+       ils peuvent ne pas exister encore au moment de l'abonnement. */
+    data.subscribe(function () {
+      var commande = data.select('wc/store/checkout');
+      var panier = data.select('wc/store/cart');
+      // Une version de WooCommerce sans ces fonctions : on ne touche à rien.
+      if (!commande || !panier || typeof commande.prefersCollection !== 'function') return;
+      if (!commande.prefersCollection()) return;
+
+      var settings = window.wc && window.wc.wcSettings;
+      var retraits = (settings && settings.getSetting('collectableMethodIds')) || ['pickup_location'];
+      var possible = panier.getShippingRates().every(function (colis) {
+        return colis.shipping_rates.some(function (tarif) {
+          return retraits.indexOf(tarif.method_id) !== -1;
+        });
+      });
+      if (!possible) data.dispatch('wc/store/checkout').setPrefersCollection(false);
+    });
+  };
+
+  // Lancé à part des animations : une erreur de GSAP ne doit pas priver la
+  // page Commande de ce garde-fou.
+  retraitHorsQuebec(0);
+
   if (document.readyState === 'complete') { start(); }
   else { window.addEventListener('load', start); }
 })();

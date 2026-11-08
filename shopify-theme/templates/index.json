@@ -1,19 +1,6 @@
 {
   "sections": {
-    "hero": { "type": "hero", "settings": {} },
-    "marquee": { "type": "marquee", "settings": {} },
-    "chemins": {
-      "type": "nav-cards",
-      "blocks": {
-        "b1": { "type": "card", "settings": { "label": "Boutique", "note": "Prints et originaux", "fallback": "art-02.webp", "alt": "Ensemble de tirages d'art des illustrations à la gouache de Morgane Cachia" } },
-        "b2": { "type": "card", "settings": { "label": "Commissions et collaborations", "note": "Une œuvre pensée pour vous", "fallback": "art-03.webp", "alt": "Peinture d'un épouvantail coiffé d'un chapeau fleuri dans un champ de tournesols, réalisée sur commande" } },
-        "b3": { "type": "card", "settings": { "label": "Murales", "note": "Transformer un lieu", "fallback": "art-04.webp", "alt": "Morgane Cachia devant sa murale : un enfant en imperméable jaune qui creuse la terre" } }
-      },
-      "block_order": ["b1", "b2", "b3"],
-      "settings": {}
-    },
-    "oeuvres": { "type": "featured-artworks", "settings": {} },
-    "atelier": { "type": "atelier", "settings": {} }
+    "main": { "type": "main-home", "settings": {} }
   },
-  "order": ["hero", "marquee", "chemins", "oeuvres", "atelier"]
+  "order": ["main"]
 }

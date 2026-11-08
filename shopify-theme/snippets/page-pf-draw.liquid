@@ -1,0 +1,122 @@
+{%- comment -%}
+  Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « pf_draw »).
+  Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
+{%- endcomment -%}
+{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
+{%- if request.locale.iso_code == 'en' -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+
+<div class="wp-block-group hero-split is-layout-flow wp-block-group-is-layout-flow">
+
+<div class="hero__media"><img src="{{ 'art-17.webp' | asset_url }}" width="1108" height="1439" alt="Ink drawing: a waterfall tumbling down a mountain face beneath swirling clouds" decoding="async" loading="eager" fetchpriority="high"></div>
+
+<div class="wp-block-group hero-split__text is-layout-flow wp-block-group-is-layout-flow">
+
+<p class="hero__eyebrow">Portfolio</p>
+
+<h1 class="wp-block-heading">Drawing</h1>
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">All the portfolios</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commission an illustration</a></div>
+</div>
+</div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+
+<div class="wp-block-group section-head is-layout-flow wp-block-group-is-layout-flow">
+<p class="eyebrow">The series</p>
+
+<h2 class="wp-block-heading">The works</h2>
+</div>
+
+<figure class="wp-block-gallery alignwide has-nested-images columns-default is-style-strip is-layout-flex wp-block-gallery-is-layout-flex">
+
+<figure class="wp-block-image size-large"><img src="{{ 'art-16.webp' | asset_url }}" alt="Ink drawing: an old bearded man writing with a quill in a dark library" class="wp-image-16" width="900" height="1600"/></figure>
+
+<figure class="wp-block-image size-large"><img src="{{ 'art-17.webp' | asset_url }}" alt="Ink drawing: a waterfall tumbling down a mountain face beneath swirling clouds" class="wp-image-17" width="1108" height="1439"/></figure>
+
+<figure class="wp-block-image size-large"><img src="{{ 'art-18.webp' | asset_url }}" alt="Ink drawing: a girl in a knitted hat blowing on a dandelion" class="wp-image-18" width="900" height="1600"/></figure>
+
+<figure class="wp-block-image size-large"><img src="{{ 'art-19.webp' | asset_url }}" alt="Ink drawing: still life with a cello, sheet music and a bouquet on a draped table" class="wp-image-19" width="1162" height="1600"/></figure>
+</figure>
+</section>
+
+
+<div class="wp-block-group alignwide prose is-layout-flow wp-block-group-is-layout-flow">
+<hr class="wp-block-separator rule"/>
+
+
+<p>A custom illustration, or a piece that is already available?</p>
+
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commission an illustration</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Browse the shop</a></div>
+</div>
+</div>
+{%- else -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+
+<div class="wp-block-group hero-split is-layout-flow wp-block-group-is-layout-flow">
+
+<div class="hero__media"><img src="{{ 'art-17.webp' | asset_url }}" width="1108" height="1439" alt="Dessin à l’encre : une cascade dévale une paroi de montagne sous des nuages en volutes" decoding="async" loading="eager" fetchpriority="high"></div>
+
+<div class="wp-block-group hero-split__text is-layout-flow wp-block-group-is-layout-flow">
+
+<p class="hero__eyebrow">Portfolio</p>
+
+<h1 class="wp-block-heading">Dessin</h1>
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">Tous les portfolios</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commander une illustration</a></div>
+</div>
+</div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+
+<div class="wp-block-group section-head is-layout-flow wp-block-group-is-layout-flow">
+<p class="eyebrow">La série</p>
+
+<h2 class="wp-block-heading">Les œuvres</h2>
+</div>
+
+<figure class="wp-block-gallery alignwide has-nested-images columns-default is-style-strip is-layout-flex wp-block-gallery-is-layout-flex">
+
+<figure class="wp-block-image size-large"><img src="{{ 'art-16.webp' | asset_url }}" alt="Dessin à l’encre : un vieil homme barbu écrit à la plume dans une bibliothèque sombre" class="wp-image-16" width="900" height="1600"/></figure>
+
+<figure class="wp-block-image size-large"><img src="{{ 'art-17.webp' | asset_url }}" alt="Dessin à l’encre : une cascade dévale une paroi de montagne sous des nuages en volutes" class="wp-image-17" width="1108" height="1439"/></figure>
+
+<figure class="wp-block-image size-large"><img src="{{ 'art-18.webp' | asset_url }}" alt="Dessin à l’encre : une fillette en bonnet souffle sur un pissenlit" class="wp-image-18" width="900" height="1600"/></figure>
+
+<figure class="wp-block-image size-large"><img src="{{ 'art-19.webp' | asset_url }}" alt="Dessin à l’encre : nature morte au violoncelle, partition et bouquet posés sur une table drapée" class="wp-image-19" width="1162" height="1600"/></figure>
+</figure>
+</section>
+
+
+<div class="wp-block-group alignwide prose is-layout-flow wp-block-group-is-layout-flow">
+<hr class="wp-block-separator rule"/>
+
+
+<p>Une illustration sur mesure, ou une œuvre déjà disponible ?</p>
+
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commander une illustration</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Voir la boutique</a></div>
+</div>
+</div>
+{%- endif -%}

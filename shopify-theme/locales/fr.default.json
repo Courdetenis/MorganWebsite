@@ -83,5 +83,21 @@
     "date": "Date",
     "status": "Statut",
     "total": "Total"
+  },
+  "page_titles": {
+    "murales": "Murales",
+    "portfolio": "Portfolio",
+    "illustration-jeunesse": "Illustration jeunesse",
+    "illustration": "Illustration",
+    "dessin": "Dessin",
+    "portfolio-murales": "Murales — portfolio",
+    "a-propos": "À propos",
+    "commissions-et-collaborations": "Commissions et collaborations",
+    "commissions": "Commissions",
+    "collaborations": "Collaborations",
+    "contact": "Contact",
+    "conditions-generales-de-vente": "Conditions générales de vente",
+    "retours-et-remboursements": "Retours et remboursements",
+    "confidentialite": "Politique de confidentialité"
   }
 }

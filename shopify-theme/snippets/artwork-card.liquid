@@ -1,64 +1,50 @@
 {%- comment -%}
   Carte d'œuvre. Transposition de theme/woocommerce/content-product.php :
   mêmes classes, donc même habillage par app.css — cadre coloré quand il n'y a
-  pas de photo, pastille « Vendu », prix sous le titre.
-
-  Paramètres :
-    product      — produit Shopify (facultatif)
-    demo_image   — nom de fichier dans assets/, pour la démonstration hors boutique
-    demo_title   — titre de démonstration
-    demo_price   — prix de démonstration (chaîne déjà formatée)
+  pas de photo, pastille « Vendu », prix sous le titre, bouton d'ajout dessous.
 {%- endcomment -%}
 
-{%- if product -%}
-  {%- assign has_image = false -%}
-  {%- if product.featured_image -%}{%- assign has_image = true -%}{%- endif -%}
+{%- liquid
+  assign en = false
+  if request.locale.iso_code == 'en'
+    assign en = true
+  endif
+-%}
 
-  <li class="product artwork">
-    <a class="artwork__link" href="{{ product.url }}">
-      <span class="artwork__frame{% unless has_image %} artwork__frame--empty{% endunless %}">
-        {%- if has_image -%}
-          {%- assign alt = product.featured_image.alt | default: product.title -%}
-          {{ product.featured_image | image_url: width: 800 | image_tag:
-             loading: 'lazy', sizes: '(max-width: 820px) 50vw, 300px',
-             widths: '300,600,800', alt: alt }}
-        {%- endif -%}
-        {%- if product.available == false -%}
-          <span class="artwork__badge artwork__badge--out">{{ 'product.sold_out' | t }}</span>
-        {%- elsif product.compare_at_price > product.price -%}
-          <span class="artwork__badge">{{ 'product.sale' | t }}</span>
-        {%- endif -%}
-      </span>
-      <span class="artwork__body">
-        <span class="artwork__title">{{ product.title }}</span>
-        <span class="artwork__price">{{ product.price | money }}</span>
-      </span>
-    </a>
-
-    {%- if product.available -%}
-      <form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-        <button type="submit" class="button add_to_cart_button">{{ 'product.add_to_cart' | t }}</button>
-      </form>
-    {%- endif -%}
-  </li>
-
-{%- else -%}
-  {%- comment -%}
-    Aucune boutique branchée : tuile de démonstration, pour que la mise en page
-    se voie sur une boutique vide. Non cliquable, et annoncée comme telle.
-  {%- endcomment -%}
-  <li class="product artwork">
-    <span class="artwork__link">
-      <span class="artwork__frame{% unless demo_image %} artwork__frame--empty{% endunless %}">
-        {%- if demo_image -%}
-          <img src="{{ demo_image | asset_url }}" alt="" loading="lazy" width="800" height="1000">
-        {%- endif -%}
-      </span>
-      <span class="artwork__body">
-        <span class="artwork__title">{{ demo_title }}</span>
-        <span class="artwork__price">{{ demo_price }}</span>
-      </span>
+<li class="product artwork{% unless product.available %} outofstock{% endunless %}">
+  <a class="artwork__link" href="{{ product.url }}">
+    <span class="artwork__frame{% unless product.featured_image %} artwork__frame--empty{% endunless %}">
+      {%- if product.featured_image -%}
+        {%- assign alt = product.featured_image.alt | default: product.title -%}
+        {{ product.featured_image | image_url: width: 1000 | image_tag:
+           loading: 'lazy', widths: '300,600,800,1000',
+           sizes: '(max-width: 480px) 90vw, (max-width: 820px) 45vw, 300px',
+           alt: alt }}
+      {%- endif -%}
+      {%- if product.compare_at_price > product.price -%}
+        <span class="artwork__badge">Promo</span>
+      {%- elsif product.available == false -%}
+        <span class="artwork__badge artwork__badge--out">{% if en %}Sold{% else %}Vendu{% endif %}</span>
+      {%- endif -%}
     </span>
-  </li>
-{%- endif -%}
+    <span class="artwork__body">
+      <span class="artwork__title">{{ product.title }}</span>
+      <span class="artwork__price">{% if product.price_varies %}{% if en %}From {% else %}À partir de {% endif %}{% endif %}{{ product.price_min | money }}</span>
+    </span>
+  </a>
+
+  {%- comment -%}
+    Comme WooCommerce : une œuvre à plusieurs formats mène à sa fiche pour
+    choisir, une œuvre à format unique s'ajoute directement au panier.
+  {%- endcomment -%}
+  {%- if product.available -%}
+    {%- if product.has_only_default_variant -%}
+      {%- form 'product', product -%}
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+        <button type="submit" class="button add_to_cart_button">{% if en %}Add to cart{% else %}Ajouter au panier{% endif %}</button>
+      {%- endform -%}
+    {%- else -%}
+      <a class="button" href="{{ product.url }}">{% if en %}Select options{% else %}Choix des options{% endif %}</a>
+    {%- endif -%}
+  {%- endif -%}
+</li>

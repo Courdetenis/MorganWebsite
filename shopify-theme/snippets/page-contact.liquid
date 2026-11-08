@@ -1,0 +1,88 @@
+{%- comment -%}
+  Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « contact »).
+  Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
+{%- endcomment -%}
+{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
+{%- if request.locale.iso_code == 'en' -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:44vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+
+<div class="wp-block-group hero__inner is-layout-flow wp-block-group-is-layout-flow">
+
+<h1 class="wp-block-heading">Contact</h1>
+</div>
+</section>
+
+
+<div class="wp-block-group alignwide legal is-layout-flow wp-block-group-is-layout-flow">
+
+<div class="wp-block-group legal__part is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">Where to write</h2>
+
+<p>Email: <a href="mailto:morganecachia.art@gmail.com">morganecachia.art@gmail.com</a></p>
+
+
+<p>I usually reply within two to three business days. If you have heard nothing after a week, your message has most likely gone astray — please do write again.</p>
+</div>
+
+
+<div class="wp-block-group legal__part is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">A project in mind?</h2>
+
+<p>For a custom piece, a collaboration or a mural, the <a href="{{ r }}pages/commissions-et-collaborations">dedicated forms</a> save us a round trip: they ask up front about dimensions, location, timing and the medium you have in mind.</p>
+</div>
+
+
+<div class="wp-block-group legal__part is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">A shop order</h2>
+
+<p>Please include your order number — it appears in your confirmation email. Return conditions are set out on the <a href="{{ r }}pages/retours-et-remboursements">Returns and refunds</a> page.</p>
+</div>
+</div>
+{%- else -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:44vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+
+<div class="wp-block-group hero__inner is-layout-flow wp-block-group-is-layout-flow">
+
+<h1 class="wp-block-heading">Contact</h1>
+</div>
+</section>
+
+
+<div class="wp-block-group alignwide legal is-layout-flow wp-block-group-is-layout-flow">
+
+<div class="wp-block-group legal__part is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">Où m’écrire</h2>
+
+<p>Courriel : <a href="mailto:morganecachia.art@gmail.com">morganecachia.art@gmail.com</a></p>
+
+
+<p>Je réponds en général sous deux à trois jours ouvrables. Si vous n’avez rien reçu au bout d’une semaine, votre message s’est probablement perdu : réécrivez-moi sans hésiter.</p>
+</div>
+
+
+<div class="wp-block-group legal__part is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">Un projet en tête ?</h2>
+
+<p>Pour une œuvre sur mesure, une collaboration ou une murale, les <a href="{{ r }}pages/commissions-et-collaborations">formulaires dédiés</a> me font gagner un aller-retour : ils demandent d’emblée les dimensions, le lieu, les délais et le médium souhaité.</p>
+</div>
+
+
+<div class="wp-block-group legal__part is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">Une commande de la boutique</h2>
+
+<p>Indiquez votre numéro de commande dans le message : il figure dans le courriel de confirmation. Les conditions de retour sont détaillées sur la page <a href="{{ r }}pages/retours-et-remboursements">Retours et remboursements</a>.</p>
+</div>
+</div>
+{%- endif -%}

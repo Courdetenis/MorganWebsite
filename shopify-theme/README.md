@@ -1,76 +1,108 @@
 # Morgane — thème Shopify
 
-Portage du thème WordPress (`../theme`) vers Shopify, pour comparer le rendu
-des deux plateformes à design égal.
+Portage du thème WordPress (`../theme`) vers Shopify, design inchangé :
+`assets/app.css` et `assets/app.js` sont des **copies exactes** de ceux du thème
+WordPress.
 
-Le fichier à déposer : **`dist/morgane-shopify-0.6.0.zip`**.
+Le fichier à importer : **`dist/morgane-shopify-<version>.zip`**, fabriqué par
 
-## Installation
+```
+powershell -ExecutionPolicy Bypass -File scripts/faire-zip-shopify.ps1
+```
 
-1. Boutique de développement Shopify → **Boutique en ligne › Thèmes**
-2. **Ajouter un thème › Importer un fichier zip** → choisir le zip
-3. **Aperçu** (inutile de le publier)
+## Installer sur une boutique neuve
 
-Le thème s'affiche tel quel sur une boutique vide : la grille « Œuvres
-disponibles » montre huit tuiles de démonstration tant qu'aucun produit
-n'existe, et disparaissent d'elles-mêmes au premier produit ajouté.
+Ce que le thème fait seul, dès l'import : en-tête, menu, pied de page, accueil
+complet, textes de toutes les pages en français et en anglais, photos,
+formulaires, boutique, fiche d'œuvre, panier, 404.
 
-Pour une comparaison honnête, trois choses à faire ensuite :
+Ce qu'un thème Shopify **ne peut pas** faire (Shopify ne le permet à aucun
+thème) : créer des pages, des collections ou activer une langue. Quatre
+étapes, une seule fois :
 
-- **Menu** — *Navigation* → mettre les cinq entrées du site (Accueil, Boutique,
-  Murales, Portfolio, À propos). Sans ça, le menu par défaut de Shopify
-  s'affiche (Accueil, Catalogue).
-- **Entrée secondaire** — *Personnaliser › En-tête* → renseigner le lien
-  « Commissions et collaborations ». C'est l'entrée détachée à droite du menu.
-- **Produits** — deux ou trois œuvres avec photo, prix et **poids**, pour voir
-  la grille, la fiche et le calcul des frais de port.
+### 1. Importer et publier
 
-## Ce qui a été porté
+*Boutique en ligne › Thèmes › Ajouter un thème › Importer un fichier zip*, puis
+**Publier**.
 
-| Fichier WordPress | Devient |
+### 2. Créer les pages (14)
+
+*Boutique en ligne › Pages › Ajouter une page*. Pour chacune : le titre, puis
+dans **Référencement › Modifier** mettre l'**identifiant (handle)** exact
+ci-dessous. Le contenu reste **vide** : le thème l'affiche lui-même, dans les
+deux langues. Gabarit : celui par défaut (`page`).
+
+| Titre | Handle |
 |---|---|
-| `theme.json` | `assets/base.css` (mêmes couleurs, tailles, espacements) |
-| `assets/css/app.css` | `assets/app.css` — **copié sans une modification** |
-| `assets/js/app.js` | `assets/app.js` — **copié sans une modification** |
+| Murales | `murales` |
+| Portfolio | `portfolio` |
+| Illustration jeunesse | `illustration-jeunesse` |
+| Illustration | `illustration` |
+| Dessin | `dessin` |
+| Murales (portfolio) | `portfolio-murales` |
+| À propos | `a-propos` |
+| Commissions et collaborations | `commissions-et-collaborations` |
+| Commissions | `commissions` |
+| Collaborations | `collaborations` |
+| Contact | `contact` |
+| Conditions générales de vente | `conditions-generales-de-vente` |
+| Retours et remboursements | `retours-et-remboursements` |
+| Confidentialité | `confidentialite` |
+
+L'onglet du navigateur prend le titre écrit dans le thème
+(`locales/*.json › page_titles`), pas celui saisi ici.
+
+### 3. Créer les collections
+
+*Produits › Collections › Créer une collection*, handle exact :
+
+- `prints` — titre « Prints »
+- `originaux` — titre « Originaux ». Sa **description** s'affiche sous chaque
+  original (matériaux, certificat) : l'écrire une fois ici.
+- `accueil` (facultatif) — les œuvres à montrer sur l'accueil. Vide ou absente,
+  l'accueil montre les dernières œuvres ajoutées.
+
+Le menu « Boutique » ne déroule que les rayons qui existent, et la page
+Boutique (`/collections`) les présente en cartes.
+
+### 4. Langues et réglages
+
+- *Paramètres › Langues* : **français par défaut**, ajouter **anglais** et le
+  **publier**. Le sélecteur FR/EN apparaît alors dans l'en-tête.
+- *Paramètres › Coordonnées de la boutique* : l'adresse courriel qui recevra
+  les demandes de commissions, collaborations et murales.
+- *Paramètres › Général › Devise* : format « {{amount_with_comma_separator}} $ CA »
+  pour retrouver « 45,00 $ CA ».
+- Produits en anglais : application gratuite **Translate & Adapt** de Shopify.
+- Réseaux et courriel du pied de page : *Personnaliser › Pied de page*.
+
+## Modifier un texte de page
+
+Les textes vivent toujours dans `theme/install/pages.php`, un seul endroit pour
+les deux plateformes. Après modification :
+
+```
+php -d extension=gd -d extension=exif scripts/shopify-pages.php
+```
+
+régénère `snippets/page-*.liquid` et `assets/art-*.webp`, puis refaire le zip.
+Ne pas modifier les snippets `page-*` à la main : ils seraient écrasés.
+
+## Ce qui a changé par rapport à WordPress
+
+| WordPress | Shopify |
+|---|---|
+| `theme.json` | `assets/base.css` (variables et styles globaux) |
+| moteur de mise en page des blocs | `assets/base.css` § 2, classes posées par `shopify-pages.php` |
+| feuilles des blocs du cœur | `assets/wp-blocks.css` (copie, commentaires retirés) |
 | `parts/header.html` + `inc/blocks.php` | `sections/header.liquid` |
 | `parts/footer.html` + `inc/contact.php` | `sections/footer.liquid` |
-| `install/pages.php` (cas `home`) | `sections/hero,marquee,nav-cards,featured-artworks,atelier` |
+| `install/pages.php` | `snippets/page-*.liquid` (générés) |
+| bloc `morgane/artworks` | `snippets/artworks-grid.liquid` |
 | `woocommerce/content-product.php` | `snippets/artwork-card.liquid` |
-| `inc/i18n.php` | `locales/fr.default.json`, `locales/en.json` |
+| `inc/forms.php` | `snippets/request-form.liquid`, envoi par le formulaire de contact de Shopify |
+| vitrine de `inc/boutique.php` | `sections/main-list-collections.liquid` |
+| Polylang | langues de Shopify, URL `/en/…` |
 
-Les classes du balisage sont restées celles de WordPress (`wp-block-group`,
-`alignwide`, `woocommerce ul.products`…). Ce n'est pas de la négligence : c'est
-ce qui permet de réutiliser `app.css` et `app.js` tels quels, donc de comparer
-deux rendus et non deux réécritures.
-
-## Ce qui n'a pas d'équivalent
-
-- **`inc/installer.php` + `install/*`** (3 388 lignes) — Shopify n'exécute pas
-  de code serveur. Le contenu se saisit à la main ou via l'Admin API, hors du
-  thème.
-- **Polylang** — les traductions de contenu sont des données dans la boutique
-  (Shopify Markets), pas des fichiers. Seules les chaînes d'interface sont dans
-  `locales/`. Le sélecteur de langue ne s'affiche que si la boutique publie
-  plus d'une langue.
-- **Formulaires maison** (`inc/forms.php`) — le formulaire de contact natif de
-  Shopify est utilisé ; tout traitement particulier demanderait une app.
-
-## Aperçu local, sans boutique
-
-`preview.html` reproduit l'accueil en HTML statique, avec les mêmes CSS et JS
-que le thème. Il sert à vérifier le rendu sans passer par Shopify.
-
-```
-python3 -m http.server 4173 --directory shopify-theme
-```
-
-puis http://localhost:4173/preview.html — il n'est pas inclus dans le zip.
-
-## Limite connue
-
-Shopify enveloppe chaque section dans un `<div class="shopify-section">`. Cette
-enveloppe est neutralisée en `display: contents` (`assets/base.css`), sans quoi
-l'en-tête collant n'a plus de course et les sections pleine largeur s'arrêtent
-à 64 px des bords. Effet de bord : dans l'éditeur de thème, le survol d'une
-section peut ne pas dessiner son cadre de sélection. Sans conséquence sur le
-site publié.
+Le panier et le paiement sont ceux de Shopify : le paiement (checkout) ne se
+personnalise pas par le thème.

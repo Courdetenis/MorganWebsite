@@ -1,88 +1,164 @@
 {%- comment -%}
   En-tête. Reprend trait pour trait le balisage de morgane_render_menu() et
-  morgane_render_tools() : navigation à gauche, logo au centre (hors flux),
-  commandes à droite. app.css l'habille sans une ligne de changement.
+  morgane_render_tools() (theme/inc/blocks.php) : navigation à gauche, logo au
+  centre (hors flux), commandes à droite. app.css l'habille sans changement.
+
+  Les entrées sont écrites ici, comme sous WordPress, et non tirées d'un menu
+  de navigation Shopify : le site s'affiche juste dès l'installation du thème,
+  dans les deux langues, sans rien configurer.
 {%- endcomment -%}
 
-{%- assign menu = linklists[section.settings.menu] -%}
+{%- liquid
+  assign en = false
+  if request.locale.iso_code == 'en'
+    assign en = true
+  endif
+  assign r = routes.root_url | append: '/' | replace: '//', '/'
+  assign here = request.path | append: '/' | replace: '//', '/'
 
-<div class="wp-block-group site-header">
+  if en
+    assign items = 'Home|' | append: r | append: ';Shop|' | append: r | append: 'collections;Murals|' | append: r | append: 'pages/murales;Portfolio|' | append: r | append: 'pages/portfolio;About|' | append: r | append: 'pages/a-propos'
+    assign aside_label = 'Commissions and collaborations'
+  else
+    assign items = 'Accueil|' | append: r | append: ';Boutique|' | append: r | append: 'collections;Murales|' | append: r | append: 'pages/murales;Portfolio|' | append: r | append: 'pages/portfolio;À propos|' | append: r | append: 'pages/a-propos'
+    assign aside_label = 'Commissions et collaborations'
+  endif
+  assign aside_url = r | append: 'pages/commissions-et-collaborations'
+-%}
+
+<div class="wp-block-group site-header has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-ws-1200">
+  {%- comment -%}
+    Pas de classe `is-layout-flow` ici : sous WordPress, la barre a un
+    `blockGap` à 0. Avec la classe, base.css pose 1,5rem de marge au-dessus des
+    outils, et la barre flex les centre 12 px trop bas.
+  {%- endcomment -%}
   <div class="wp-block-group alignwide site-header__bar">
 
-    <nav class="menu" aria-label="{{ 'general.main_menu' | t }}">
-      <button class="menu__trigger" type="button" aria-expanded="false" aria-controls="menu-panel" aria-label="{{ 'general.main_menu' | t }}">
+    <nav class="menu" aria-label="{% if en %}Main menu{% else %}Menu principal{% endif %}">
+      <button class="menu__trigger" type="button" aria-expanded="false" aria-controls="menu-panel" aria-label="{% if en %}Main menu{% else %}Menu principal{% endif %}">
         <span class="menu__bars" aria-hidden="true"><span></span><span></span><span></span></span>
-        <span class="menu__trigger-text">{{ 'general.menu' | t }}</span>
+        <span class="menu__trigger-text">Menu</span>
       </button>
       <div class="menu__panel" id="menu-panel">
         <ul class="menu__list">
-          {%- for link in menu.links -%}
-            <li><a href="{{ link.url }}"{% if link.active %} aria-current="page"{% endif %}>{{ link.title }}</a></li>
+          {%- assign rows = items | split: ';' -%}
+          {%- for row in rows -%}
+            {%- assign it = row | split: '|' -%}
+            {%- assign url_slash = it[1] | append: '/' | replace: '//', '/' -%}
+            {%- assign current = false -%}
+            {%- if url_slash == here -%}{%- assign current = true -%}{%- endif -%}
+            {%- if forloop.index == 2 -%}
+              {%- comment -%}
+                « Boutique » mène à la vitrine ; le chevron déroule le raccourci
+                vers les rayons. Un rayon dont la collection n'existe pas encore
+                est absent — jamais de lien vers une page vide.
+              {%- endcomment -%}
+              {%- capture rayons -%}
+                {%- if collections['prints'].id -%}<li><a href="{{ collections['prints'].url }}">Prints</a></li>{%- endif -%}
+                {%- if collections['originaux'].id -%}<li><a href="{{ collections['originaux'].url }}">{% if en %}Originals{% else %}Originaux{% endif %}</a></li>{%- endif -%}
+              {%- endcapture -%}
+              {%- if rayons != blank -%}
+                <li class="menu__item--sub" data-submenu><a href="{{ it[1] }}"{% if current %} aria-current="page"{% endif %}>{{ it[0] }}</a><button class="menu__sub-trigger" type="button" aria-expanded="false" aria-controls="menu-rayons" aria-label="{% if en %}Show the categories{% else %}Afficher les rayons{% endif %}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5 12 15.5 18 9.5"/></svg></button><ul class="menu__sub" id="menu-rayons">{{ rayons }}</ul></li>
+                {%- continue -%}
+              {%- endif -%}
+            {%- endif -%}
+            <li><a href="{{ it[1] }}"{% if current %} aria-current="page"{% endif %}>{{ it[0] }}</a></li>
           {%- endfor -%}
         </ul>
-        {%- if section.settings.aside_url != blank -%}
-          <div class="menu__aside">
-            <ul class="menu__list">
-              <li><a href="{{ section.settings.aside_url }}">{{ section.settings.aside_label }}</a></li>
-            </ul>
-          </div>
-        {%- endif -%}
+        <div class="menu__aside"><ul class="menu__list"><li><a href="{{ aside_url }}"{% if aside_url == request.path %} aria-current="page"{% endif %}>{{ aside_label }}</a></li></ul></div>
       </div>
     </nav>
 
-    <p class="site-header__brand">
-      <a href="{{ routes.root_url }}">{{ shop.name }}</a>
+    <p class="site-header__brand wp-block-site-title">
+      <a href="{{ r }}" rel="home">{{ shop.name }}</a>
     </p>
 
-    {%- comment -%}
-      Les quatre commandes. Sur grand écran elles sont à plat ; en dessous de
-      720 px elles passent derrière le bouton à trois points — le logo garde
-      ainsi le centre de la barre, sur une seule rangée.
-    {%- endcomment -%}
+    {%- liquid
+      if en
+        assign tools_label = 'Language, theme, account and cart'
+      else
+        assign tools_label = 'Langue, thème, compte et panier'
+      endif
+    -%}
     <div class="site-header__tools" data-tools>
-      <button class="tools__trigger" type="button" aria-expanded="false" aria-controls="tools-panel"
-              aria-label="{{ 'general.tools' | t }}" title="{{ 'general.tools' | t }}">
+      <button class="tools__trigger" type="button" aria-expanded="false" aria-controls="tools-panel" aria-label="{{ tools_label }}" title="{{ tools_label }}">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
         {%- if cart.item_count > 0 -%}<span class="tools__badge" aria-hidden="true">{{ cart.item_count }}</span>{%- endif -%}
       </button>
 
       <div class="tools__panel" id="tools-panel">
 
-        {%- comment -%} Langue : rendu seulement si la boutique en publie plusieurs. {%- endcomment -%}
+        {%- comment -%}
+          Langue : des liens, comme sous WordPress. Shopify sert chaque langue
+          sous son préfixe (/en/…) ; on remplace celui de la page courante.
+          N'apparaît que si la boutique publie plus d'une langue.
+        {%- endcomment -%}
         {%- if localization.available_languages.size > 1 -%}
+          {%- assign lang_label = 'Choix de la langue' -%}
+          {%- if en -%}{%- assign lang_label = 'Language' -%}{%- endif -%}
+          {%- assign bare = request.path -%}
+          {%- if routes.root_url != '/' -%}{%- assign bare = request.path | remove_first: routes.root_url -%}{%- endif -%}
+          {%- if bare == blank -%}{%- assign bare = '/' -%}{%- endif -%}
           <div class="lang-switch" data-lang-switch>
-            <button class="lang-switch__trigger" type="button" aria-expanded="false" aria-controls="lang-panel"
-                    aria-label="{{ 'general.language' | t }}" title="{{ 'general.language' | t }}">{{ localization.language.iso_code | upcase }}</button>
+            <button class="lang-switch__trigger" type="button" aria-expanded="false" aria-controls="lang-panel" aria-label="{{ lang_label }}" title="{{ lang_label }}">{{ request.locale.iso_code | upcase }}</button>
             <div class="lang-switch__panel" id="lang-panel">
-              {%- form 'localization', id: 'lang-form' -%}
-                <input type="hidden" name="return_to" value="{{ request.path }}">
-                {%- for language in localization.available_languages -%}
-                  <button type="submit" name="language_code" value="{{ language.iso_code }}"
-                          class="lang-switch__item{% if language.iso_code == localization.language.iso_code %} is-active{% endif %}"
-                          lang="{{ language.iso_code }}"{% if language.iso_code == localization.language.iso_code %} aria-current="true"{% endif %}>{{ language.iso_code | upcase }}</button>
-                {%- endfor -%}
-              {%- endform -%}
+              {%- for language in localization.available_languages -%}
+                {%- liquid
+                  assign is_current = false
+                  if language.iso_code == request.locale.iso_code
+                    assign is_current = true
+                  endif
+                  if language.primary
+                    assign href = bare
+                  else
+                    assign href = '/' | append: language.iso_code | append: bare
+                    if bare == '/'
+                      assign href = '/' | append: language.iso_code
+                    endif
+                  endif
+                -%}
+                <a class="lang-switch__item{% if is_current %} is-active{% endif %}" href="{{ href }}" lang="{{ language.iso_code }}" hreflang="{{ language.iso_code }}"{% if is_current %} aria-current="true"{% endif %}>{{ language.iso_code | upcase }}</a>
+              {%- endfor -%}
             </div>
           </div>
         {%- endif -%}
 
-        <button class="theme-toggle" type="button" data-theme-toggle aria-label="{{ 'general.theme_toggle' | t }}" title="{{ 'general.theme_toggle' | t }}">
-          <svg class="theme-toggle__sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.3 6.3 4.8 4.8M19.2 19.2l-1.5-1.5M17.7 6.3l1.5-1.5M4.8 19.2l1.5-1.5"/></svg>
-          <svg class="theme-toggle__moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13.4A8.2 8.2 0 0 1 10.6 4a8.4 8.4 0 1 0 9.4 9.4Z"/></svg>
-        </button>
+        {%- assign theme_label = 'Thème clair / sombre' -%}
+        {%- if en -%}{%- assign theme_label = 'Light / dark theme' -%}{%- endif -%}
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="{{ theme_label }}" title="{{ theme_label }}"><svg class="theme-toggle__sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.3 6.3 4.8 4.8M19.2 19.2l-1.5-1.5M17.7 6.3l1.5-1.5M4.8 19.2l1.5-1.5"/></svg><svg class="theme-toggle__moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13.4A8.2 8.2 0 0 1 10.6 4a8.4 8.4 0 1 0 9.4 9.4Z"/></svg></button>
 
-        {%- assign account_label = 'general.sign_in' | t -%}
-        {%- if customer -%}{%- assign account_label = 'general.account' | t -%}{%- endif -%}
-        <a class="account-link{% if customer %} is-connected{% endif %}" href="{{ routes.account_url }}"
-           aria-label="{{ account_label }}" title="{{ account_label }}">
-          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>
-        </a>
+        {%- if shop.customer_accounts_enabled -%}
+          {%- liquid
+            if customer
+              assign account_label = 'Mon compte'
+              if en
+                assign account_label = 'My account'
+              endif
+            else
+              assign account_label = 'Se connecter'
+              if en
+                assign account_label = 'Sign in'
+              endif
+            endif
+          -%}
+          <a class="account-link{% if customer %} is-connected{% endif %}" href="{{ routes.account_url }}" aria-label="{{ account_label }}" title="{{ account_label }}"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg></a>
+        {%- endif -%}
 
-        <a class="cart-link" href="{{ routes.cart_url }}"
-           aria-label="{% if cart.item_count > 0 %}{{ 'general.cart_count' | t: count: cart.item_count }}{% else %}{{ 'general.cart' | t }}{% endif %}">
-          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8h13l-1.1 11.1a1.6 1.6 0 0 1-1.6 1.4H8.2a1.6 1.6 0 0 1-1.6-1.4Z"/><path d="M9 8V6.4a3 3 0 0 1 6 0V8"/></svg>
-          {%- if cart.item_count > 0 -%}<span class="cart-link__badge">{{ cart.item_count }}</span>{%- endif -%}
-        </a>
+        {%- liquid
+          if cart.item_count > 0
+            if en
+              assign cart_label = 'Cart, ' | append: cart.item_count | append: ' item(s)'
+            else
+              assign cart_label = 'Panier, ' | append: cart.item_count | append: ' article(s)'
+            endif
+          else
+            assign cart_label = 'Panier'
+            if en
+              assign cart_label = 'Cart'
+            endif
+          endif
+        -%}
+        <a class="cart-link" href="{{ routes.cart_url }}" aria-label="{{ cart_label }}"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8h13l-1.1 11.1a1.6 1.6 0 0 1-1.6 1.4H8.2a1.6 1.6 0 0 1-1.6-1.4Z"/><path d="M9 8V6.4a3 3 0 0 1 6 0V8"/></svg>{%- if cart.item_count > 0 -%}<span class="cart-link__badge">{{ cart.item_count }}</span>{%- endif -%}</a>
 
       </div>
     </div>
@@ -93,10 +169,6 @@
 {% schema %}
 {
   "name": "En-tête",
-  "settings": [
-    { "type": "link_list", "id": "menu", "label": "Menu principal", "default": "main-menu" },
-    { "type": "text", "id": "aside_label", "label": "Entrée secondaire — libellé", "default": "Commissions et collaborations" },
-    { "type": "url", "id": "aside_url", "label": "Entrée secondaire — lien" }
-  ]
+  "settings": []
 }
 {% endschema %}

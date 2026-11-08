@@ -1,18 +1,37 @@
-{%- comment -%} 404. Reprend le bandeau et les formes floues du hero — rien de neuf en CSS, comme dans morgane_render_not_found(). {%- endcomment -%}
-<section class="wp-block-group alignfull hero is-bleed" style="min-height:62vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
-  <div class="blob blob--rose" style="width:min(30vw,320px);aspect-ratio:1;top:12%;left:-5%;"></div>
-  <div class="blob blob--sage" style="width:min(24vw,260px);aspect-ratio:1;bottom:14%;right:-4%;"></div>
-
-  <div class="wp-block-group hero__inner mg-inner mg-inner--hero">
-    <p class="hero__eyebrow">{{ 'not_found.eyebrow' | t }}</p>
-    <h1 class="wp-block-heading has-text-align-center">{{ 'not_found.title' | t }}</h1>
-    <p class="hero__lede has-large-font-size has-text-align-center">{{ 'not_found.text' | t }}</p>
-    <div class="wp-block-buttons is-content-justification-center">
-      <div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ routes.root_url }}">{{ 'not_found.home' | t }}</a></div>
-      <div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ routes.all_products_collection_url }}">{{ 'not_found.shop' | t }}</a></div>
+{%- comment -%}
+  404. Même balisage que le gabarit 404.html et morgane_render_not_found() :
+  le bandeau et les formes floues du hero, rien de neuf en CSS. Une 404 doit
+  toujours proposer une sortie.
+{%- endcomment -%}
+{%- liquid
+  assign en = false
+  if request.locale.iso_code == 'en'
+    assign en = true
+  endif
+  assign r = routes.root_url | append: '/' | replace: '//', '/'
+-%}
+<div class="entry-content has-global-padding is-layout-constrained wp-block-group-is-layout-constrained" style="padding-bottom:var(--wp--preset--spacing--60)">
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+  <div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+  <div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+  <div class="wp-block-group hero__inner is-layout-flow wp-block-group-is-layout-flow">
+    {%- if en -%}
+      <p class="hero__eyebrow">Error 404</p>
+      <h1 class="wp-block-heading">This page has wandered off</h1>
+      <p class="hero__lede has-large-font-size">This address leads nowhere — it may have changed, or contain a typo. Here are two that do lead somewhere.</p>
+    {%- else -%}
+      <p class="hero__eyebrow">Erreur 404</p>
+      <h1 class="wp-block-heading">Cette page s'est égarée</h1>
+      <p class="hero__lede has-large-font-size">L'adresse ne mène nulle part — elle a peut-être changé, ou comporte une coquille. Voici deux chemins qui, eux, mènent quelque part.</p>
+    {%- endif -%}
+    <div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
+      <div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}">{% if en %}Back to home{% else %}Retour à l'accueil{% endif %}</a></div>
+      <div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">{% if en %}Browse the shop{% else %}Voir la boutique{% endif %}</a></div>
     </div>
   </div>
 </section>
+</div>
+
 {% schema %}
 { "name": "Page 404", "settings": [] }
 {% endschema %}

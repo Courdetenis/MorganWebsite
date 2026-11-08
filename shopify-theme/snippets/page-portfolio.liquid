@@ -1,0 +1,100 @@
+{%- comment -%}
+  Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « portfolio »).
+  Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
+{%- endcomment -%}
+{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
+{%- if request.locale.iso_code == 'en' -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+<figure class="art-float art-float--left"><img src="{{ 'art-12.webp' | asset_url }}" width="1067" height="1600" alt="Children’s illustration: a mouse waters primroses outside her home carved into a tree" decoding="async" loading="eager" fetchpriority="high"></figure>
+<figure class="art-float art-float--right"><img src="{{ 'art-19.webp' | asset_url }}" width="1162" height="1600" alt="Ink drawing: still life with a cello, sheet music and a bouquet on a draped table" decoding="async" loading="eager" fetchpriority="high"></figure>
+
+<div class="wp-block-group hero__inner is-layout-flow wp-block-group-is-layout-flow">
+
+<h1 class="wp-block-heading">Portfolio</h1>
+</div>
+</section>
+
+
+<div class="color-band alignfull" aria-hidden="true"><div class="marquee"><span>Children’s illustration</span><span>Illustration</span><span>Drawing</span><span>Murals</span></div></div>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+
+<div class="wp-block-group section-head is-layout-flow wp-block-group-is-layout-flow">
+<p class="eyebrow">Four worlds</p>
+
+<h2 class="wp-block-heading">Choose a portfolio</h2>
+</div>
+
+<div class="nav-cards alignwide" data-reveal>
+  <div class="nav-card"><a href="{{ r }}pages/illustration-jeunesse"><span class="nav-card__frame"><img src="{{ 'art-11.webp' | asset_url }}" width="1171" height="1600" alt="Children’s illustration: a fawn and a puppy meet in a snowy forest of violet tones" decoding="async" loading="lazy"></span><span class="nav-card__label">Children’s illustration</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/illustration"><span class="nav-card__frame"><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Gouache illustration: a woman with long hair holds a glowing moon in a blue winter forest" decoding="async" loading="lazy"></span><span class="nav-card__label">Illustration</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/dessin"><span class="nav-card__frame"><img src="{{ 'art-16.webp' | asset_url }}" width="900" height="1600" alt="Ink drawing: an old bearded man writing with a quill in a dark library" decoding="async" loading="lazy"></span><span class="nav-card__label">Drawing</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/portfolio-murales"><span class="nav-card__frame"><img src="{{ 'art-20.webp' | asset_url }}" width="1200" height="1600" alt="Mural: a child in a blue raincoat smelling a flower from which letters escape" decoding="async" loading="lazy"></span><span class="nav-card__label">Murals</span></a></div>
+</div>
+</section>
+
+
+<div class="wp-block-group alignwide prose is-layout-flow wp-block-group-is-layout-flow">
+<hr class="wp-block-separator rule"/>
+
+
+<p>A piece that is already available, or one imagined for you?</p>
+
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Browse the shop</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commission a piece</a></div>
+</div>
+</div>
+{%- else -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+<figure class="art-float art-float--left"><img src="{{ 'art-12.webp' | asset_url }}" width="1067" height="1600" alt="Illustration jeunesse : une souris arrose des primevères devant sa maison creusée dans un arbre" decoding="async" loading="eager" fetchpriority="high"></figure>
+<figure class="art-float art-float--right"><img src="{{ 'art-19.webp' | asset_url }}" width="1162" height="1600" alt="Dessin à l’encre : nature morte au violoncelle, partition et bouquet posés sur une table drapée" decoding="async" loading="eager" fetchpriority="high"></figure>
+
+<div class="wp-block-group hero__inner is-layout-flow wp-block-group-is-layout-flow">
+
+<h1 class="wp-block-heading">Portfolio</h1>
+</div>
+</section>
+
+
+<div class="color-band alignfull" aria-hidden="true"><div class="marquee"><span>Illustration jeunesse</span><span>Illustration</span><span>Dessin</span><span>Murales</span></div></div>
+
+
+<section class="wp-block-group alignwide has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+
+<div class="wp-block-group section-head is-layout-flow wp-block-group-is-layout-flow">
+<p class="eyebrow">Quatre univers</p>
+
+<h2 class="wp-block-heading">Choisir un portfolio</h2>
+</div>
+
+<div class="nav-cards alignwide" data-reveal>
+  <div class="nav-card"><a href="{{ r }}pages/illustration-jeunesse"><span class="nav-card__frame"><img src="{{ 'art-11.webp' | asset_url }}" width="1171" height="1600" alt="Illustration jeunesse : un faon et un chiot se rencontrent dans une forêt enneigée aux teintes violettes" decoding="async" loading="lazy"></span><span class="nav-card__label">Illustration jeunesse</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/illustration"><span class="nav-card__frame"><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée" decoding="async" loading="lazy"></span><span class="nav-card__label">Illustration</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/dessin"><span class="nav-card__frame"><img src="{{ 'art-16.webp' | asset_url }}" width="900" height="1600" alt="Dessin à l’encre : un vieil homme barbu écrit à la plume dans une bibliothèque sombre" decoding="async" loading="lazy"></span><span class="nav-card__label">Dessin</span></a></div>
+  <div class="nav-card"><a href="{{ r }}pages/portfolio-murales"><span class="nav-card__frame"><img src="{{ 'art-20.webp' | asset_url }}" width="1200" height="1600" alt="Murale : un enfant en imperméable bleu respire une fleur d’où s’échappent des lettres" decoding="async" loading="lazy"></span><span class="nav-card__label">Murales</span></a></div>
+</div>
+</section>
+
+
+<div class="wp-block-group alignwide prose is-layout-flow wp-block-group-is-layout-flow">
+<hr class="wp-block-separator rule"/>
+
+
+<p>Une œuvre déjà disponible, ou une pièce imaginée pour vous ?</p>
+
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Voir la boutique</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commander une œuvre</a></div>
+</div>
+</div>
+{%- endif -%}

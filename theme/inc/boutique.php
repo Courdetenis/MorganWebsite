@@ -309,6 +309,29 @@ add_filter( 'woocommerce_get_terms_page_id', 'morgane_page_legale_traduite' );
 add_filter( 'woocommerce_privacy_policy_page_id', 'morgane_page_legale_traduite' );
 
 /* -------------------------------------------------------------------------
+   La remise en main propre, au Québec seulement.
+   ------------------------------------------------------------------------- */
+
+/*
+ * Morgane remet ses œuvres en main propre au Québec ; ailleurs, l'option n'a
+ * pas de sens. Le tarif de retrait n'est donc calculé que pour une adresse au
+ * Québec, et le bouton « Remise en main propre » de la page Commande disparaît
+ * avec lui : WooCommerce ne l'affiche que si chaque colis peut être retiré.
+ * Une adresse pas encore saisie ne compte pas comme québécoise.
+ *
+ * Le tri se fait ici, au calcul des tarifs, et non dans la page : une commande
+ * qui passerait outre l'interface ne trouverait pas de retrait à choisir. En
+ * mode retrait, WooCommerce prend l'adresse de facturation comme adresse de
+ * livraison — c'est alors elle qui décide (voir aussi assets/js/app.js, § 7).
+ */
+add_filter( 'woocommerce_shipping_pickup_location_is_available', function ( $disponible, $colis ) {
+	$pays     = $colis['destination']['country'] ?? '';
+	$province = $colis['destination']['state'] ?? '';
+
+	return $disponible && 'CA' === $pays && 'QC' === $province;
+}, 10, 2 );
+
+/* -------------------------------------------------------------------------
    Les deux rayons : les tirages d'un côté, les pièces uniques de l'autre.
    ------------------------------------------------------------------------- */
 

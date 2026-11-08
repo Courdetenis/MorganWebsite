@@ -1,14 +1,13 @@
 <?php
 /**
  * Structure de la boutique WooCommerce :
- *   - deux catégories produits : Prints / Originaux (traduites FR ↔ EN) ;
+ *   - deux catégories produits : Prints / Originaux ;
  *   - un attribut global « Taille », partagé par tous les prints ;
- *   - un produit variable d'exemple, à dupliquer pour chaque nouveau tirage.
+ *   - la classe de livraison « Lettre ».
  *
- * Rien de plus : pas de type de contenu maison, pas de champ personnalisé.
- * Un print = un produit variable avec des variations de taille ; un original
- * = un produit simple, stock 1. Morgane duplique, change le titre, la photo,
- * les prix — et c'est en ligne.
+ * Rien de plus, et **aucun produit** : ni créé, ni modifié, ni rangé. Un print
+ * = un produit variable avec des variations de taille ; un original = un
+ * produit simple, stock 1. Morgane les crée et les range elle-même.
  *
  *   docker compose run --rm --entrypoint wp wpcli eval-file /scripts/shop.php
  */
@@ -42,11 +41,16 @@ if ( ! function_exists( 'pll_set_term_language' ) ) {
  * libellé anglais.
  */
 $categories = array(
+	/*
+	 * Pas de description pour les tirages : Morgane n'en veut pas, le titre du
+	 * rayon suffit. Laissée vide ici, elle est aussi effacée de la base au
+	 * prochain passage — sinon l'ancienne phrase resterait affichée.
+	 */
 	'prints'    => array(
 		'name'        => 'Prints',
 		'slug'        => 'prints',
-		'description' => 'Tirages d’art imprimés sur papier beaux-arts sans acide, 250 g/m², à l’encre pigmentaire — un rendu mat, des couleurs stables dans le temps. Chaque tirage existe en plusieurs formats.',
-		'description_en' => 'Fine art prints on acid-free 250 gsm paper, pigment ink — a matte finish and colours that hold over time. Each print comes in several sizes.',
+		'description' => '',
+		'description_en' => '',
 	),
 	'originaux' => array(
 		'name'        => 'Originaux',
@@ -56,8 +60,6 @@ $categories = array(
 	),
 );
 
-$cat_ids = array();
-
 /**
  * L'anglais du rayon vit dans une métadonnée du terme, comme celui des produits
  * vit dans une métadonnée de la fiche. Sans elle, le site anglais affichait le
@@ -65,9 +67,16 @@ $cat_ids = array();
  *
  * On ne l'écrase jamais : ce que Morgane a écrit dans l'écran de la catégorie
  * a toujours raison sur le texte livré ici.
+ *
+ * Sauf pour un rayon livré sans description : le français vient d'y être vidé,
+ * et un anglais laissé en place s'afficherait seul sur le site anglais.
  */
 function morgane_poser_description_en( $terme_id, $texte ) {
-	if ( ! $texte || ! defined( 'MORGANE_META_CAT_DESC_EN' ) ) {
+	if ( ! defined( 'MORGANE_META_CAT_DESC_EN' ) ) {
+		return;
+	}
+	if ( ! $texte ) {
+		delete_term_meta( $terme_id, MORGANE_META_CAT_DESC_EN );
 		return;
 	}
 	$deja = get_term_meta( $terme_id, MORGANE_META_CAT_DESC_EN, true );
@@ -97,8 +106,6 @@ foreach ( $categories as $key => $def ) {
 	}
 
 	morgane_poser_description_en( $term_id, isset( $def['description_en'] ) ? $def['description_en'] : '' );
-
-	$cat_ids[ $key ]['fr'] = $term_id;
 }
 
 /* -------------------------------------------------------------------------
@@ -180,100 +187,13 @@ foreach ( array_keys( $sizes ) as $slug ) {
 WP_CLI::log( 'Tailles : ' . implode( ', ', $sizes ) );
 
 /* -------------------------------------------------------------------------
-   3. Produits de démonstration rangés dans « Prints »
+   3. Classe de livraison « Lettre »
    ------------------------------------------------------------------------- */
-
-$demo = get_posts( array( 'post_type' => 'product', 'numberposts' => -1, 'fields' => 'ids', 'post_status' => 'any', 'lang' => '' ) );
-foreach ( $demo as $pid ) {
-	$lang = pll_get_post_language( $pid );
-	$cat  = $cat_ids['prints'][ $lang ] ?? null;
-	if ( $cat && ! has_term( $cat, 'product_cat', $pid ) ) {
-		wp_set_object_terms( $pid, array( (int) $cat ), 'product_cat', true );
-	}
-}
-
-/* -------------------------------------------------------------------------
-   4. Modèle : un print en plusieurs tailles
-   Morgane duplique ce produit pour chaque nouveau tirage.
-   ------------------------------------------------------------------------- */
-
-$model_slug = 'modele-print-plusieurs-tailles';
 
 /*
- * Prix, poids et dimensions de chaque format — en kilos et en centimètres, les
- * unités de la boutique. Sans poids ni dimensions, aucun transporteur ne sait
- * chiffrer l'envoi : le client arrive au paiement et ne voit aucun mode de
- * livraison. C'est la panne la plus fréquente d'une boutique d'art.
- *
- * Le poids est celui du tirage seul — papier 250 g/m² et pochette — jamais
- * celui du colis. L'enveloppe rigide est déclarée une fois pour toutes du côté
- * du transporteur ; la compter ici la ferait payer autant de fois qu'il y a de
- * tirages dans la commande. L'épaisseur reste mince pour que trois tirages
- * tiennent dans une seule enveloppe plutôt que dans trois.
- *
- * Les prix, eux, ne sont que des repères : le gabarit est un brouillon,
- * Morgane pose les siens sur chaque tirage.
- */
-$formats = array(
-	//              prix  poids  long.  larg.  épais.
-	'a5' => array( 30,   0.02,  21.0,  14.8,  0.2 ),
-	'a4' => array( 55,   0.03,  29.7,  21.0,  0.2 ),
-);
-
-if ( ! get_page_by_path( $model_slug, OBJECT, 'product' ) ) {
-	$product = new WC_Product_Variable();
-	$product->set_name( 'Modèle — print en plusieurs tailles' );
-	$product->set_slug( $model_slug );
-	$product->set_status( 'draft' ); // brouillon : c'est un gabarit, pas une œuvre en vente
-	$product->set_description(
-		"Imprimé sur papier beaux-arts sans acide 250 g/m², à l’encre pigmentaire. "
-		. "Rendu mat, couleurs stables dans le temps. Livré à plat, protégé, sans cadre.\n\n"
-		. "Dupliquez ce produit pour chaque nouveau tirage : changez le titre, la photo, "
-		. "la description et les prix des variations."
-	);
-	$product->set_short_description( 'Tirage d’art, plusieurs formats au choix.' );
-	$product->set_category_ids( array( (int) $cat_ids['prints']['fr'] ) );
-
-	$attribute = new WC_Product_Attribute();
-	$attribute->set_id( wc_attribute_taxonomy_id_by_name( 'taille' ) );
-	$attribute->set_name( $taxonomy );
-	$attribute->set_options( array_values( $term_ids ) ); // des identifiants, pas des slugs
-	$attribute->set_visible( true );
-	$attribute->set_variation( true );
-	$product->set_attributes( array( $attribute ) );
-
-	$product_id = $product->save();
-
-	foreach ( $formats as $slug => $format ) {
-		$variation = new WC_Product_Variation();
-		$variation->set_parent_id( $product_id );
-		$variation->set_attributes( array( $taxonomy => $slug ) );
-		$variation->set_regular_price( (string) $format[0] );
-		$variation->set_manage_stock( true );
-		$variation->set_stock_quantity( 20 );
-		$variation->save();
-	}
-
-	pll_set_post_language( $product_id, 'fr' );
-	WP_CLI::log( 'Modèle de print créé (brouillon) : #' . $product_id );
-}
-
-/* -------------------------------------------------------------------------
-   5. Taille, poids et dimensions des variations du modèle
-
-   Rejoué à chaque exécution, et non seulement à la création : une boutique
-   déjà installée se répare, et chaque tirage dupliqué depuis le modèle part
-   avec les bonnes valeurs.
-   ------------------------------------------------------------------------- */
-
-$modele_post = get_page_by_path( $model_slug, OBJECT, 'product' );
-$modele      = $modele_post ? wc_get_product( $modele_post->ID ) : null;
-
-/*
- * La classe de livraison « lettre » : c'est elle que `inc/livraison.php`
- * interroge pour décider si l'option courrier a le droit de s'afficher. Un
- * tirage l'a, un original ne l'a pas — il part en colis, suivi et protégé.
- * Créée ici pour que le thème ne dépende pas d'une donnée saisie à la main.
+ * Un tirage plat part en lettre, un original en colis suivi et protégé. La
+ * classe est créée ici pour que la boutique ne dépende pas d'une donnée saisie
+ * à la main ; c'est Morgane qui la pose sur ses tirages, dans la fiche.
  */
 if ( ! get_term_by( 'slug', 'lettre', 'product_shipping_class' ) ) {
 	wp_insert_term(
@@ -284,85 +204,15 @@ if ( ! get_term_by( 'slug', 'lettre', 'product_shipping_class' ) ) {
 	WP_CLI::log( 'Classe de livraison « Lettre » créée.' );
 }
 
-if ( $modele ) {
-	// Remettre les bons termes sur le produit, à la place des éventuels jumeaux.
-	wp_set_object_terms( $modele->get_id(), array_values( $term_ids ), $taxonomy );
+/*
+ * Ce script ne touche plus à aucun produit.
+ *
+ * Il rangeait d'office dans « Prints » tout produit qui n'y était pas, à chaque
+ * relance de l'installation : les originaux de Morgane s'y retrouvaient, et
+ * il fallait les retirer à la main après chaque mise à jour du thème. Il
+ * créait aussi un produit modèle à dupliquer, puis en réécrivait les
+ * variations. Les œuvres sont désormais en ligne : ce qui est dans la
+ * boutique appartient à Morgane, l'installation n'y écrit plus.
+ */
 
-	// Le modèle est un tirage : tout ce qui en est dupliqué naît postable.
-	wp_set_object_terms( $modele->get_id(), 'lettre', 'product_shipping_class' );
-
-	$corrigees = 0;
-	$vues      = array();
-
-	foreach ( $modele->get_children() as $variation_id ) {
-		$variation = wc_get_product( $variation_id );
-		if ( ! $variation ) {
-			continue;
-		}
-
-		/*
-		 * La variation annonce sa taille sous « pa_taille », le nom de la
-		 * taxonomie. Une ancienne version l'écrivait sous « taille » : le produit
-		 * parent cherchait alors une variation qu'il ne trouvait jamais, le
-		 * sélecteur de format restait sans réponse et le tirage était invendable.
-		 */
-		$slug = get_post_meta( $variation_id, 'attribute_' . $taxonomy, true );
-		if ( ! $slug ) {
-			$slug = get_post_meta( $variation_id, 'attribute_taille', true );
-		}
-
-		/*
-		 * Une variation d'un format qui n'existe plus au catalogue — les tailles
-		 * en pouces d'avant le passage au A4/A5 — resterait proposée au client
-		 * sans poids ni dimensions, donc sans tarif de livraison. Le gabarit
-		 * appartient à ce script : il le remet en accord avec les formats.
-		 */
-		if ( ! isset( $formats[ $slug ] ) ) {
-			$variation->delete( true );
-			WP_CLI::log( 'Variation retirée du modèle : format « ' . $slug .' » hors catalogue.' );
-			continue;
-		}
-
-		$vues[] = $slug;
-
-		list( , $poids, $longueur, $largeur, $epaisseur ) = $formats[ $slug ];
-
-		$variation->set_attributes( array( $taxonomy => $slug ) );
-		$variation->set_weight( (string) $poids );
-		$variation->set_length( (string) $longueur );
-		$variation->set_width( (string) $largeur );
-		$variation->set_height( (string) $epaisseur );
-		$variation->save();
-
-		$corrigees++;
-	}
-
-	// Et créer celles qui manquent, pour que le gabarit couvre tous les formats.
-	foreach ( $formats as $slug => $format ) {
-		if ( in_array( $slug, $vues, true ) ) {
-			continue;
-		}
-
-		list( $prix, $poids, $longueur, $largeur, $epaisseur ) = $format;
-
-		$variation = new WC_Product_Variation();
-		$variation->set_parent_id( $modele->get_id() );
-		$variation->set_attributes( array( $taxonomy => $slug ) );
-		$variation->set_regular_price( (string) $prix );
-		$variation->set_manage_stock( true );
-		$variation->set_stock_quantity( 20 );
-		$variation->set_weight( (string) $poids );
-		$variation->set_length( (string) $longueur );
-		$variation->set_width( (string) $largeur );
-		$variation->set_height( (string) $epaisseur );
-		$variation->save();
-
-		WP_CLI::log( 'Variation ajoutée au modèle : ' . $slug );
-		$corrigees++;
-	}
-
-	wc_delete_product_transients( $modele->get_id() );
-	WP_CLI::log( 'Modèle : ' . $corrigees . ' variations avec taille, poids et dimensions.' );
-}
-
-WP_CLI::success( 'Boutique structurée : catégories, tailles, modèle de print.' );
+WP_CLI::success( 'Boutique structurée : catégories, tailles, classe de livraison.' );

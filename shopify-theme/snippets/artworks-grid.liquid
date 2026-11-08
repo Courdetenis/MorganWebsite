@@ -1,0 +1,31 @@
+{%- comment -%}
+  Grille d'œuvres. Équivalent du bloc morgane/artworks (theme/inc/blocks.php).
+
+  Morgane choisit ce que l'accueil montre en rangeant des œuvres dans la
+  collection « accueil ». Si elle est vide ou absente, la grille retombe sur
+  les dernières œuvres publiées : l'accueil ne se vide jamais parce qu'on a
+  oublié de cocher quelque chose. Même règle que l'étoile « Mis en avant » de
+  WooCommerce, que Shopify n'a pas.
+
+  Les classes `woocommerce` et `ul.products` ne sont pas un oubli : la grille,
+  le survol et l'animation d'entrée d'app.js reposent sur elles.
+
+  Usage : {% render 'artworks-grid', limit: 8 %}
+{%- endcomment -%}
+
+{%- liquid
+  assign products = collections['accueil'].products
+  if products.size == 0
+    assign products = collections.all.products | sort: 'created_at' | reverse
+  endif
+-%}
+
+{%- if products.size > 0 -%}
+<div class="woocommerce artworks-grid">
+  <ul class="products">
+    {%- for product in products limit: limit -%}
+      {%- render 'artwork-card', product: product -%}
+    {%- endfor -%}
+  </ul>
+</div>
+{%- endif -%}

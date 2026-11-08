@@ -133,12 +133,15 @@ docker compose run --rm -e MORGANE_FORCE=about --entrypoint wp wpcli eval-file /
 
 ## Ajouter une œuvre (côté Morgane)
 
-- **Un tirage** : Produits > dupliquer « Modèle — print en plusieurs tailles »,
-  changer le titre, la photo, la description, les prix des variations, publier.
+- **Un tirage** : Produits > dupliquer un tirage existant, changer le titre, la
+  photo, la description, les prix des variations, publier. L'installation ne
+  crée ni ne modifie aucun produit : relancer l'installateur ne touche pas à la
+  boutique.
 - **Un original** : Produits > Ajouter, produit simple, stock 1,
   catégorie « Originaux ».
-- La qualité du papier, les matériaux et le certificat sont décrits une fois
-  dans la description de catégorie — inutile de les recopier.
+- Les matériaux et le certificat des originaux sont décrits une fois dans la
+  description de la catégorie « Originaux » — inutile de les recopier. Le rayon
+  « Prints » n'a pas de description : le titre suffit.
 
 ## À faire avant production
 

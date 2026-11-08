@@ -1,0 +1,136 @@
+{%- comment -%}
+  Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « collaborations »).
+  Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
+{%- endcomment -%}
+{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
+{%- if request.locale.iso_code == 'en' -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+
+<div class="wp-block-group hero-split is-layout-flow wp-block-group-is-layout-flow">
+
+<div class="hero__media hero__media--wide"><img src="{{ 'art-23.webp' | asset_url }}" width="1600" height="1187" alt="Gouache illustration: an alchemist’s table lit by candlelight, steaming vials and old books" decoding="async" loading="eager" fetchpriority="high"></div>
+
+<div class="wp-block-group hero-split__text is-layout-flow wp-block-group-is-layout-flow">
+
+<p class="hero__eyebrow">Together</p>
+
+<h1 class="wp-block-heading">Collaborations</h1>
+
+<p class="hero__lede has-large-font-size">I am always open to collaborative projects that resonate with my world. Whether you are a brand, a venue, an institution, or a fellow creator, I would be delighted to exchange with you about an idea, an image, or an artistic direction to develop together.</p>
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#formulaire">Submit a project</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">View the portfolios</a></div>
+</div>
+</div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignfull atelier has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-720" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--lilac" style="width:min(28vw,300px);aspect-ratio:1;top:10%;right:-6%;"></div>
+<div class="blob blob--sage" style="width:min(24vw,260px);aspect-ratio:1;bottom:12%;left:-5%;"></div>
+<figure class="art-float art-float--left" data-reveal><img src="{{ 'art-08.webp' | asset_url }}" width="1277" height="1600" alt="Gouache illustration: a woman with flowing golden hair in a library overgrown with ivy" decoding="async" loading="lazy"></figure>
+<figure class="art-float art-float--right" data-reveal><img src="{{ 'art-19.webp' | asset_url }}" width="1162" height="1600" alt="Ink drawing: still life with a cello, sheet music and a bouquet on a draped table" decoding="async" loading="lazy"></figure>
+<p class="has-text-align-center eyebrow">What I enjoy</p>
+<h2 class="wp-block-heading has-text-align-center">Projects that leave room for imagination</h2>
+
+<p class="has-text-align-center has-large-font-size" style="margin-top:var(--wp--preset--spacing--30)">I enjoy working on projects that leave room for sensitivity, poetry, and imagination, whether through illustration, a visual campaign, an object, a publication, or a custom creation. If you have a project in mind, feel free to get in touch and share a few details about your idea, your needs, and your intended timeline.</p>
+
+<ul class="tags" data-reveal><li>illustration</li><li>visual campaign</li><li>object</li><li>publication</li><li>custom creation</li></ul>
+</section>
+
+
+<div class="wp-block-group alignwide band is-layout-flow wp-block-group-is-layout-flow">
+
+<div class="wp-block-group band__head is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">How to submit a project</h2>
+</div>
+
+<div class="wp-block-group band__body is-layout-flow wp-block-group-is-layout-flow">
+
+<p>If possible, please include:</p>
+
+
+<ul class="wp-block-list"><li>a brief presentation of your project;</li><li>the type of collaboration you have in mind;</li><li>your desired timeline;</li><li>your budget or budget range;</li><li>any links, documents, or visuals that may help me better understand your request.</li></ul>
+
+
+<p>I will take the time to read your message carefully and get back to you as soon as possible.</p>
+</div>
+</div>
+
+
+<div class="wp-block-group alignwide form-band is-layout-flow wp-block-group-is-layout-flow" id="formulaire">
+{% render 'request-form', type: 'collaboration' %}
+</div>
+{%- else -%}
+<section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--rose" style="width:min(34vw,360px);aspect-ratio:1;top:6%;left:-7%;"></div>
+<div class="blob blob--sage" style="width:min(26vw,290px);aspect-ratio:1;bottom:8%;right:-5%;"></div>
+
+<div class="wp-block-group hero-split is-layout-flow wp-block-group-is-layout-flow">
+
+<div class="hero__media hero__media--wide"><img src="{{ 'art-23.webp' | asset_url }}" width="1600" height="1187" alt="Illustration à la gouache : une table d’alchimiste éclairée à la bougie, fioles fumantes et vieux livres" decoding="async" loading="eager" fetchpriority="high"></div>
+
+<div class="wp-block-group hero-split__text is-layout-flow wp-block-group-is-layout-flow">
+
+<p class="hero__eyebrow">À plusieurs</p>
+
+<h1 class="wp-block-heading">Collaborations</h1>
+
+<p class="hero__lede has-large-font-size">Je suis toujours ouverte à des projets de collaboration qui résonnent avec mon univers. Que vous soyez une marque, un lieu, une institution ou une créatrice ou un créateur, je serai heureuse d’échanger avec vous autour d’une idée, d’une image ou d’une direction artistique à développer ensemble.</p>
+
+<div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#formulaire">Proposer un projet</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">Voir les portfolios</a></div>
+</div>
+</div>
+</div>
+</section>
+
+
+<section class="wp-block-group alignfull atelier has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-720" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+
+<div class="blob blob--lilac" style="width:min(28vw,300px);aspect-ratio:1;top:10%;right:-6%;"></div>
+<div class="blob blob--sage" style="width:min(24vw,260px);aspect-ratio:1;bottom:12%;left:-5%;"></div>
+<figure class="art-float art-float--left" data-reveal><img src="{{ 'art-08.webp' | asset_url }}" width="1277" height="1600" alt="Illustration à la gouache : une femme aux cheveux dorés flottants dans une bibliothèque envahie de lierre" decoding="async" loading="lazy"></figure>
+<figure class="art-float art-float--right" data-reveal><img src="{{ 'art-19.webp' | asset_url }}" width="1162" height="1600" alt="Dessin à l’encre : nature morte au violoncelle, partition et bouquet posés sur une table drapée" decoding="async" loading="lazy"></figure>
+<p class="has-text-align-center eyebrow">Ce que j’aime</p>
+<h2 class="wp-block-heading has-text-align-center">Des projets qui laissent place à l’imaginaire</h2>
+
+<p class="has-text-align-center has-large-font-size" style="margin-top:var(--wp--preset--spacing--30)">J’aime travailler sur des projets qui laissent place à la sensibilité, à la poésie et à l’imaginaire, que ce soit dans le cadre d’une illustration, d’une campagne visuelle, d’un objet, d’une publication ou d’une création sur mesure. Si vous avez une proposition en tête, je vous invite à me contacter en me donnant quelques détails sur votre projet, vos besoins et le calendrier envisagé.</p>
+
+<ul class="tags" data-reveal><li>illustration</li><li>campagne visuelle</li><li>objet</li><li>publication</li><li>création sur mesure</li></ul>
+</section>
+
+
+<div class="wp-block-group alignwide band is-layout-flow wp-block-group-is-layout-flow">
+
+<div class="wp-block-group band__head is-layout-flow wp-block-group-is-layout-flow">
+
+<h2 class="wp-block-heading">Comment me proposer un projet</h2>
+</div>
+
+<div class="wp-block-group band__body is-layout-flow wp-block-group-is-layout-flow">
+
+<p>Dans l’espace ci-dessous, merci de m’indiquer, si possible :</p>
+
+
+<ul class="wp-block-list"><li>une brève présentation de votre projet ;</li><li>le type de collaboration envisagé ;</li><li>les délais souhaités ;</li><li>votre budget ou une fourchette budgétaire ;</li><li>tout lien, document ou visuel utile pour mieux comprendre votre demande.</li></ul>
+
+
+<p>Je prendrai le temps de lire votre message avec attention et de vous répondre dans les plus brefs délais.</p>
+</div>
+</div>
+
+
+<div class="wp-block-group alignwide form-band is-layout-flow wp-block-group-is-layout-flow" id="formulaire">
+{% render 'request-form', type: 'collaboration' %}
+</div>
+{%- endif -%}
