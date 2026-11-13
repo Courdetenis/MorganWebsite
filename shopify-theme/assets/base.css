@@ -245,3 +245,13 @@ main > .shopify-section > section:not(.has-global-padding) { padding-inline: var
 /* Panier */
 .mg-cart-line { display: flex; gap: 1rem; align-items: center; }
 .mg-cart-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; }
+.mg-cart__num { text-align: right; white-space: nowrap; }
+.mg-cart__qty {
+  font: inherit; width: 5rem; min-height: 44px; padding: .5rem .7rem;
+  border: 1.5px solid var(--control-line); border-radius: 12px;
+  background: var(--wp--preset--color--cream); color: var(--wp--preset--color--ink);
+}
+.mg-cart__summary { margin-top: var(--wp--preset--spacing--40); display: grid; gap: .75rem; justify-items: end; text-align: right; }
+.mg-cart__subtotal { display: flex; gap: 1.5rem; align-items: baseline; font-size: var(--wp--preset--font-size--large); margin: 0; }
+.mg-cart__actions { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: flex-end; }
+@media (max-width: 600px) { .mg-cart__summary { justify-items: stretch; text-align: left; } .mg-cart__actions { justify-content: stretch; } .mg-cart__actions > * { flex: 1; } }
