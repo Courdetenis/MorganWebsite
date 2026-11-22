@@ -30,10 +30,10 @@
 </div>
 
 <div class="nav-cards alignwide" data-reveal>
-  <div class="nav-card"><a href="{{ r }}pages/illustration-jeunesse"><span class="nav-card__frame"><img src="{{ 'art-11.webp' | asset_url }}" width="1171" height="1600" alt="Children’s illustration: a fawn and a puppy meet in a snowy forest of violet tones" decoding="async" loading="lazy"></span><span class="nav-card__label">Children’s illustration</span></a></div>
-  <div class="nav-card"><a href="{{ r }}pages/illustration"><span class="nav-card__frame"><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Gouache illustration: a woman with long hair holds a glowing moon in a blue winter forest" decoding="async" loading="lazy"></span><span class="nav-card__label">Illustration</span></a></div>
-  <div class="nav-card"><a href="{{ r }}pages/dessin"><span class="nav-card__frame"><img src="{{ 'art-16.webp' | asset_url }}" width="900" height="1600" alt="Ink drawing: an old bearded man writing with a quill in a dark library" decoding="async" loading="lazy"></span><span class="nav-card__label">Drawing</span></a></div>
-  <div class="nav-card"><a href="{{ r }}pages/portfolio-murales"><span class="nav-card__frame"><img src="{{ 'art-20.webp' | asset_url }}" width="1200" height="1600" alt="Mural: a child in a blue raincoat smelling a flower from which letters escape" decoding="async" loading="lazy"></span><span class="nav-card__label">Murals</span></a></div>
+  <div class="nav-card"><a href="{{ pages['illustration-jeunesse'].url }}"><span class="nav-card__frame"><img src="{{ 'art-11.webp' | asset_url }}" width="1171" height="1600" alt="Children’s illustration: a fawn and a puppy meet in a snowy forest of violet tones" decoding="async" loading="lazy"></span><span class="nav-card__label">Children’s illustration</span></a></div>
+  <div class="nav-card"><a href="{{ pages['illustration'].url }}"><span class="nav-card__frame"><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Gouache illustration: a woman with long hair holds a glowing moon in a blue winter forest" decoding="async" loading="lazy"></span><span class="nav-card__label">Illustration</span></a></div>
+  <div class="nav-card"><a href="{{ pages['dessin'].url }}"><span class="nav-card__frame"><img src="{{ 'art-16.webp' | asset_url }}" width="900" height="1600" alt="Ink drawing: an old bearded man writing with a quill in a dark library" decoding="async" loading="lazy"></span><span class="nav-card__label">Drawing</span></a></div>
+  <div class="nav-card"><a href="{{ pages['portfolio-murales'].url }}"><span class="nav-card__frame"><img src="{{ 'art-20.webp' | asset_url }}" width="1200" height="1600" alt="Mural: a child in a blue raincoat smelling a flower from which letters escape" decoding="async" loading="lazy"></span><span class="nav-card__label">Murals</span></a></div>
 </div>
 </section>
 
@@ -47,7 +47,7 @@
 
 <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
 <div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Browse the shop</a></div>
-<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commission a piece</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ pages['commissions'].url }}">Commission a piece</a></div>
 </div>
 </div>
 {%- else -%}
@@ -77,10 +77,10 @@
 </div>
 
 <div class="nav-cards alignwide" data-reveal>
-  <div class="nav-card"><a href="{{ r }}pages/illustration-jeunesse"><span class="nav-card__frame"><img src="{{ 'art-11.webp' | asset_url }}" width="1171" height="1600" alt="Illustration jeunesse : un faon et un chiot se rencontrent dans une forêt enneigée aux teintes violettes" decoding="async" loading="lazy"></span><span class="nav-card__label">Illustration jeunesse</span></a></div>
-  <div class="nav-card"><a href="{{ r }}pages/illustration"><span class="nav-card__frame"><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée" decoding="async" loading="lazy"></span><span class="nav-card__label">Illustration</span></a></div>
-  <div class="nav-card"><a href="{{ r }}pages/dessin"><span class="nav-card__frame"><img src="{{ 'art-16.webp' | asset_url }}" width="900" height="1600" alt="Dessin à l’encre : un vieil homme barbu écrit à la plume dans une bibliothèque sombre" decoding="async" loading="lazy"></span><span class="nav-card__label">Dessin</span></a></div>
-  <div class="nav-card"><a href="{{ r }}pages/portfolio-murales"><span class="nav-card__frame"><img src="{{ 'art-20.webp' | asset_url }}" width="1200" height="1600" alt="Murale : un enfant en imperméable bleu respire une fleur d’où s’échappent des lettres" decoding="async" loading="lazy"></span><span class="nav-card__label">Murales</span></a></div>
+  <div class="nav-card"><a href="{{ pages['illustration-jeunesse'].url }}"><span class="nav-card__frame"><img src="{{ 'art-11.webp' | asset_url }}" width="1171" height="1600" alt="Illustration jeunesse : un faon et un chiot se rencontrent dans une forêt enneigée aux teintes violettes" decoding="async" loading="lazy"></span><span class="nav-card__label">Illustration jeunesse</span></a></div>
+  <div class="nav-card"><a href="{{ pages['illustration'].url }}"><span class="nav-card__frame"><img src="{{ 'art-06.webp' | asset_url }}" width="1172" height="1600" alt="Illustration à la gouache : une femme aux longs cheveux serre une lune lumineuse dans une forêt d’hiver bleutée" decoding="async" loading="lazy"></span><span class="nav-card__label">Illustration</span></a></div>
+  <div class="nav-card"><a href="{{ pages['dessin'].url }}"><span class="nav-card__frame"><img src="{{ 'art-16.webp' | asset_url }}" width="900" height="1600" alt="Dessin à l’encre : un vieil homme barbu écrit à la plume dans une bibliothèque sombre" decoding="async" loading="lazy"></span><span class="nav-card__label">Dessin</span></a></div>
+  <div class="nav-card"><a href="{{ pages['portfolio-murales'].url }}"><span class="nav-card__frame"><img src="{{ 'art-20.webp' | asset_url }}" width="1200" height="1600" alt="Murale : un enfant en imperméable bleu respire une fleur d’où s’échappent des lettres" decoding="async" loading="lazy"></span><span class="nav-card__label">Murales</span></a></div>
 </div>
 </section>
 
@@ -94,7 +94,7 @@
 
 <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
 <div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}collections">Voir la boutique</a></div>
-<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commander une œuvre</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ pages['commissions'].url }}">Commander une œuvre</a></div>
 </div>
 </div>
 {%- endif -%}

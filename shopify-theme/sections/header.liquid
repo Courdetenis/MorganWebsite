@@ -15,15 +15,19 @@
   endif
   assign r = routes.root_url | append: '/' | replace: '//', '/'
   assign here = request.path | append: '/' | replace: '//', '/'
+  # Les pages par `pages[…].url` : l'adresse suit le handle traduit dans Translate & Adapt.
+  assign u_murales = pages['murales'].url
+  assign u_portfolio = pages['portfolio'].url
+  assign u_about = pages['a-propos'].url
 
   if en
-    assign items = 'Home|' | append: r | append: ';Shop|' | append: r | append: 'collections;Murals|' | append: r | append: 'pages/murales;Portfolio|' | append: r | append: 'pages/portfolio;About|' | append: r | append: 'pages/a-propos'
+    assign items = 'Home|' | append: r | append: ';Shop|' | append: r | append: 'collections;Murals|' | append: u_murales | append: ';Portfolio|' | append: u_portfolio | append: ';About|' | append: u_about
     assign aside_label = 'Commissions and collaborations'
   else
-    assign items = 'Accueil|' | append: r | append: ';Boutique|' | append: r | append: 'collections;Murales|' | append: r | append: 'pages/murales;Portfolio|' | append: r | append: 'pages/portfolio;À propos|' | append: r | append: 'pages/a-propos'
+    assign items = 'Accueil|' | append: r | append: ';Boutique|' | append: r | append: 'collections;Murales|' | append: u_murales | append: ';Portfolio|' | append: u_portfolio | append: ';À propos|' | append: u_about
     assign aside_label = 'Commissions et collaborations'
   endif
-  assign aside_url = r | append: 'pages/commissions-et-collaborations'
+  assign aside_url = pages['commissions-et-collaborations'].url
 -%}
 
 <div class="wp-block-group site-header has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-ws-1200">
@@ -89,37 +93,27 @@
       <div class="tools__panel" id="tools-panel">
 
         {%- comment -%}
-          Langue : des liens, comme sous WordPress. Shopify sert chaque langue
-          sous son préfixe (/en/…) ; on remplace celui de la page courante.
+          Langue : le formulaire de langue de Shopify, et non des liens qui
+          changent le préfixe (/en/…). Shopify renvoie lui-même à l'adresse de
+          la même page dans l'autre langue, handle traduit compris (Translate &
+          Adapt) : /en/pages/murals ↔ /pages/murales. Un lien qui garde le
+          handle menait à /pages/murals, qui n'existe pas en français.
+          Des boutons d'envoi : rien à faire en JS, ça marche sans.
           N'apparaît que si la boutique publie plus d'une langue.
         {%- endcomment -%}
         {%- if localization.available_languages.size > 1 -%}
           {%- assign lang_label = 'Choix de la langue' -%}
           {%- if en -%}{%- assign lang_label = 'Language' -%}{%- endif -%}
-          {%- assign bare = request.path -%}
-          {%- if routes.root_url != '/' -%}{%- assign bare = request.path | remove_first: routes.root_url -%}{%- endif -%}
-          {%- if bare == blank -%}{%- assign bare = '/' -%}{%- endif -%}
           <div class="lang-switch" data-lang-switch>
             <button class="lang-switch__trigger" type="button" aria-expanded="false" aria-controls="lang-panel" aria-label="{{ lang_label }}" title="{{ lang_label }}">{{ request.locale.iso_code | upcase }}</button>
-            <div class="lang-switch__panel" id="lang-panel">
+            {%- form 'localization', id: 'lang-panel', class: 'lang-switch__panel' -%}
+              <input type="hidden" name="return_to" value="{{ request.path }}">
               {%- for language in localization.available_languages -%}
-                {%- liquid
-                  assign is_current = false
-                  if language.iso_code == request.locale.iso_code
-                    assign is_current = true
-                  endif
-                  if language.primary
-                    assign href = bare
-                  else
-                    assign href = '/' | append: language.iso_code | append: bare
-                    if bare == '/'
-                      assign href = '/' | append: language.iso_code
-                    endif
-                  endif
-                -%}
-                <a class="lang-switch__item{% if is_current %} is-active{% endif %}" href="{{ href }}" lang="{{ language.iso_code }}" hreflang="{{ language.iso_code }}"{% if is_current %} aria-current="true"{% endif %}>{{ language.iso_code | upcase }}</a>
+                {%- assign is_current = false -%}
+                {%- if language.iso_code == request.locale.iso_code -%}{%- assign is_current = true -%}{%- endif -%}
+                <button class="lang-switch__item{% if is_current %} is-active{% endif %}" type="submit" name="language_code" value="{{ language.iso_code }}" lang="{{ language.iso_code }}"{% if is_current %} aria-current="true"{% endif %}>{{ language.iso_code | upcase }}</button>
               {%- endfor -%}
-            </div>
+            {%- endform -%}
           </div>
         {%- endif -%}
 

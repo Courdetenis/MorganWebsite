@@ -2,7 +2,6 @@
   Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « contact »).
   Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
 {%- endcomment -%}
-{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
 {%- if request.locale.iso_code == 'en' -%}
 <section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:44vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
 
@@ -33,7 +32,7 @@
 
 <h2 class="wp-block-heading">A project in mind?</h2>
 
-<p>For a custom piece, a collaboration or a mural, the <a href="{{ r }}pages/commissions-et-collaborations">dedicated forms</a> save us a round trip: they ask up front about dimensions, location, timing and the medium you have in mind.</p>
+<p>For a custom piece, a collaboration or a mural, the <a href="{{ pages['commissions-et-collaborations'].url }}">dedicated forms</a> save us a round trip: they ask up front about dimensions, location, timing and the medium you have in mind.</p>
 </div>
 
 
@@ -41,7 +40,7 @@
 
 <h2 class="wp-block-heading">A shop order</h2>
 
-<p>Please include your order number — it appears in your confirmation email. Return conditions are set out on the <a href="{{ r }}pages/retours-et-remboursements">Returns and refunds</a> page.</p>
+<p>Please include your order number — it appears in your confirmation email. Return conditions are set out on the <a href="{{ pages['retours-et-remboursements'].url }}">Returns and refunds</a> page.</p>
 </div>
 </div>
 {%- else -%}
@@ -74,7 +73,7 @@
 
 <h2 class="wp-block-heading">Un projet en tête ?</h2>
 
-<p>Pour une œuvre sur mesure, une collaboration ou une murale, les <a href="{{ r }}pages/commissions-et-collaborations">formulaires dédiés</a> me font gagner un aller-retour : ils demandent d’emblée les dimensions, le lieu, les délais et le médium souhaité.</p>
+<p>Pour une œuvre sur mesure, une collaboration ou une murale, les <a href="{{ pages['commissions-et-collaborations'].url }}">formulaires dédiés</a> me font gagner un aller-retour : ils demandent d’emblée les dimensions, le lieu, les délais et le médium souhaité.</p>
 </div>
 
 
@@ -82,7 +81,7 @@
 
 <h2 class="wp-block-heading">Une commande de la boutique</h2>
 
-<p>Indiquez votre numéro de commande dans le message : il figure dans le courriel de confirmation. Les conditions de retour sont détaillées sur la page <a href="{{ r }}pages/retours-et-remboursements">Retours et remboursements</a>.</p>
+<p>Indiquez votre numéro de commande dans le message : il figure dans le courriel de confirmation. Les conditions de retour sont détaillées sur la page <a href="{{ pages['retours-et-remboursements'].url }}">Retours et remboursements</a>.</p>
 </div>
 </div>
 {%- endif -%}

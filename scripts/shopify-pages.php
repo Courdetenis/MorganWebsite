@@ -149,9 +149,10 @@ $handles = array(
 );
 
 // `r` vaut « / » ou « /en/ » : posé en tête de chaque snippet.
+// Une page passe par `pages[…].url`, qui suit le handle traduit dans Translate & Adapt.
 $urls = array( '{{shop}}' => '{{ r }}collections' );
 foreach ( $handles as $key => $handle ) {
-	$urls[ '{{' . $key . '}}' ] = '' === $handle ? '{{ r }}' : '{{ r }}pages/' . $handle;
+	$urls[ '{{' . $key . '}}' ] = '' === $handle ? '{{ r }}' : "{{ pages['" . $handle . "'].url }}";
 }
 
 /* -------------------------------------------------------------------------

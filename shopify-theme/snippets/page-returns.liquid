@@ -2,7 +2,6 @@
   Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « returns »).
   Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
 {%- endcomment -%}
-{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
 {%- if request.locale.iso_code == 'en' -%}
 <section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:44vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
 
@@ -35,7 +34,7 @@
 <p>Email me at <a href="mailto:morganecachia.art@gmail.com">morganecachia.art@gmail.com</a> before the deadline, with your order number. The product must come back in its original condition, and <strong>return shipping costs are yours</strong>.</p>
 
 
-<p>Living in the European Union? The period is then 14 days: see the <a href="{{ r }}pages/conditions-generales-de-vente">terms and conditions of sale</a>.</p>
+<p>Living in the European Union? The period is then 14 days: see the <a href="{{ pages['conditions-generales-de-vente'].url }}">terms and conditions of sale</a>.</p>
 </div>
 
 
@@ -49,7 +48,7 @@
 <ol class="wp-block-list steps"><li>Write to me <strong>within 48 hours</strong> of delivery, with a photo of the piece and one of the packaging.</li><li>I will reply with what to do next. <strong>Costs are on me</strong>.</li><li>At my discretion: a full refund, or a replacement where the piece is a print.</li></ol>
 
 
-<p>This page forms part of the <a href="{{ r }}pages/conditions-generales-de-vente">terms and conditions of sale</a>. It does not limit any rights or remedies provided under applicable laws, including in cases involving defective or non-conforming products.</p>
+<p>This page forms part of the <a href="{{ pages['conditions-generales-de-vente'].url }}">terms and conditions of sale</a>. It does not limit any rights or remedies provided under applicable laws, including in cases involving defective or non-conforming products.</p>
 </div>
 </div>
 {%- else -%}
@@ -84,7 +83,7 @@
 <p>Écrivez-moi à <a href="mailto:morganecachia.art@gmail.com">morganecachia.art@gmail.com</a> avant la fin du délai, avec votre numéro de commande. Le produit doit revenir dans son état d’origine, et <strong>les frais de retour sont à votre charge</strong>.</p>
 
 
-<p>Vous résidez dans l’Union européenne ? Le délai est alors de 14 jours : voir les <a href="{{ r }}pages/conditions-generales-de-vente">conditions générales de vente</a>.</p>
+<p>Vous résidez dans l’Union européenne ? Le délai est alors de 14 jours : voir les <a href="{{ pages['conditions-generales-de-vente'].url }}">conditions générales de vente</a>.</p>
 </div>
 
 
@@ -98,7 +97,7 @@
 <ol class="wp-block-list steps"><li>Écrivez-moi <strong>sous 48 heures</strong> après réception, avec une photo de l’œuvre et une de l’emballage.</li><li>Je vous réponds avec la marche à suivre. Les <strong>frais sont à ma charge</strong>.</li><li>À mon choix : remboursement complet, ou remplacement quand la pièce est un tirage.</li></ol>
 
 
-<p>Cette page fait partie des <a href="{{ r }}pages/conditions-generales-de-vente">conditions générales de vente</a>. Elle ne limite pas les droits et recours prévus par les lois applicables, notamment en cas de produit défectueux ou non conforme.</p>
+<p>Cette page fait partie des <a href="{{ pages['conditions-generales-de-vente'].url }}">conditions générales de vente</a>. Elle ne limite pas les droits et recours prévus par les lois applicables, notamment en cas de produit défectueux ou non conforme.</p>
 </div>
 </div>
 {%- endif -%}

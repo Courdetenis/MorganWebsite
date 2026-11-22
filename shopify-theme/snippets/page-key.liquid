@@ -1,0 +1,14 @@
+{%- comment -%}
+  Écrit la clé d'une page du site : son handle français (murales, a-propos…).
+
+  Translate & Adapt peut traduire le handle : en anglais, `page.handle` vaut
+  alors « murals », plus « murales ». On retrouve donc la page par son id, à
+  travers `pages['<handle français>']`, qui cherche toujours le handle d'origine.
+
+  Usage : {%- capture key -%}{%- render 'page-key', page: page -%}{%- endcapture -%}
+  Rien d'écrit pour une page inconnue du thème.
+{%- endcomment -%}
+{%- assign known = 'murales,portfolio,illustration-jeunesse,illustration,dessin,portfolio-murales,a-propos,commissions-et-collaborations,commissions,collaborations,contact,conditions-generales-de-vente,retours-et-remboursements,confidentialite' | split: ',' -%}
+{%- for h in known -%}
+  {%- if pages[h].id == page.id -%}{{- h -}}{%- break -%}{%- endif -%}
+{%- endfor -%}

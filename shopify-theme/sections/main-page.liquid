@@ -5,14 +5,16 @@
   dans le thème, en deux langues : snippets/page-*.liquid, générés depuis
   theme/install/pages.php par scripts/shopify-pages.php. La page Shopify ne
   sert qu'à donner l'adresse — son contenu dans l'admin est ignoré. On la
-  reconnaît à son handle, la table est ci-dessous.
+  reconnaît à son handle français (snippets/page-key.liquid, qui tient aussi
+  compte d'un handle traduit), la table est ci-dessous.
 
   Toute autre page (créée plus tard dans l'admin) s'affiche comme le gabarit
   `page.html` de WordPress : son titre, puis son contenu.
 {%- endcomment -%}
 
 <div class="entry-content wp-block-post-content has-global-padding is-layout-constrained wp-block-post-content-is-layout-constrained" style="padding-bottom:var(--wp--preset--spacing--60)">
-  {%- case page.handle -%}
+  {%- capture key -%}{%- render 'page-key', page: page -%}{%- endcapture -%}
+  {%- case key -%}
     {%- when 'murales' -%}{%- render 'page-murals' -%}
     {%- when 'portfolio' -%}{%- render 'page-portfolio' -%}
     {%- when 'illustration-jeunesse' -%}{%- render 'page-pf-youth' -%}

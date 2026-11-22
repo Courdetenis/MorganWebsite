@@ -246,6 +246,7 @@ main > .shopify-section > section:not(.has-global-padding) { padding-inline: var
 .mg-cart-line { display: flex; gap: 1rem; align-items: center; }
 .mg-cart-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; }
 .mg-cart__num { text-align: right; white-space: nowrap; }
+.mg-cart__remove { font-size: .85rem; text-decoration: underline; text-underline-offset: .2em; }
 .mg-cart__qty {
   font: inherit; width: 5rem; min-height: 44px; padding: .5rem .7rem;
   border: 1.5px solid var(--control-line); border-radius: 12px;

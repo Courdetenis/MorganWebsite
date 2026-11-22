@@ -12,12 +12,18 @@
   endif
   assign variant = product.selected_or_first_available_variant
   assign rayon = collection
-  if rayon == blank
-    assign rayon = product.collections | where: 'handle', 'originaux' | first
-    if rayon == blank
-      assign rayon = product.collections | where: 'handle', 'prints' | first
+  # Par l'id et non le handle : Translate & Adapt peut traduire le handle.
+  # Un rayon absent est sauté : `where: 'id', nil` garderait toutes les collections.
+  assign rayons = 'originaux,prints' | split: ','
+  for h in rayons
+    if rayon != blank
+      break
     endif
-  endif
+    assign rayon_c = collections[h]
+    if rayon_c.id
+      assign rayon = product.collections | where: 'id', rayon_c.id | first
+    endif
+  endfor
 -%}
 
 <section class="wp-block-group alignwide woocommerce" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">

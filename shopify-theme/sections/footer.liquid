@@ -12,7 +12,6 @@
   if request.locale.iso_code == 'en'
     assign en = true
   endif
-  assign r = routes.root_url | append: '/' | replace: '//', '/'
   if en
     assign legal = 'Contact|contact;Terms of sale|conditions-generales-de-vente;Returns|retours-et-remboursements;Privacy|confidentialite' | split: ';'
   else
@@ -40,7 +39,7 @@
       <nav class="site-footer__links" aria-label="{% if en %}Legal information{% else %}Informations légales{% endif %}">
         {%- for row in legal -%}
           {%- assign it = row | split: '|' -%}
-          <a href="{{ r }}pages/{{ it[1] }}">{{ it[0] }}</a>{% unless forloop.last %} {% endunless %}
+          <a href="{{ pages[it[1]].url }}">{{ it[0] }}</a>{% unless forloop.last %} {% endunless %}
         {%- endfor -%}
       </nav>
       <p class="site-footer__copy">© {{ section.settings.name }} – Art · {% if en %}{{ section.settings.city_en }}{% else %}{{ section.settings.city }}{% endif %}</p>

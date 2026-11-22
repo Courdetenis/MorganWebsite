@@ -2,7 +2,6 @@
   Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « terms »).
   Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
 {%- endcomment -%}
-{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
 {%- if request.locale.iso_code == 'en' -%}
 <section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:44vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
 
@@ -102,7 +101,7 @@
 
 <h2 class="wp-block-heading">5. Returns and refunds</h2>
 
-<p>Returns, exchanges, refunds, and claims concerning damaged items are governed by the <a href="{{ r }}pages/retours-et-remboursements">Returns and refunds</a> page, which forms an integral part of these Terms and Conditions. In summary:</p>
+<p>Returns, exchanges, refunds, and claims concerning damaged items are governed by the <a href="{{ pages['retours-et-remboursements'].url }}">Returns and refunds</a> page, which forms an integral part of these Terms and Conditions. In summary:</p>
 
 
 <ul class="wp-block-list"><li>Any product received damaged or not as described must be reported within 48 hours of receipt, with supporting photographs;</li><li>A replacement or refund will be offered at the shop’s discretion;</li><li>Returned products must be in their original condition.</li></ul>
@@ -192,7 +191,7 @@
 <p>In accordance with Quebec’s Law 25, customers have the right to access, correct, and delete their personal information. To exercise these rights, please contact <a href="mailto:morganecachia.art@gmail.com">morganecachia.art@gmail.com</a>.</p>
 
 
-<p>For more information, please consult the <a href="{{ r }}pages/confidentialite">Privacy policy</a>.</p>
+<p>For more information, please consult the <a href="{{ pages['confidentialite'].url }}">Privacy policy</a>.</p>
 </div>
 
 
@@ -319,7 +318,7 @@
 
 <h2 class="wp-block-heading">5. Retours et remboursements</h2>
 
-<p>Les retours, échanges, remboursements et réclamations concernant les articles endommagés sont régis par la page <a href="{{ r }}pages/retours-et-remboursements">Retours et remboursements</a>, qui fait partie intégrante des présentes conditions. En résumé :</p>
+<p>Les retours, échanges, remboursements et réclamations concernant les articles endommagés sont régis par la page <a href="{{ pages['retours-et-remboursements'].url }}">Retours et remboursements</a>, qui fait partie intégrante des présentes conditions. En résumé :</p>
 
 
 <ul class="wp-block-list"><li>Tout produit reçu endommagé ou non conforme doit être signalé dans les 48 heures suivant la réception, avec photos à l’appui ;</li><li>Un remplacement ou un remboursement sera offert au choix de la boutique ;</li><li>Les produits retournés doivent être dans leur état d’origine.</li></ul>
@@ -409,7 +408,7 @@
 <p>Conformément à la Loi 25 (Québec), le client dispose d’un droit d’accès, de rectification et de suppression de ses renseignements personnels. Pour exercer ces droits : <a href="mailto:morganecachia.art@gmail.com">morganecachia.art@gmail.com</a>.</p>
 
 
-<p>Pour plus d’information, veuillez consulter la <a href="{{ r }}pages/confidentialite">Politique de confidentialité</a>.</p>
+<p>Pour plus d’information, veuillez consulter la <a href="{{ pages['confidentialite'].url }}">Politique de confidentialité</a>.</p>
 </div>
 
 

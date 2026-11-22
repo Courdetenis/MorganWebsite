@@ -2,7 +2,6 @@
   Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « pf_murals »).
   Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
 {%- endcomment -%}
-{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
 {%- if request.locale.iso_code == 'en' -%}
 <section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-1240" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
 
@@ -20,8 +19,8 @@
 <h1 class="wp-block-heading">Murals</h1>
 
 <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
-<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">All the portfolios</a></div>
-<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/murales">Mural project</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ pages['portfolio'].url }}">All the portfolios</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ pages['murales'].url }}">Mural project</a></div>
 </div>
 </div>
 </div>
@@ -55,7 +54,7 @@
 
 
 <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
-<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/murales">Mural project</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ pages['murales'].url }}">Mural project</a></div>
 </div>
 </div>
 {%- else -%}
@@ -75,8 +74,8 @@
 <h1 class="wp-block-heading">Murales</h1>
 
 <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
-<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">Tous les portfolios</a></div>
-<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/murales">Projet de murale</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ pages['portfolio'].url }}">Tous les portfolios</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ pages['murales'].url }}">Projet de murale</a></div>
 </div>
 </div>
 </div>
@@ -110,7 +109,7 @@
 
 
 <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
-<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/murales">Projet de murale</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ pages['murales'].url }}">Projet de murale</a></div>
 </div>
 </div>
 {%- endif -%}

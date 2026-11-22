@@ -2,7 +2,6 @@
   Généré par scripts/shopify-pages.php depuis theme/install/pages.php (clé « hub »).
   Ne pas modifier ici : changer le texte dans pages.php, puis relancer le script.
 {%- endcomment -%}
-{%- assign r = routes.root_url | append: '/' | replace: '//', '/' -%}
 {%- if request.locale.iso_code == 'en' -%}
 <section class="wp-block-group alignfull hero has-global-padding is-layout-constrained wp-block-group-is-layout-constrained mg-cs-880" style="min-height:72vh;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
 
@@ -20,8 +19,8 @@
 <p class="hero__lede has-large-font-size">Two ways of working together: a piece commissioned for you, or a project developed with a brand, a venue or a team.</p>
 
 <div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
-<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commissions</a></div>
-<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/collaborations">Collaborations</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ pages['commissions'].url }}">Commissions</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ pages['collaborations'].url }}">Collaborations</a></div>
 </div>
 </div>
 </section>
@@ -36,8 +35,8 @@
 </div>
 
 <div class="nav-cards alignwide" data-reveal>
-  <div class="nav-card"><a href="{{ r }}pages/commissions"><span class="nav-card__frame"><img src="{{ 'art-03.webp' | asset_url }}" width="1169" height="1600" alt="Painting of a scarecrow in a flowered hat standing in a field of sunflowers, made on commission" decoding="async" loading="lazy"></span><span class="nav-card__label">Commissions</span><span class="nav-card__note">A piece created for you</span></a></div>
-  <div class="nav-card"><a href="{{ r }}pages/collaborations"><span class="nav-card__frame"><img src="{{ 'art-23.webp' | asset_url }}" width="1600" height="1187" alt="Gouache illustration: an alchemist’s candlelit table with smoking flasks and old books" decoding="async" loading="lazy"></span><span class="nav-card__label">Collaborations</span><span class="nav-card__note">Brands, venues, institutions, creators</span></a></div>
+  <div class="nav-card"><a href="{{ pages['commissions'].url }}"><span class="nav-card__frame"><img src="{{ 'art-03.webp' | asset_url }}" width="1169" height="1600" alt="Painting of a scarecrow in a flowered hat standing in a field of sunflowers, made on commission" decoding="async" loading="lazy"></span><span class="nav-card__label">Commissions</span><span class="nav-card__note">A piece created for you</span></a></div>
+  <div class="nav-card"><a href="{{ pages['collaborations'].url }}"><span class="nav-card__frame"><img src="{{ 'art-23.webp' | asset_url }}" width="1600" height="1187" alt="Gouache illustration: an alchemist’s candlelit table with smoking flasks and old books" decoding="async" loading="lazy"></span><span class="nav-card__label">Collaborations</span><span class="nav-card__note">Brands, venues, institutions, creators</span></a></div>
 </div>
 </section>
 
@@ -50,8 +49,8 @@
 
 
 <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
-<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">View the portfolios</a></div>
-<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/murales">Mural project</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ pages['portfolio'].url }}">View the portfolios</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ pages['murales'].url }}">Mural project</a></div>
 </div>
 </div>
 {%- else -%}
@@ -71,8 +70,8 @@
 <p class="hero__lede has-large-font-size">Deux façons de travailler ensemble : une œuvre commandée pour vous, ou un projet mené avec une marque, un lieu ou une équipe.</p>
 
 <div class="wp-block-buttons is-content-justification-center is-layout-flex wp-block-buttons-is-layout-flex">
-<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/commissions">Commissions</a></div>
-<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/collaborations">Collaborations</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ pages['commissions'].url }}">Commissions</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ pages['collaborations'].url }}">Collaborations</a></div>
 </div>
 </div>
 </section>
@@ -87,8 +86,8 @@
 </div>
 
 <div class="nav-cards alignwide" data-reveal>
-  <div class="nav-card"><a href="{{ r }}pages/commissions"><span class="nav-card__frame"><img src="{{ 'art-03.webp' | asset_url }}" width="1169" height="1600" alt="Peinture d’un épouvantail coiffé d’un chapeau fleuri dans un champ de tournesols, réalisée sur commande" decoding="async" loading="lazy"></span><span class="nav-card__label">Commissions</span><span class="nav-card__note">Une œuvre créée pour vous</span></a></div>
-  <div class="nav-card"><a href="{{ r }}pages/collaborations"><span class="nav-card__frame"><img src="{{ 'art-23.webp' | asset_url }}" width="1600" height="1187" alt="Illustration à la gouache : une table d’alchimiste éclairée à la bougie, fioles fumantes et vieux livres" decoding="async" loading="lazy"></span><span class="nav-card__label">Collaborations</span><span class="nav-card__note">Marques, lieux, institutions, créateurs</span></a></div>
+  <div class="nav-card"><a href="{{ pages['commissions'].url }}"><span class="nav-card__frame"><img src="{{ 'art-03.webp' | asset_url }}" width="1169" height="1600" alt="Peinture d’un épouvantail coiffé d’un chapeau fleuri dans un champ de tournesols, réalisée sur commande" decoding="async" loading="lazy"></span><span class="nav-card__label">Commissions</span><span class="nav-card__note">Une œuvre créée pour vous</span></a></div>
+  <div class="nav-card"><a href="{{ pages['collaborations'].url }}"><span class="nav-card__frame"><img src="{{ 'art-23.webp' | asset_url }}" width="1600" height="1187" alt="Illustration à la gouache : une table d’alchimiste éclairée à la bougie, fioles fumantes et vieux livres" decoding="async" loading="lazy"></span><span class="nav-card__label">Collaborations</span><span class="nav-card__note">Marques, lieux, institutions, créateurs</span></a></div>
 </div>
 </section>
 
@@ -101,8 +100,8 @@
 
 
 <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
-<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/portfolio">Voir les portfolios</a></div>
-<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ r }}pages/murales">Projet de murale</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{ pages['portfolio'].url }}">Voir les portfolios</a></div>
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="{{ pages['murales'].url }}">Projet de murale</a></div>
 </div>
 </div>
 {%- endif -%}

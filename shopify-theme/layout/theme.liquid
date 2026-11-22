@@ -13,7 +13,8 @@
     saisir et traduire chaque titre dans l'admin.
   {%- endcomment -%}
   {%- if template.name == 'page' -%}
-    {%- assign key = 'page_titles.' | append: page.handle -%}
+    {%- capture key -%}{%- render 'page-key', page: page -%}{%- endcapture -%}
+    {%- assign key = 'page_titles.' | append: key -%}
     {%- assign translated = key | t -%}
     {%- unless translated contains 'translation missing' or translated contains 'Translation missing' -%}{%- assign page_title = translated -%}{%- endunless -%}
   {%- endif -%}

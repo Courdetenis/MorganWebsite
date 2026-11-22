@@ -9,12 +9,13 @@
     assign en = true
   endif
   assign heading = collection.title
+  # Par l'id et non le handle : Translate & Adapt peut traduire le handle.
   if collection.handle == 'all'
     assign heading = 'Boutique'
     if en
       assign heading = 'Shop'
     endif
-  elsif collection.handle == 'originaux' and en
+  elsif en and collection.id == collections['originaux'].id
     assign heading = 'Originals'
   endif
 -%}

@@ -22,7 +22,8 @@
                     {%- endif -%}
                     <span>
                       <a href="{{ item.url }}">{{ item.product.title }}</a><br>
-                      <span class="mg-muted">{{ item.price | money }}</span>
+                      <span class="mg-muted">{{ item.price | money }}</span><br>
+                      <a class="mg-cart__remove" href="{{ item.url_to_remove }}" aria-label="{{ 'cart.remove' | t }} : {{ item.product.title | escape }}">{{ 'cart.remove' | t }}</a>
                     </span>
                   </div>
                 </td>
